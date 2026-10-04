@@ -1,0 +1,26 @@
+/* panel/v1. Override any --yadad-panel-* variable or the underlying tokens. */
+@layer yadad.components {
+  :where([data-yadad="panel"][data-part="root"]) {
+    box-sizing: border-box;
+    block-size: 100%;
+    padding: var(--yadad-panel-padding, var(--yadad-space-4));
+    border: var(--yadad-panel-border-width, 1px) solid var(--yadad-panel-border, var(--yadad-color-border));
+    border-radius: var(--yadad-panel-radius, var(--yadad-radius-md));
+    background: var(--yadad-panel-background, var(--yadad-color-background));
+    font-family: var(--yadad-panel-font-family, var(--yadad-font-family));
+  }
+
+  :where([data-yadad="panel"]) :where([data-part="title"]) {
+    margin: 0 0 var(--yadad-space-3);
+    font-size: var(--yadad-panel-title-size, var(--yadad-font-size-md));
+  }
+
+  /* Sections inside a panel do not need a second frame. */
+  :where([data-yadad="panel"]) :where([data-yadad="section"][data-part="root"]) {
+    padding-inline: 0;
+    border-inline: 0;
+    border-block-end: 0;
+    border-radius: 0;
+    background: none;
+  }
+}
