@@ -27,7 +27,12 @@ components/
 3. **Versions live side by side.** A major upstream change means a new `vN` folder. Never edit an older version in place to track upstream. Switching versions is a one-line change in `registry/base.ts`.
 4. **Attribution.** Copied or adapted code keeps its upstream license header and a source link, and gets a row in `UPSTREAM.md` (component, source URL, upstream version, date copied, notes).
 5. **Accepted dependencies** are Radix (or React Aria / Base UI) for behavior primitives and TanStack Table / Virtual for tables. Anything else needs an engine-repo RFC.
-6. **Styling reads theme tokens** (CSS variables from `@yadad/theme`). No hard-coded colors or spacing.
+6. **Styling is configurable by the host** (engine DECISIONS.md D15):
+   - Read theme tokens (`--yadad-*` CSS variables from `@yadad/theme`). No hard-coded colors, spacing, radii or fonts.
+   - Expose per-component variables that default to tokens, e.g. `--yadad-input-border: var(--yadad-color-border)`.
+   - Give every rendered element a stable `data-part` (`data-part="input"`, `"label"`, `"error"`); hosts style against these, so renaming one is a breaking change.
+   - Put all CSS in `@layer yadad` so unlayered host CSS always wins.
+   - Plain CSS only: no Tailwind or other build-time CSS tooling. The repo ships pre-built CSS that hosts may import or skip.
 7. **One component (one folder) per PR**, plus its registry line and `UPSTREAM.md` row.
 8. **Personal and work-specific notes go in `*.private.md` files** (gitignored, never committed). This covers employer or work-app names, clients, sign-off questions, and anything personal. Tracked files describe these generically and must not quote or summarize `*.private.md` content.
 
