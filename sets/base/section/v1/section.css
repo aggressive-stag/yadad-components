@@ -1,0 +1,18 @@
+/* section/v1. Override any --yadad-section-* variable or the underlying tokens. */
+@layer yadad.components {
+  :where([data-yadad="section"][data-part="root"]) {
+    margin: 0 0 var(--yadad-section-spacing, var(--yadad-space-4));
+    padding: var(--yadad-section-padding, var(--yadad-space-4));
+    border: var(--yadad-section-border-width, 1px) solid var(--yadad-section-border, var(--yadad-color-border));
+    border-radius: var(--yadad-section-radius, var(--yadad-radius-md));
+    background: var(--yadad-section-background, var(--yadad-color-surface));
+    font-family: var(--yadad-section-font-family, var(--yadad-font-family));
+  }
+
+  :where([data-yadad="section"]) :where([data-part="title"]) {
+    padding: 0 var(--yadad-space-2);
+    font-size: var(--yadad-section-title-size, var(--yadad-font-size-md));
+    font-weight: var(--yadad-section-title-weight, 600);
+    color: var(--yadad-section-title-color, var(--yadad-color-text));
+  }
+}
