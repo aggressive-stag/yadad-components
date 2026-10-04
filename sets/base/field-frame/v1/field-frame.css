@@ -1,0 +1,25 @@
+/* field-frame/v1. Override --yadad-field-frame-* variables or the tokens. */
+@layer yadad.components {
+  :where([data-yadad="field-frame"][data-part="root"]) {
+    display: grid;
+    gap: var(--yadad-field-frame-gap, var(--yadad-space-1));
+    margin-block-end: var(--yadad-field-frame-spacing, var(--yadad-space-4));
+    font-family: var(--yadad-field-frame-font-family, var(--yadad-font-family));
+  }
+
+  :where([data-yadad="field-frame"]) :where([data-part="label"]) {
+    font-size: var(--yadad-field-frame-label-size, var(--yadad-font-size-sm));
+    color: var(--yadad-field-frame-label-color, var(--yadad-color-text));
+  }
+
+  :where([data-yadad="field-frame"]) :where([data-part="required"]) {
+    margin-inline-start: var(--yadad-space-1);
+    color: var(--yadad-field-frame-required-color, var(--yadad-color-danger));
+  }
+
+  :where([data-yadad="field-frame"]) :where([data-part="error"]) {
+    margin: 0;
+    font-size: var(--yadad-field-frame-error-size, var(--yadad-font-size-sm));
+    color: var(--yadad-field-frame-error-color, var(--yadad-color-danger));
+  }
+}

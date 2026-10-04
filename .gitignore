@@ -1,2 +1,8 @@
 # Local-only notes (never committed)
 *.private.md
+
+# Build and tooling output
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
