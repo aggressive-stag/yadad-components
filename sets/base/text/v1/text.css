@@ -1,0 +1,24 @@
+/* text/v1. Override any --yadad-text-* variable (on the element or any ancestor)
+   or the underlying --yadad-* tokens; the fallbacks below are the defaults. */
+@layer yadad.components {
+  :where([data-yadad="text"][data-part="input"]) {
+    box-sizing: border-box;
+    inline-size: var(--yadad-text-width, 100%);
+    padding: var(--yadad-text-padding, var(--yadad-space-2) var(--yadad-space-3));
+    font-family: var(--yadad-text-font-family, var(--yadad-font-family));
+    font-size: var(--yadad-text-font-size, var(--yadad-font-size-md));
+    color: var(--yadad-text-color, var(--yadad-color-text));
+    background: var(--yadad-text-background, var(--yadad-color-background));
+    border: var(--yadad-text-border-width, 1px) solid var(--yadad-text-border, var(--yadad-color-border));
+    border-radius: var(--yadad-text-radius, var(--yadad-radius-sm));
+  }
+
+  :where([data-yadad="text"][data-part="input"]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-text-focus, var(--yadad-color-accent));
+    outline-offset: 1px;
+  }
+
+  :where([data-yadad="text"][data-part="input"][aria-invalid="true"]) {
+    border-color: var(--yadad-text-border-invalid, var(--yadad-color-danger));
+  }
+}
