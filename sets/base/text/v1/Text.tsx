@@ -2,7 +2,7 @@ import type { DisplayProps, InputProps, TextField } from "@yadad/core";
 import type { ReactNode } from "react";
 
 /** Single-line text input. Emits undefined when emptied (no value). */
-export function TextInput({ inputId, field, value, onChange, invalid, describedBy }: InputProps<TextField, string>): ReactNode {
+export function TextInput({ inputId, field, value, onChange, invalid, describedBy, labelledBy }: InputProps<TextField, string>): ReactNode {
   return (
     <input
       id={inputId}
@@ -15,6 +15,7 @@ export function TextInput({ inputId, field, value, onChange, invalid, describedB
       aria-invalid={invalid}
       aria-required={field.required === true}
       aria-describedby={describedBy}
+      aria-labelledby={labelledBy}
     />
   );
 }

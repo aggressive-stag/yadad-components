@@ -2,7 +2,7 @@ import type { DateField, DisplayProps, InputProps } from "@yadad/core";
 import type { ReactNode } from "react";
 
 /** A native date input. Values are "YYYY-MM-DD"; emptying it emits undefined. */
-export function DateInput({ inputId, field, value, onChange, invalid, describedBy }: InputProps<DateField, string>): ReactNode {
+export function DateInput({ inputId, field, value, onChange, invalid, describedBy, labelledBy }: InputProps<DateField, string>): ReactNode {
   return (
     <input
       id={inputId}
@@ -17,6 +17,7 @@ export function DateInput({ inputId, field, value, onChange, invalid, describedB
       aria-invalid={invalid}
       aria-required={field.required === true}
       aria-describedby={describedBy}
+      aria-labelledby={labelledBy}
     />
   );
 }

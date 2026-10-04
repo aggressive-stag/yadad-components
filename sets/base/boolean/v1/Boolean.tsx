@@ -2,7 +2,7 @@ import type { BooleanField, DisplayProps, InputProps } from "@yadad/core";
 import type { ReactNode } from "react";
 
 /** A checkbox. Emits true when ticked and false when unticked. */
-export function BooleanInput({ inputId, field, value, onChange, invalid, describedBy }: InputProps<BooleanField, boolean>): ReactNode {
+export function BooleanInput({ inputId, field, value, onChange, invalid, describedBy, labelledBy }: InputProps<BooleanField, boolean>): ReactNode {
   return (
     <input
       id={inputId}
@@ -15,6 +15,7 @@ export function BooleanInput({ inputId, field, value, onChange, invalid, describ
       aria-invalid={invalid}
       aria-required={field.required === true}
       aria-describedby={describedBy}
+      aria-labelledby={labelledBy}
     />
   );
 }
