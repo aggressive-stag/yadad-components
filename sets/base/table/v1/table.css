@@ -1,0 +1,53 @@
+/* table/v1. Override any --yadad-table-* variable or the underlying tokens. */
+@layer yadad.components {
+  :where([data-yadad="table"][data-part="root"]) {
+    overflow-x: auto;
+    margin-block-end: var(--yadad-table-spacing, var(--yadad-space-4));
+    font-family: var(--yadad-table-font-family, var(--yadad-font-family));
+    font-size: var(--yadad-table-font-size, var(--yadad-font-size-sm));
+    color: var(--yadad-table-color, var(--yadad-color-text));
+  }
+
+  :where([data-yadad="table"]) :where([data-part="table"]) {
+    inline-size: 100%;
+    border-collapse: collapse;
+  }
+
+  :where([data-yadad="table"]) :where([data-part="caption"]) {
+    padding-block-end: var(--yadad-space-2);
+    text-align: start;
+    font-size: var(--yadad-table-caption-size, var(--yadad-font-size-md));
+    font-weight: 600;
+  }
+
+  :where([data-yadad="table"]) :where([data-part="header"], [data-part="cell"], [data-part="empty"]) {
+    padding: var(--yadad-table-cell-padding, var(--yadad-space-2) var(--yadad-space-3));
+    border-block-end: 1px solid var(--yadad-table-border, var(--yadad-color-border));
+    text-align: start;
+    vertical-align: middle;
+  }
+
+  :where([data-yadad="table"]) :where([data-part="header"]) {
+    background: var(--yadad-table-header-background, var(--yadad-color-surface));
+    font-weight: 600;
+  }
+
+  :where([data-yadad="table"]) :where([data-part="sort"]) {
+    all: unset;
+    display: inline-flex;
+    gap: var(--yadad-space-1);
+    cursor: pointer;
+  }
+
+  :where([data-yadad="table"]) :where([data-part="sort"]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-table-focus, var(--yadad-color-accent));
+  }
+
+  :where([data-yadad="table"]) :where([data-part="cell"]) > * + * {
+    margin-inline-start: var(--yadad-space-2);
+  }
+
+  :where([data-yadad="table"]) :where([data-part="empty"]) {
+    color: var(--yadad-table-empty-color, var(--yadad-color-text-muted));
+  }
+}
