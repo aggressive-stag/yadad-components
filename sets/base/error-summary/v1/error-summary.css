@@ -1,0 +1,25 @@
+/* error-summary/v1. Override any --yadad-error-summary-* variable or the underlying tokens. */
+@layer yadad.components {
+  :where([data-yadad="error-summary"][data-part="root"]) {
+    margin-block: var(--yadad-error-summary-spacing, var(--yadad-space-3));
+    padding: var(--yadad-error-summary-padding, var(--yadad-space-2) var(--yadad-space-3));
+    border-inline-start: var(--yadad-error-summary-bar-width, var(--yadad-space-1)) solid var(--yadad-error-summary-bar, var(--yadad-color-danger));
+    border-radius: var(--yadad-error-summary-radius, var(--yadad-radius-sm));
+    background: var(--yadad-error-summary-background, var(--yadad-color-surface));
+    font-family: var(--yadad-error-summary-font-family, var(--yadad-font-family));
+    font-size: var(--yadad-error-summary-font-size, var(--yadad-font-size-sm));
+  }
+
+  :where([data-yadad="error-summary"]) :where([data-part="item"]) {
+    margin: 0;
+  }
+
+  :where([data-yadad="error-summary"]) :where([data-part="message"]) {
+    color: var(--yadad-error-summary-color, var(--yadad-color-danger));
+    font-weight: 600;
+  }
+
+  :where([data-yadad="error-summary"]) :where([data-part="hint"]) {
+    color: var(--yadad-error-summary-hint-color, var(--yadad-color-text));
+  }
+}

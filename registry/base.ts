@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { BooleanDisplay, BooleanInput } from "../sets/base/boolean/v1";
 import { Button } from "../sets/base/button/v1";
 import { DateDisplay, DateInput } from "../sets/base/date/v1";
+import { ErrorSummary } from "../sets/base/error-summary/v1";
 import { FieldFrame } from "../sets/base/field-frame/v1";
 import { NumberDisplay, NumberInput } from "../sets/base/number/v1";
 import { Section } from "../sets/base/section/v1";
@@ -22,5 +23,5 @@ export const baseRegistry: Registry<ReactNode> = {
     select: { type: "select", Input: SelectInput, Display: SelectDisplay },
     date: { type: "date", Input: DateInput, Display: DateDisplay },
   },
-  layout: { FieldFrame, Section, Button, Table },
+  layout: { FieldFrame, Section, Button, Table, ErrorSummary },
 };
