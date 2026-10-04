@@ -6,3 +6,7 @@ Every component that copies or adapts third-party code gets a row here (AGENTS.m
 | --- | --- | --- | --- | --- |
 | text/v1 | — | — | — | Written from scratch; nothing copied. |
 | field-frame/v1 | — | — | — | Written from scratch; nothing copied. |
+| number/v1 | — | — | — | Written from scratch; nothing copied. |
+| boolean/v1 | — | — | — | Written from scratch; nothing copied. |
+| select/v1 | — | — | — | Written from scratch; nothing copied. |
+| date/v1 | — | — | — | Written from scratch; nothing copied. |
