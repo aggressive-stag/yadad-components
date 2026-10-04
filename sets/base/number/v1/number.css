@@ -1,0 +1,34 @@
+/* number/v1. Override any --yadad-number-* variable or the underlying tokens. */
+@layer yadad.components {
+  :where([data-yadad="number"][data-part="root"]) {
+    display: flex;
+    align-items: center;
+    gap: var(--yadad-number-gap, var(--yadad-space-2));
+  }
+
+  :where([data-yadad="number"]) :where([data-part="input"]) {
+    box-sizing: border-box;
+    inline-size: var(--yadad-number-width, 100%);
+    padding: var(--yadad-number-padding, var(--yadad-space-2) var(--yadad-space-3));
+    font-family: var(--yadad-number-font-family, var(--yadad-font-family));
+    font-size: var(--yadad-number-font-size, var(--yadad-font-size-md));
+    color: var(--yadad-number-color, var(--yadad-color-text));
+    background: var(--yadad-number-background, var(--yadad-color-background));
+    border: var(--yadad-number-border-width, 1px) solid var(--yadad-number-border, var(--yadad-color-border));
+    border-radius: var(--yadad-number-radius, var(--yadad-radius-sm));
+  }
+
+  :where([data-yadad="number"]) :where([data-part="input"]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-number-focus, var(--yadad-color-accent));
+    outline-offset: 1px;
+  }
+
+  :where([data-yadad="number"]) :where([data-part="input"][aria-invalid="true"]) {
+    border-color: var(--yadad-number-border-invalid, var(--yadad-color-danger));
+  }
+
+  :where([data-yadad="number"]) :where([data-part="unit"]) {
+    font-size: var(--yadad-number-unit-size, var(--yadad-font-size-sm));
+    color: var(--yadad-number-unit-color, var(--yadad-color-text-muted));
+  }
+}
