@@ -22,12 +22,12 @@ components/
 
 ## Hard rules
 
-1. **Implement the contract, never change it.** Components import `@engine/core` and `@engine/testing`, pinned to a `contract-vN` tag. If the contract is missing something, open an issue on the engine repo and stop.
-2. **Every registry entry passes the contract test kit** from `@engine/testing`: renders with fixture options, emits the right JSON type on change, shows an error, passes axe.
+1. **Implement the contract, never change it.** Components import `@yadad/core` and `@yadad/testing`, pinned to a `contract-vN` tag. If the contract is missing something, open an issue on the engine repo and stop.
+2. **Every registry entry passes the contract test kit** from `@yadad/testing`: renders with fixture options, emits the right JSON type on change, shows an error, passes axe.
 3. **Versions live side by side.** A major upstream change means a new `vN` folder. Never edit an older version in place to track upstream. Switching versions is a one-line change in `registry/base.ts`.
 4. **Attribution.** Copied or adapted code keeps its upstream license header and a source link, and gets a row in `UPSTREAM.md` (component, source URL, upstream version, date copied, notes).
 5. **Accepted dependencies** are Radix (or React Aria / Base UI) for behavior primitives and TanStack Table / Virtual for tables. Anything else needs an engine-repo RFC.
-6. **Styling reads theme tokens** (CSS variables from `@engine/theme`). No hard-coded colors or spacing.
+6. **Styling reads theme tokens** (CSS variables from `@yadad/theme`). No hard-coded colors or spacing.
 7. **One component (one folder) per PR**, plus its registry line and `UPSTREAM.md` row.
 8. **Personal and work-specific notes go in `*.private.md` files** (gitignored, never committed). This covers employer or work-app names, clients, sign-off questions, and anything personal. Tracked files describe these generically and must not quote or summarize `*.private.md` content.
 
