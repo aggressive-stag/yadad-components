@@ -1,0 +1,18 @@
+/* boolean/v1. Override any --yadad-boolean-* variable or the underlying tokens. */
+@layer yadad.components {
+  :where([data-yadad="boolean"][data-part="input"]) {
+    inline-size: var(--yadad-boolean-size, var(--yadad-space-4));
+    block-size: var(--yadad-boolean-size, var(--yadad-space-4));
+    margin: 0;
+    accent-color: var(--yadad-boolean-accent, var(--yadad-color-accent));
+  }
+
+  :where([data-yadad="boolean"][data-part="input"]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-boolean-focus, var(--yadad-color-accent));
+    outline-offset: 1px;
+  }
+
+  :where([data-yadad="boolean"][data-part="input"][aria-invalid="true"]) {
+    outline: 1px solid var(--yadad-boolean-border-invalid, var(--yadad-color-danger));
+  }
+}
