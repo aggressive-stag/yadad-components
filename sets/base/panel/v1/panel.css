@@ -3,6 +3,7 @@
   :where([data-yadad="panel"][data-part="root"]) {
     box-sizing: border-box;
     block-size: 100%;
+    overflow: auto;
     padding: var(--yadad-panel-padding, var(--yadad-space-4));
     border: var(--yadad-panel-border-width, 1px) solid var(--yadad-panel-border, var(--yadad-color-border));
     border-radius: var(--yadad-panel-radius, var(--yadad-radius-md));
@@ -15,8 +16,10 @@
     font-size: var(--yadad-panel-title-size, var(--yadad-font-size-md));
   }
 
-  /* Sections inside a panel do not need a second frame. */
-  :where([data-yadad="panel"]) :where([data-yadad="section"][data-part="root"]) {
+  /* Sections inside a panel do not need a second frame. One attribute of
+     specificity so this beats section/v1's zero-specificity rules, whatever
+     the file order; unlayered host CSS still wins. */
+  [data-yadad="panel"] :where([data-yadad="section"][data-part="root"]) {
     padding-inline: 0;
     border-inline: 0;
     border-block-end: 0;
