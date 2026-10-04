@@ -1,0 +1,19 @@
+/* count/v1. Override any --yadad-count-* variable or the underlying tokens. */
+@layer yadad.components {
+  :where([data-yadad="count"][data-part="root"]) {
+    display: grid;
+    gap: var(--yadad-count-gap, var(--yadad-space-1));
+    font-family: var(--yadad-count-font-family, var(--yadad-font-family));
+  }
+
+  :where([data-yadad="count"]) :where([data-part="label"]) {
+    font-size: var(--yadad-count-label-size, var(--yadad-font-size-sm));
+    color: var(--yadad-count-label-color, var(--yadad-color-text-muted));
+  }
+
+  :where([data-yadad="count"]) :where([data-part="value"]) {
+    font-size: var(--yadad-count-value-size, calc(var(--yadad-font-size-md) * 2));
+    font-weight: 700;
+    color: var(--yadad-count-value-color, var(--yadad-color-text));
+  }
+}
