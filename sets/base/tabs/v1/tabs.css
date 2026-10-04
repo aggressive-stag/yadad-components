@@ -1,0 +1,33 @@
+/* tabs/v1. Override any --yadad-tabs-* variable or the underlying tokens. */
+@layer yadad.components {
+  :where([data-yadad="tabs"]) :where([data-part="list"]) {
+    display: flex;
+    gap: var(--yadad-tabs-gap, var(--yadad-space-1));
+    margin-block-end: var(--yadad-tabs-spacing, var(--yadad-space-4));
+    border-block-end: 1px solid var(--yadad-tabs-border, var(--yadad-color-border));
+    font-family: var(--yadad-tabs-font-family, var(--yadad-font-family));
+  }
+
+  :where([data-yadad="tabs"]) :where([data-part="tab"]) {
+    padding: var(--yadad-tabs-padding, var(--yadad-space-2) var(--yadad-space-4));
+    font: inherit;
+    font-size: var(--yadad-tabs-font-size, var(--yadad-font-size-md));
+    color: var(--yadad-tabs-color, var(--yadad-color-text-muted));
+    background: none;
+    border: 0;
+    border-block-end: var(--yadad-tabs-indicator-width, var(--yadad-space-1)) solid transparent;
+    margin-block-end: -1px;
+    cursor: pointer;
+  }
+
+  :where([data-yadad="tabs"]) :where([data-part="tab"][aria-selected="true"]) {
+    color: var(--yadad-tabs-selected-color, var(--yadad-color-text));
+    border-block-end-color: var(--yadad-tabs-indicator, var(--yadad-color-accent));
+    font-weight: 600;
+  }
+
+  :where([data-yadad="tabs"]) :where([data-part="tab"], [data-part="panel"]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-tabs-focus, var(--yadad-color-accent));
+    outline-offset: 1px;
+  }
+}
