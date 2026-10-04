@@ -1,0 +1,24 @@
+/* date/v1. Override any --yadad-date-* variable (on the element or any ancestor)
+   or the underlying --yadad-* tokens; the fallbacks below are the defaults. */
+@layer yadad.components {
+  :where([data-yadad="date"][data-part="input"]) {
+    box-sizing: border-box;
+    inline-size: var(--yadad-date-width, 100%);
+    padding: var(--yadad-date-padding, var(--yadad-space-2) var(--yadad-space-3));
+    font-family: var(--yadad-date-font-family, var(--yadad-font-family));
+    font-size: var(--yadad-date-font-size, var(--yadad-font-size-md));
+    color: var(--yadad-date-color, var(--yadad-color-text));
+    background: var(--yadad-date-background, var(--yadad-color-background));
+    border: var(--yadad-date-border-width, 1px) solid var(--yadad-date-border, var(--yadad-color-border));
+    border-radius: var(--yadad-date-radius, var(--yadad-radius-sm));
+  }
+
+  :where([data-yadad="date"][data-part="input"]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-date-focus, var(--yadad-color-accent));
+    outline-offset: 1px;
+  }
+
+  :where([data-yadad="date"][data-part="input"][aria-invalid="true"]) {
+    border-color: var(--yadad-date-border-invalid, var(--yadad-color-danger));
+  }
+}
