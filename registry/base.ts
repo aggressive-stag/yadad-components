@@ -1,18 +1,18 @@
 import type { Registry } from "@yadad/core";
 import type { ReactNode } from "react";
-import { BooleanDisplay, BooleanInput } from "../sets/base/boolean/v1";
-import { Button } from "../sets/base/button/v1";
-import { Count } from "../sets/base/count/v1";
-import { DateDisplay, DateInput } from "../sets/base/date/v1";
-import { ErrorSummary } from "../sets/base/error-summary/v1";
-import { FieldFrame } from "../sets/base/field-frame/v1";
-import { NumberDisplay, NumberInput } from "../sets/base/number/v1";
-import { Panel } from "../sets/base/panel/v1";
-import { Section } from "../sets/base/section/v1";
-import { SelectDisplay, SelectInput } from "../sets/base/select/v1";
-import { Table } from "../sets/base/table/v1";
-import { Tabs } from "../sets/base/tabs/v1";
-import { TextDisplay, TextInput } from "../sets/base/text/v1";
+import { BooleanDisplay, BooleanInput } from "../sets/base/boolean/v1/index.js";
+import { Button } from "../sets/base/button/v1/index.js";
+import { Count } from "../sets/base/count/v1/index.js";
+import { DateDisplay, DateInput } from "../sets/base/date/v1/index.js";
+import { ErrorSummary } from "../sets/base/error-summary/v1/index.js";
+import { FieldFrame } from "../sets/base/field-frame/v1/index.js";
+import { NumberDisplay, NumberInput } from "../sets/base/number/v1/index.js";
+import { Panel } from "../sets/base/panel/v1/index.js";
+import { Section } from "../sets/base/section/v1/index.js";
+import { SelectDisplay, SelectInput } from "../sets/base/select/v1/index.js";
+import { Table } from "../sets/base/table/v1/index.js";
+import { Tabs } from "../sets/base/tabs/v1/index.js";
+import { TextDisplay, TextInput } from "../sets/base/text/v1/index.js";
 
 /**
  * The base set: one component version per field type. Switching a version is

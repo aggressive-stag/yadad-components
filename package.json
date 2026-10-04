@@ -1,23 +1,44 @@
 {
   "name": "@yadad/components",
   "version": "0.0.0",
+  "description": "The yadad base component set: themeable, accessible field and layout components for the yadad renderer.",
   "type": "module",
   "packageManager": "pnpm@12.9.1",
   "engines": {
     "node": ">=22.12"
   },
+  "sideEffects": [
+    "*.css"
+  ],
   "exports": {
-    ".": "./registry/base.ts",
+    ".": {
+      "@yadad/source": "./registry/base.ts",
+      "types": "./dist/registry/base.d.ts",
+      "default": "./dist/registry/base.js"
+    },
     "./styles.css": "./dist/yadad-components.css"
+  },
+  "files": [
+    "dist",
+    "sets",
+    "registry",
+    "!**/*.test.*",
+    "!**/*.tsbuildinfo"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aggressive-stag/yadad-components.git"
   },
   "scripts": {
     "prepare": "git config core.hooksPath .githooks",
+    "build": "tsc -p tsconfig.build.json && node scripts/build-css.mjs",
     "typecheck": "tsc",
     "test": "vitest run",
     "build:css": "node scripts/build-css.mjs"
   },
   "peerDependencies": {
-    "react": "^19.3.0"
+    "react": "^19.3.0",
+    "@yadad/core": "^0.1.0"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.2",

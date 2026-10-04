@@ -4,6 +4,7 @@
     "lib": ["ES2023", "DOM"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "customConditions": ["@yadad/source"],
     "jsx": "react-jsx",
     "types": ["node"],
 

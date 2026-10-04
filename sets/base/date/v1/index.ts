@@ -1,1 +1,1 @@
-export { DateDisplay, DateInput } from "./Date";
+export { DateDisplay, DateInput } from "./Date.js";

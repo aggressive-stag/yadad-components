@@ -1,1 +1,1 @@
-export { FieldFrame } from "./FieldFrame";
+export { FieldFrame } from "./FieldFrame.js";

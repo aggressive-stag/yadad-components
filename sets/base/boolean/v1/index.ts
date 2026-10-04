@@ -1,1 +1,1 @@
-export { BooleanDisplay, BooleanInput } from "./Boolean";
+export { BooleanDisplay, BooleanInput } from "./Boolean.js";

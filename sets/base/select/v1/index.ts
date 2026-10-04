@@ -1,1 +1,1 @@
-export { SelectDisplay, SelectInput } from "./Select";
+export { SelectDisplay, SelectInput } from "./Select.js";

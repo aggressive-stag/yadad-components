@@ -1,1 +1,1 @@
-export { ErrorSummary } from "./ErrorSummary";
+export { ErrorSummary } from "./ErrorSummary.js";

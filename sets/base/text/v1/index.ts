@@ -1,1 +1,1 @@
-export { TextDisplay, TextInput } from "./Text";
+export { TextDisplay, TextInput } from "./Text.js";
