@@ -1,0 +1,32 @@
+/* button/v1. Override any --yadad-button-* variable or the underlying tokens. */
+@layer yadad.components {
+  :where([data-yadad="button"][data-part="root"]) {
+    padding: var(--yadad-button-padding, var(--yadad-space-2) var(--yadad-space-4));
+    font-family: var(--yadad-button-font-family, var(--yadad-font-family));
+    font-size: var(--yadad-button-font-size, var(--yadad-font-size-sm));
+    font-weight: var(--yadad-button-font-weight, 600);
+    border: var(--yadad-button-border-width, 1px) solid var(--yadad-button-border, var(--yadad-color-accent));
+    border-radius: var(--yadad-button-radius, var(--yadad-radius-sm));
+    cursor: pointer;
+  }
+
+  :where([data-yadad="button"][data-variant="primary"]) {
+    color: var(--yadad-button-primary-color, var(--yadad-color-background));
+    background: var(--yadad-button-primary-background, var(--yadad-color-accent));
+  }
+
+  :where([data-yadad="button"][data-variant="secondary"]) {
+    color: var(--yadad-button-secondary-color, var(--yadad-color-accent));
+    background: var(--yadad-button-secondary-background, var(--yadad-color-background));
+  }
+
+  :where([data-yadad="button"][data-part="root"]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-button-focus, var(--yadad-color-accent));
+    outline-offset: 1px;
+  }
+
+  :where([data-yadad="button"][data-part="root"]):disabled {
+    cursor: not-allowed;
+    opacity: var(--yadad-button-disabled-opacity, 0.6);
+  }
+}
