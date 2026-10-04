@@ -31,6 +31,10 @@ components/
 7. **One component (one folder) per PR**, plus its registry line and `UPSTREAM.md` row.
 8. **Personal and work-specific notes go in `*.private.md` files** (gitignored, never committed). This covers employer or work-app names, clients, sign-off questions, and anything personal. Tracked files describe these generically and must not quote or summarize `*.private.md` content.
 
+## Commit messages
+
+[Angular format](https://github.com/angular/angular/blob/main/contributing-docs/commit-message-guidelines.md), enforced by `.githooks/commit-msg` (enable with `git config core.hooksPath .githooks`). Same rules as the engine repo's `AGENTS.md`, except the scope is the component name (`text`, `data-table`), `registry`, `dev-infra` or `deps`. Commit early and often: one logical step per commit.
+
 ## Done when
 
 - Contract kit passes for the entry.
