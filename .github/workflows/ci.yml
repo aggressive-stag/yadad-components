@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch: # re-run by hand after an engine change
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  components:
+    runs-on: ubuntu-latest
+    steps:
+      # Until contract-v0 is published, @yadad/core and @yadad/testing are linked
+      # from ../yadad, so check both repos out side by side.
+      - uses: actions/checkout@v7
+        with:
+          path: yadad-components
+
+      - uses: actions/checkout@v7
+        with:
+          repository: aggressive-stag/yadad
+          path: yadad
+
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: yadad-components/package.json
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: |
+            yadad/pnpm-lock.yaml
+            yadad-components/pnpm-lock.yaml
+
+      - name: Install the engine (linked packages resolve their dependencies there)
+        working-directory: yadad
+        run: pnpm install --frozen-lockfile
+
+      - name: Install
+        working-directory: yadad-components
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        working-directory: yadad-components
+        run: pnpm typecheck
+
+      - name: Contract kit, axe and stylesheet guardrails
+        working-directory: yadad-components
+        run: pnpm test
+
+      - name: Build the stylesheet
+        working-directory: yadad-components
+        run: pnpm build:css && test -s dist/yadad-components.css
