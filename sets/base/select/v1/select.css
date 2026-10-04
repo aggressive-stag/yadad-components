@@ -1,0 +1,24 @@
+/* select/v1. Override any --yadad-select-* variable (on the element or any ancestor)
+   or the underlying --yadad-* tokens; the fallbacks below are the defaults. */
+@layer yadad.components {
+  :where([data-yadad="select"][data-part="input"]) {
+    box-sizing: border-box;
+    inline-size: var(--yadad-select-width, 100%);
+    padding: var(--yadad-select-padding, var(--yadad-space-2) var(--yadad-space-3));
+    font-family: var(--yadad-select-font-family, var(--yadad-font-family));
+    font-size: var(--yadad-select-font-size, var(--yadad-font-size-md));
+    color: var(--yadad-select-color, var(--yadad-color-text));
+    background: var(--yadad-select-background, var(--yadad-color-background));
+    border: var(--yadad-select-border-width, 1px) solid var(--yadad-select-border, var(--yadad-color-border));
+    border-radius: var(--yadad-select-radius, var(--yadad-radius-sm));
+  }
+
+  :where([data-yadad="select"][data-part="input"]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-select-focus, var(--yadad-color-accent));
+    outline-offset: 1px;
+  }
+
+  :where([data-yadad="select"][data-part="input"][aria-invalid="true"]) {
+    border-color: var(--yadad-select-border-invalid, var(--yadad-color-danger));
+  }
+}
