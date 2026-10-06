@@ -39,6 +39,9 @@ echo "release: publishing ${name}@${version}"
 # Until contract-v0 is published, @yadad/core and @yadad/testing are linked
 # from ../yadad, as in the GitHub workflow.
 git clone --depth 1 "${CI_SERVER_URL}/yadad/yadad.git" ../yadad
+# The runner's helper container owns the checkout; this container runs as
+# root, so git (run by `prepare`) would refuse it as "dubious ownership".
+git config --global --add safe.directory "${CI_PROJECT_DIR}"
 corepack enable
 (cd ../yadad && pnpm install --frozen-lockfile)
 pnpm install --frozen-lockfile
