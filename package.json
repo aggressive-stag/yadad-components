@@ -1,6 +1,6 @@
 {
   "name": "@yadad/components",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "The yadad base component set: themeable, accessible field and layout components for the yadad renderer.",
   "type": "module",
   "packageManager": "pnpm@12.9.1",
