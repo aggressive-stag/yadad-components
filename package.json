@@ -1,6 +1,6 @@
 {
   "name": "@yadad/components",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The yadad base component set: themeable, accessible field and layout components for the yadad renderer.",
   "type": "module",
   "packageManager": "pnpm@12.9.1",
@@ -38,7 +38,7 @@
   },
   "peerDependencies": {
     "react": "^19.3.0",
-    "@yadad/core": "^0.1.0"
+    "@yadad/core": "^0.1.0 || ^0.2.0"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.2",
