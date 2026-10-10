@@ -38,6 +38,10 @@ corepack pnpm build:css        # emits dist/yadad-components.css
 
 `pnpm build` runs `typecheck`-equivalent `tsc -p tsconfig.build.json` plus the stylesheet build.
 
+## Releasing
+
+This repo uses [changesets](https://github.com/changesets/changesets): a change that users can see gets a changeset (`pnpm changeset` — patch for fixes, minor for features while pre-1.0), and `pnpm changeset version` bumps the version and writes `CHANGELOG.md`. Commit both and push; the GitLab mirror publishes any version that is not in the registry yet and skips publishing while changesets are pending. `CHANGELOG.md` covers every published version and ships in the package.
+
 ## The contract every entry must pass
 
 Each registry entry is checked by the contract test kit from `@yadad/testing`:

@@ -3,6 +3,15 @@
 # version is not there yet. Runs in GitLab CI on main (see .gitlab-ci.yml).
 set -eu
 
+# Skips without publishing when changesets are pending: those changes have not
+# been versioned yet, so the version in package.json is the last release's,
+# and publishing it again would ship a half-released state.
+pending=$(find .changeset -name '*.md' ! -name README.md | wc -l)
+if [ "${pending}" -gt 0 ]; then
+  echo "release: ${pending} pending changeset(s). Run 'pnpm changeset version' locally, commit and push to release. Nothing published."
+  exit 0
+fi
+
 : "${CI_API_V4_URL:?run this in GitLab CI}"
 : "${CI_PROJECT_ID:?run this in GitLab CI}"
 : "${CI_JOB_TOKEN:?run this in GitLab CI}"

@@ -41,7 +41,7 @@ components/
 You land and release your own work. Nobody reviews or merges it for you.
 
 - Commit straight to `main` and push (`origin` pushes to GitHub and the GitLab mirror together). Run `pnpm typecheck && pnpm test && pnpm build` before pushing. No PRs, no review requests. With several agents at once, use a worktree under `.worktrees/`, rebase on `origin/main` and push `HEAD:main` (fast-forward only, never force-push).
-- To release, bump `version` in `package.json` (minor while pre-1.0), commit and push. The GitLab mirror's CI publishes any version the registry does not have yet (`scripts/release/publish.sh`).
+- To release, add a changeset (`pnpm changeset`; patch for fixes, minor for features while pre-1.0), then run `pnpm changeset version` to bump the version and write `CHANGELOG.md`, and commit and push. The GitLab mirror's CI publishes any version the registry does not have yet (`scripts/release/publish.sh`) and skips publishing while changesets are pending.
 - When the engine releases a new `@yadad/core` minor, widen the `@yadad/core` peer range to include it, check the gate, and release, so consumers never need an `overrides` workaround.
 
 ## Commit messages
