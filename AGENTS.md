@@ -22,7 +22,7 @@ components/
 
 ## Hard rules
 
-1. **Implement the contract, never change it.** Components import `@yadad/core` and `@yadad/testing`, pinned to a `contract-vN` tag. If the contract is missing something, open an issue on the engine repo and stop.
+1. **Implement the contract, never change it.** Components import `@yadad/core` and `@yadad/testing` from the registry (`@yadad/core` is a peer dependency). If the contract is missing something, stop that part and say so in your report.
 2. **Every registry entry passes the contract test kit** from `@yadad/testing`: renders with fixture options, emits the right JSON type on change, shows an error, passes axe.
 3. **Versions live side by side.** A major upstream change means a new `vN` folder. Never edit an older version in place to track upstream. Switching versions is a one-line change in `registry/base.ts`.
 4. **Attribution.** Copied or adapted code keeps its upstream license header and a source link, and gets a row in `UPSTREAM.md` (component, source URL, upstream version, date copied, notes).
@@ -33,8 +33,16 @@ components/
    - Give every rendered element a stable `data-part` (`data-part="input"`, `"label"`, `"error"`); hosts style against these, so renaming one is a breaking change.
    - Put all CSS in `@layer yadad` so unlayered host CSS always wins.
    - Plain CSS only: no Tailwind or other build-time CSS tooling. The repo ships pre-built CSS that hosts may import or skip.
-7. **One component (one folder) per PR**, plus its registry line and `UPSTREAM.md` row.
+7. **One component (one folder) at a time**, landed with its registry line and `UPSTREAM.md` row.
 8. **Personal and work-specific notes go in `*.private.md` files** (gitignored, never committed). This covers employer or work-app names, clients, sign-off questions, and anything personal. Tracked files describe these generically and must not quote or summarize `*.private.md` content.
+
+## Landing and releasing
+
+You land and release your own work. Nobody reviews or merges it for you.
+
+- Commit straight to `main` and push (`origin` pushes to GitHub and the GitLab mirror together). Run `pnpm typecheck && pnpm test && pnpm build` before pushing. No PRs, no review requests. With several agents at once, use a worktree under `.worktrees/`, rebase on `origin/main` and push `HEAD:main` (fast-forward only, never force-push).
+- To release, bump `version` in `package.json` (minor while pre-1.0), commit and push. The GitLab mirror's CI publishes any version the registry does not have yet (`scripts/release/publish.sh`).
+- When the engine releases a new `@yadad/core` minor, widen the `@yadad/core` peer range to include it, check the gate, and release, so consumers never need an `overrides` workaround.
 
 ## Commit messages
 
