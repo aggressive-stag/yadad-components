@@ -1,0 +1,20 @@
+{
+  "name": "@yadad/components-gallery",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Local gallery of the base component set in every state. Dev tooling only; never published (see package.json files).",
+  "type": "module",
+  "scripts": {
+    "dev": "vite"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@yadad/core": "link:../yadad/packages/core",
+    "@yadad/theme": "link:../yadad/packages/theme",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.2"
+  }
+}

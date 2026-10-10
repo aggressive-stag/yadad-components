@@ -19,5 +19,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["sets", "registry"]
+  "include": ["sets", "registry", "gallery/src", "gallery/src/gallery-globals.d.ts"]
 }
