@@ -1,4 +1,7 @@
-/* table/v1. Override any --yadad-table-* variable or the underlying tokens. */
+/* table/v1. Override any --yadad-table-* variable or the underlying tokens.
+   --yadad-table-sort-tap: minimum height of a sortable column header, the
+   tap target on a phone; token-derived: 2x space-4 plus space-3 is 44px at
+   the default tokens and doubles to 88px at 200% text. */
 @layer yadad.components {
   :where([data-yadad="table"][data-part="root"]) {
     overflow-x: auto;
@@ -34,9 +37,16 @@
 
   :where([data-yadad="table"]) :where([data-part="sort"]) {
     all: unset;
-    display: inline-flex;
+    /* The thumb taps the column header, not just the label inside it, so the
+       button fills the header cell: the whole cell is the tap target. */
+    display: flex;
+    align-items: center;
+    inline-size: 100%;
     gap: var(--yadad-space-1);
     cursor: pointer;
+    /* Phone touch: sorting from a column header is a thumb action and needs a
+       44px target. Token-derived so it rescales with the theme. */
+    min-block-size: var(--yadad-table-sort-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
   }
 
   :where([data-yadad="table"]) :where([data-part="sort"]):focus-visible {
