@@ -1,6 +1,11 @@
-/* button/v1. Override any --yadad-button-* variable or the underlying tokens. */
+/* button/v1. Override any --yadad-button-* variable or the underlying tokens.
+   --yadad-button-tap: minimum rendered height (the tap target on a phone),
+   token-derived so it tracks any host token override: 2x space-4 plus
+   space-3 is 44px at the default tokens and doubles to 88px at 200% text. */
 @layer yadad.components {
   :where([data-yadad="button"][data-part="root"]) {
+    display: flex;
+    align-items: center;
     padding: var(--yadad-button-padding, var(--yadad-space-2) var(--yadad-space-4));
     font-family: var(--yadad-button-font-family, var(--yadad-font-family));
     font-size: var(--yadad-button-font-size, var(--yadad-font-size-sm));
@@ -8,6 +13,9 @@
     border: var(--yadad-button-border-width, 1px) solid var(--yadad-button-border, var(--yadad-color-accent));
     border-radius: var(--yadad-button-radius, var(--yadad-radius-sm));
     cursor: pointer;
+    /* Phone touch: a thumb needs a 44px target. Token-derived (2x space-4
+       plus space-3) so a host token override rescales it with the theme. */
+    min-block-size: var(--yadad-button-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
   }
 
   :where([data-yadad="button"][data-variant="primary"]) {
