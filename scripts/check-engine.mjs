@@ -38,6 +38,14 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+/**
+ * The registry is not reachable from THIS network (LAN-internal registry,
+ * public CI runners, offline dev box). A genuine registry/HTTP error is NOT
+ * this — those still fail the check, because a bogus "versions" lookup would
+ * otherwise look like an empty registry.
+ */
+class RegistryError extends Error {}
+
 const REGISTRY_DEFAULT = "https://gitlab.base-camp.dev/api/v4/packages/npm/";
 
 function fail(message) {
@@ -64,11 +72,21 @@ async function loadSemver() {
 }
 
 function npmView(spec, registry) {
-  const out = execFileSync("npm", ["view", ...spec.split(" "), "--json", "--registry", registry], {
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-  return JSON.parse(out);
+  try {
+    const out = execFileSync("npm", ["view", ...spec.split(" "), "--json", "--registry", registry], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    return JSON.parse(out);
+  } catch (err) {
+    // Distinguish "this registry cannot be reached from here" from a real
+    // result. npm reports both as non-zero exits, but only the network case
+    // may skip (the caller decides) — a genuine registry error is still a
+    // failure.
+    const stderr = String(err.stderr ?? "");
+    const net = /ENOTFOUND|EAI_AGAIN|ECONNREFUSED|ETIMEDOUT|ECONNRESET|getaddrinfo|network/i.test(stderr);
+    throw net ? new RegistryError(`${spec}: unreachable from this network (${stderr.split("\n").find((l) => /\bE[A-Z0-9]{3,}\b|getaddrinfo/.test(l)) ?? "network error"})`) : err;
+  }
 }
 
 function parseArgs(argv) {
@@ -179,10 +197,28 @@ const args = parseArgs(process.argv.slice(2));
 const semver = await loadSemver();
 if (!semver) fail("semver not resolvable from node_modules — run `pnpm install` first");
 
+// The registry is LAN-internal. From a network that cannot reach it there is
+// no way to answer "is the range stale?" — so skip LOUDLY and exit 0. The
+// check is correct where it can run (homelab, self-hosted runners, dev boxes);
+// skipping must not masquerade as passing, and it must not fail the build on
+// every unrelated push. A reachable-but-stale range still exits 1.
+const skip = (err) => {
+  console.error(`check:engine: SKIP — cannot reach the engine registry ${args.registry} from this network.`);
+  console.error(`  (${String(err.message).split("\n")[0]})`);
+  console.error(`  No staleness verdict was produced. This is NOT a pass: run where the registry is reachable to get one.`);
+  process.exit(0);
+};
+
 if (args.install) {
-  const coreVersions = npmView("@yadad/core versions", args.registry);
-  const testingVersions = npmView("@yadad/testing versions", args.registry);
-  const themeVersions = npmView("@yadad/theme versions", args.registry);
+  let coreVersions, testingVersions, themeVersions;
+  try {
+    coreVersions = npmView("@yadad/core versions", args.registry);
+    testingVersions = npmView("@yadad/testing versions", args.registry);
+    themeVersions = npmView("@yadad/theme versions", args.registry);
+  } catch (err) {
+    if (err instanceof RegistryError) skip(err);
+    throw err;
+  }
   const newestCore = coreVersions.at(-1);
   const newestTesting = testingVersions.at(-1);
   const newestTheme = themeVersions.at(-1);
@@ -195,6 +231,12 @@ if (args.install) {
   process.exit(pass ? 0 : 1);
 }
 
-const ok = await checkRanges(args.registry, semver);
+let ok;
+try {
+  ok = await checkRanges(args.registry, semver);
+} catch (err) {
+  if (err instanceof RegistryError) skip(err);
+  throw err;
+}
 console.log(ok ? "check:engine: ok — peer range and testing kit are current." : "check:engine: range is stale.");
 process.exit(ok ? 0 : 1);

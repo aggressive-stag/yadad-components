@@ -92,6 +92,8 @@ corepack pnpm check:engine
 
 asks the registry for every published `@yadad/core` and `@yadad/testing` version, reports the newest, and exits non-zero if the declared range does not cover it (or if the newest testing kit cannot run the kit against that core). A CI job runs it on every push with `continue-on-error`, so a stale range shows up as a red check without blocking unrelated work — a new engine minor lands *before* the components can prove themselves against it, and the point of the job is to make that visible, not to hold the line.
 
+One honest caveat: the engine registry is LAN-internal (`gitlab.base-camp.dev`), and GitHub's public CI runners cannot resolve it. From such a network the script cannot answer "is the range stale?", so it skips loudly and exits 0 — the log says `SKIP — cannot reach the engine registry … No staleness verdict was produced. This is NOT a pass.` A skip never masquerades as a pass, and a genuinely reachable-but-stale range still fails. Until a self-hosted runner with registry access exists, the CI job is a documented no-op on public runners; the check does its real work on homelab machines, where it is the standing "is the range current?" command.
+
 Widening the range requires proof, because the linked `../yadad` source may differ from the newest published version:
 
 ```sh

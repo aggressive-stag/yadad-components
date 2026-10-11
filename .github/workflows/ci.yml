@@ -66,6 +66,13 @@ jobs:
   # stale range visible. continue-on-error: it must flag, not block — a new
   # engine minor lands *before* components can prove themselves against it,
   # and failing the main job on every unrelated push would hide the signal.
+  #
+  # Network caveat: the engine registry (gitlab.base-camp.dev) is LAN-only
+  # and unresolvable from GitHub's public runners. The script treats an
+  # unreachable registry as a loud SKIP (exit 0, "no verdict produced"), so
+  # on public runners this job is a documented no-op until a self-hosted
+  # runner with registry access exists. Where the registry IS reachable,
+  # a reachable-but-stale range fails the job (surfaced, non-blocking).
   engine-range:
     runs-on: ubuntu-latest
     continue-on-error: true
