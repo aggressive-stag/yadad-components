@@ -14,5 +14,13 @@ export default defineConfig({
     dedupe: ["react", "react-dom"],
     conditions: ["@yadad/source", "module", "browser", "development|production"],
   },
-  server: { port: 5199, strictPort: true },
+  server: {
+    port: 5199,
+    strictPort: true,
+    fs: {
+      // The page loads the components' stylesheets from ../../sets (the same
+      // content as dist/yadad-components.css); allow serving them in dev.
+      allow: [".."],
+    },
+  },
 });
