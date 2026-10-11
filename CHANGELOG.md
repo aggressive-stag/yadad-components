@@ -1,5 +1,11 @@
 # @yadad/components
 
+## 0.2.0
+
+### Minor Changes
+
+- Add documented `--yadad-<component>-tap` variables so the thumb targets meet the 44px phone minimum: the button, the label of a checkbox field, a sortable table header, a tab and the select picker each get a `min-block-size` that defaults to two `space-4` plus `space-3` (44px at the default tokens, doubling at 200% text and tracking any host token override). The sortable header also fills its column cell so the whole header is the target. Long count values wrap instead of running the page sideways, and the date input can now shrink below its intrinsic width so a narrow screen truncates the control's own fields instead of forcing a horizontal page scroll. Guarded in `registry/styles.test.ts` and by a rerunnable real-browser check, `gallery/check/phone-touch.mjs` (documented in the README, along with the new variables).
+
 ## 0.1.4
 
 ### Patch Changes
