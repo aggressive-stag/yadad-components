@@ -61,17 +61,34 @@ Styling is fully configurable by the host (engine DECISIONS D15):
 - All CSS lives in a layer (`@layer yadad.components`) so unlayered host CSS always wins.
 - Plain CSS only — no Tailwind or build-time CSS tooling. The repo ships pre-built CSS that hosts may import or skip.
 
-## Real-browser keyboard checks
+## Real-browser checks
 
 `pnpm gallery` serves a page that renders every registry entry in all of its states, with light/dark and 100%/200% text toggles. Use it for any UI change (desktop and 390×844 with touch, keyboard-only).
 
-`gallery/check/` holds rerunnable keyboard checks that are not published:
+`gallery/check/` holds rerunnable checks that are not published:
 
 ```sh
 GALLERY_URL=http://localhost:5199/ node gallery/check/tabs-keyboard.mjs
+GALLERY_URL=http://localhost:5199/ node gallery/check/phone-touch.mjs
 ```
 
-`tabs-keyboard.mjs` drives a real Chromium through the gallery and asserts that at 200% text the long tab list scrolls internally instead of forcing page-level horizontal overflow, that `End` reaches the last tab with its focus ring inside the viewport, and that the tablist's ring-clearance padding covers the focus-ring extent in both themes at both sizes. Exits non-zero on any failure. If the machine's Chromium differs from the one `playwright-core` ships, point at it with `PLAYWRIGHT_EXECUTABLE_PATH=/path/to/chrome-headless-shell`.
+Both exit non-zero on any failure. If the machine's Chromium differs from the one `playwright-core` ships, point at it with `PLAYWRIGHT_EXECUTABLE_PATH=/path/to/chrome-headless-shell`.
+
+`tabs-keyboard.mjs` drives a real Chromium through the gallery and asserts that at 200% text the long tab list scrolls internally instead of forcing page-level horizontal overflow, that `End` reaches the last tab with its focus ring inside the viewport, and that the tablist's ring-clearance padding covers the focus-ring extent in both themes at both sizes.
+
+`phone-touch.mjs` drives the gallery at 390×844 and 320 px wide with touch enabled, in both themes and at 200% text, and asserts that the tap targets (buttons, the checkbox label, sortable headers, tabs and pickers) are at least 44×44 CSS px, that nothing forces the host page to scroll sideways (the table scrolls inside its own container and long text wraps), that inputs render at 16 px or larger so iOS Safari does not zoom on focus, that the long tab list stays scrollable with the selected tab visible, and that a real touch tap activates the button. The one exception it reports instead of failing on is a native date control's intrinsic minimum width, which a browser does not let CSS shrink: if the date input is the only thing pushing the page wide, it is reported as a documented limitation.
+
+## Phone touch variables
+
+On a phone a thumb needs at least a 44×44 CSS px target. 44 px cannot be written as a literal (the length guardrail) and is not one of the theme's length tokens, so the tap-target components each declare a variable whose default is token-derived — two `space-4` plus `space-3`, which is 44 px at the default tokens and doubles to 88 px at 200% text (and rescales with any host token override). Override the variable on the element or any ancestor:
+
+| Variable | Applies to | Default |
+| --- | --- | --- |
+| `--yadad-button-tap` | the button (`data-part="root"`) | `calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))` |
+| `--yadad-field-frame-checkbox-tap` | the label of a checkbox field only (scoped with `:has()`, so other field labels are untouched) | `calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))` |
+| `--yadad-table-sort-tap` | a sortable column header (`data-part="sort"`, which fills its header cell) | `calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))` |
+| `--yadad-tabs-tap` | a tab (`data-part="tab"`) | `calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))` |
+| `--yadad-select-tap` | the picker (`data-part="input"`) | `calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))` |
 
 ## How to add a component
 
