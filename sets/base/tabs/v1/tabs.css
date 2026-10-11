@@ -1,4 +1,7 @@
-/* tabs/v1. Override any --yadad-tabs-* variable or the underlying tokens. */
+/* tabs/v1. Override any --yadad-tabs-* variable or the underlying tokens.
+   --yadad-tabs-tap: minimum height of a tab, the tap target on a phone;
+   token-derived: 2x space-4 plus space-3 is 44px at the default tokens and
+   doubles to 88px at 200% text. */
 @layer yadad.components {
   :where([data-yadad="tabs"]) :where([data-part="list"]) {
     /* Ring clearance: the focus ring extends var(--yadad-focus-ring-width)
@@ -31,6 +34,8 @@
   }
 
   :where([data-yadad="tabs"]) :where([data-part="tab"]) {
+    display: flex;
+    align-items: center;
     padding: var(--yadad-tabs-padding, var(--yadad-space-2) var(--yadad-space-4));
     font: inherit;
     font-size: var(--yadad-tabs-font-size, var(--yadad-font-size-md));
@@ -40,6 +45,9 @@
     border-block-end: var(--yadad-tabs-indicator-width, var(--yadad-space-1)) solid transparent;
     margin-block-end: -1px;
     cursor: pointer;
+    /* Phone touch: switching a tab is a thumb action and needs a 44px
+       target. Token-derived so it rescales with the theme. */
+    min-block-size: var(--yadad-tabs-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
   }
 
   :where([data-yadad="tabs"]) :where([data-part="tab"][aria-selected="true"]) {
