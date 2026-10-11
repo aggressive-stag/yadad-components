@@ -1,5 +1,11 @@
 # @yadad/components
 
+## 0.1.4
+
+### Patch Changes
+
+- Fix the tabs list overflowing the host page horizontally at large text sizes: the tablist now scrolls internally, and its ring-clearance padding (focus-ring-width plus spacing) keeps the keyboard focus ring fully visible instead of clipped by the scroll container.
+
 ## 0.1.3
 
 ### Patch Changes
