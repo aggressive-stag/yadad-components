@@ -4,6 +4,12 @@
   :where([data-yadad="date"][data-part="input"]) {
     box-sizing: border-box;
     inline-size: var(--yadad-date-width, 100%);
+    /* A native date control has an intrinsic minimum width (its fields must
+       be visible). min-inline-size: 0 stops that minimum from growing a grid
+       or flex track past the available space: at 320px + 200% text the
+       control truncates its own fields instead of forcing the host page to
+       scroll sideways. */
+    min-inline-size: 0;
     padding: var(--yadad-date-padding, var(--yadad-space-2) var(--yadad-space-3));
     font-family: var(--yadad-date-font-family, var(--yadad-font-family));
     font-size: var(--yadad-date-font-size, var(--yadad-font-size-md));
