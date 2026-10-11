@@ -44,6 +44,71 @@ export const galleryDarkTheme: Theme = {
   "focus-ring-width": "4px",
 };
 
+/**
+ * A third, clearly different look — the card 5 proof that THEMING.md is
+ * sufficient to restyle the whole set. It is built ONLY from names the
+ * reference documents: theme tokens (via themeToCss, below) and
+ * per-component variables plus data-part selectors. No component CSS, no
+ * new variables, no knowledge of a component's internals.
+ */
+export const galleryBrandTheme: Theme = {
+  "color-text": "#241a35",
+  "color-text-muted": "#6b5f82",
+  "color-background": "#fff6ec",
+  "color-surface": "#f1e6ff",
+  "color-border": "#3d2c63",
+  "color-accent": "#8a2be2",
+  "color-danger": "#c2261c",
+  "space-1": "0.25rem",
+  "space-2": "0.5rem",
+  "space-3": "0.75rem",
+  "space-4": "1rem",
+  "radius-sm": "0.9rem",
+  "radius-md": "1.6rem",
+  "font-family": "\"Trebuchet MS\", Verdana, sans-serif",
+  "font-size-sm": "0.9375rem",
+  "font-size-md": "1.125rem",
+  "focus-ring-width": "5px",
+};
+
+/**
+ * Brand look, layer 2: per-component variables and one data-part rule, every
+ * name taken verbatim from THEMING.md. (Unlayered, so it wins over
+ * @layer yadad.components — the layer rule the reference documents.)
+ */
+const brandOverridesCss = `
+[data-yadad="button"][data-part="root"] {
+  --yadad-button-radius: 999px;
+  --yadad-button-border: transparent;
+  font-weight: 700;
+}
+[data-yadad="button"][data-part="root"][data-variant="secondary"] {
+  --yadad-button-secondary-color: var(--yadad-color-background);
+  --yadad-button-secondary-background: var(--yadad-color-border);
+}
+[data-yadad="panel"], [data-yadad="section"] {
+  --yadad-panel-border: var(--yadad-color-border);
+  --yadad-section-border: var(--yadad-color-border);
+}
+/* nested parts use the descendant form (the marker is on the component root) */
+[data-yadad="table"] [data-part="header"] {
+  --yadad-table-header-background: var(--yadad-color-accent);
+  color: var(--yadad-color-background);
+}
+[data-yadad="tabs"] {
+  --yadad-tabs-indicator: var(--yadad-color-danger);
+  --yadad-tabs-selected-color: var(--yadad-color-accent);
+}
+[data-yadad="error-summary"] {
+  --yadad-error-summary-bar: var(--yadad-color-accent);
+  --yadad-error-summary-background: var(--yadad-color-surface);
+}
+[data-yadad="count"] [data-part="value"] {
+  color: var(--yadad-color-accent);
+  font-weight: 700;
+}
+`;
+
 const state = (id: string, title: string, children: ReactNode): ReactNode => (
   <div className="state" id={id}>
     <h3>{title}</h3>
@@ -195,12 +260,15 @@ const FIELD_STATES = ["empty", "filled", "required", "invalid", "display-value",
 const FIELD_TYPES: readonly ("text" | "number" | "boolean" | "select" | "date")[] = ["text", "number", "boolean", "select", "date"];
 
 export default function App(): ReactNode {
-  const [mode, setMode] = useState<"light" | "dark">("light");
+  const [mode, setMode] = useState<"light" | "dark" | "brand">("light");
   const [textScale, setTextScale] = useState<"100" | "200">("100");
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: themeToCss(mode === "light" ? lightTheme : galleryDarkTheme) }} />
+      <style dangerouslySetInnerHTML={{ __html: themeToCss(mode === "light" ? lightTheme : mode === "dark" ? galleryDarkTheme : galleryBrandTheme) }} />
+      {mode === "brand" ? (
+        <style dangerouslySetInnerHTML={{ __html: brandOverridesCss }} />
+      ) : null}
       <div className="gallery">
         <h1>yadad base component gallery</h1>
         <nav aria-label="Controls" className="controls">
@@ -211,6 +279,9 @@ export default function App(): ReactNode {
             </button>{" "}
             <button type="button" aria-pressed={mode === "dark"} onClick={() => setMode("dark")}>
               dark
+            </button>{" "}
+            <button type="button" aria-pressed={mode === "brand"} onClick={() => setMode("brand")}>
+              brand
             </button>
           </span>
           <span>
