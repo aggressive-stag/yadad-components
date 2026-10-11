@@ -1,4 +1,7 @@
-/* field-frame/v1. Override --yadad-field-frame-* variables or the tokens. */
+/* field-frame/v1. Override --yadad-field-frame-* variables or the tokens.
+   --yadad-field-frame-checkbox-tap: minimum height of the label that
+   accompanies a checkbox, token-derived: 2x space-4 plus space-3 is 44px at
+   the default tokens and doubles to 88px at 200% text. */
 @layer yadad.components {
   :where([data-yadad="field-frame"][data-part="root"]) {
     display: grid;
@@ -10,6 +13,19 @@
   :where([data-yadad="field-frame"]) :where([data-part="label"]) {
     font-size: var(--yadad-field-frame-label-size, var(--yadad-font-size-sm));
     color: var(--yadad-field-frame-label-color, var(--yadad-color-text));
+  }
+
+  /* The checkbox box is a 16px visual control; its label (the element the
+     thumb actually taps, since tapping the label toggles the box) is the real
+     touch target, so the label of a checkbox field gets a 44px-tall target.
+     :has() scopes this to fields that contain a checkbox, leaving the labels
+     of every other field untouched. Token-derived so it rescales with the
+     theme. */
+  :where([data-yadad="field-frame"][data-part="root"]:has([data-yadad="boolean"]))
+    > :where([data-part="label"]) {
+    min-block-size: var(--yadad-field-frame-checkbox-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    display: flex;
+    align-items: center;
   }
 
   :where([data-yadad="field-frame"]) :where([data-part="required"]) {
