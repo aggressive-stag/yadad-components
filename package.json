@@ -54,6 +54,7 @@
     "@yadad/theme": "link:../yadad/packages/theme",
     "@yadad/testing": "link:../yadad/testing",
     "jsdom": "~30.1.1",
+    "playwright-core": "1.62.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "typescript": "^7.0.2",

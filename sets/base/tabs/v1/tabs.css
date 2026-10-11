@@ -1,11 +1,33 @@
 /* tabs/v1. Override any --yadad-tabs-* variable or the underlying tokens. */
 @layer yadad.components {
   :where([data-yadad="tabs"]) :where([data-part="list"]) {
+    /* Ring clearance: the focus ring extends var(--yadad-focus-ring-width)
+       (2px light, 4px dark) plus a 1px outline-offset past a tab's border box.
+       The scroll container clips at its padding box, so it needs that much
+       padding on every side or the ring is cut off. Derived from the token so
+       it tracks the theme and any host override; space-1 is the margin. */
+    --yadad-tabs-ring-clearance: calc(var(--yadad-focus-ring-width) + var(--yadad-space-1));
+    position: relative;
     display: flex;
     gap: var(--yadad-tabs-gap, var(--yadad-space-1));
     margin-block-end: var(--yadad-tabs-spacing, var(--yadad-space-4));
-    border-block-end: 1px solid var(--yadad-tabs-border, var(--yadad-color-border));
     font-family: var(--yadad-tabs-font-family, var(--yadad-font-family));
+    /* A long list must scroll within the tablist, not force the host page to
+       scroll horizontally: a keyboard user arrowing to a far tab needs the
+       browser to scroll that tab into view, which only happens inside a
+       scroll container. The padding keeps the focus ring clear of the clip.
+       See card 3. */
+    overflow-x: auto;
+    padding-block: var(--yadad-tabs-ring-clearance);
+    padding-inline: var(--yadad-tabs-ring-clearance);
+  }
+
+  :where([data-yadad="tabs"]) :where([data-part="list"])::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: var(--yadad-tabs-ring-clearance);
+    border-block-end: 1px solid var(--yadad-tabs-border, var(--yadad-color-border));
   }
 
   :where([data-yadad="tabs"]) :where([data-part="tab"]) {

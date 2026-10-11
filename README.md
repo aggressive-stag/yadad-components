@@ -61,6 +61,18 @@ Styling is fully configurable by the host (engine DECISIONS D15):
 - All CSS lives in a layer (`@layer yadad.components`) so unlayered host CSS always wins.
 - Plain CSS only — no Tailwind or build-time CSS tooling. The repo ships pre-built CSS that hosts may import or skip.
 
+## Real-browser keyboard checks
+
+`pnpm gallery` serves a page that renders every registry entry in all of its states, with light/dark and 100%/200% text toggles. Use it for any UI change (desktop and 390×844 with touch, keyboard-only).
+
+`gallery/check/` holds rerunnable keyboard checks that are not published:
+
+```sh
+GALLERY_URL=http://localhost:5199/ node gallery/check/tabs-keyboard.mjs
+```
+
+`tabs-keyboard.mjs` drives a real Chromium through the gallery and asserts that at 200% text the long tab list scrolls internally instead of forcing page-level horizontal overflow, that `End` reaches the last tab with its focus ring inside the viewport, and that the tablist's ring-clearance padding covers the focus-ring extent in both themes at both sizes. Exits non-zero on any failure. If the machine's Chromium differs from the one `playwright-core` ships, point at it with `PLAYWRIGHT_EXECUTABLE_PATH=/path/to/chrome-headless-shell`.
+
 ## How to add a component
 
 1. Add `sets/base/<name>/v1/` with the component(s) and a `<name>.css`.
