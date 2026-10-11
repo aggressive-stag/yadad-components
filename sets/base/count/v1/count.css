@@ -9,11 +9,20 @@
   :where([data-yadad="count"]) :where([data-part="label"]) {
     font-size: var(--yadad-count-label-size, var(--yadad-font-size-sm));
     color: var(--yadad-count-label-color, var(--yadad-color-text-muted));
+    /* Long labels must wrap on narrow screens instead of running the page
+       sideways; the value never wraps (it is a single number). */
+    overflow-wrap: break-word;
   }
 
   :where([data-yadad="count"]) :where([data-part="value"]) {
     font-size: var(--yadad-count-value-size, calc(var(--yadad-font-size-md) * 2));
     font-weight: 700;
     color: var(--yadad-count-value-color, var(--yadad-color-text));
+    /* A long value (a big number, at 200% text on a narrow screen) must wrap
+       inside the widget instead of running the host page sideways. break-word
+       lets an unbroken number break when it cannot fit; it never does on the
+       common short-value case. */
+    overflow-wrap: break-word;
+    min-inline-size: 0;
   }
 }
