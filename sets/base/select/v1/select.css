@@ -1,5 +1,8 @@
 /* select/v1. Override any --yadad-select-* variable (on the element or any ancestor)
-   or the underlying --yadad-* tokens; the fallbacks below are the defaults. */
+   or the underlying --yadad-* tokens; the fallbacks below are the defaults.
+   --yadad-select-tap: minimum height of the picker, the tap target on a phone;
+   token-derived: 2x space-4 plus space-3 is 44px at the default tokens and
+   doubles to 88px at 200% text. */
 @layer yadad.components {
   :where([data-yadad="select"][data-part="input"]) {
     box-sizing: border-box;
@@ -11,6 +14,9 @@
     background: var(--yadad-select-background, var(--yadad-color-background));
     border: var(--yadad-select-border-width, 1px) solid var(--yadad-select-border, var(--yadad-color-border));
     border-radius: var(--yadad-select-radius, var(--yadad-radius-sm));
+    /* Phone touch: opening a picker is a thumb action and needs a 44px
+       target. Token-derived so it rescales with the theme. */
+    min-block-size: var(--yadad-select-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
   }
 
   :where([data-yadad="select"][data-part="input"]):focus-visible {
