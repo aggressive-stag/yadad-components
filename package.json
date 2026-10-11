@@ -22,6 +22,7 @@
     "dist",
     "sets",
     "registry",
+    "THEMING.md",
     "CHANGELOG.md",
     "!**/*.test.*",
     "!**/*.tsbuildinfo"
@@ -37,6 +38,8 @@
     "build": "tsc -p tsconfig.build.json && node scripts/build-css.mjs",
     "typecheck": "tsc",
     "test": "vitest run",
+    "theming:check": "node scripts/theming.mjs check",
+    "theming:docs": "node scripts/theming.mjs write",
     "build:css": "node scripts/build-css.mjs"
   },
   "peerDependencies": {

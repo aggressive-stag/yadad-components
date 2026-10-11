@@ -17,7 +17,7 @@ export default defineConfig({
   },
   ssr: { resolve: { conditions: ["@yadad/source", ...defaultServerConditions] } },
   test: {
-    include: ["{sets,registry}/**/*.test.{ts,tsx}"],
+    include: ["{sets,registry}/**/*.test.{ts,tsx}", "scripts/**/*.test.mjs"],
     environment: "jsdom",
   },
 });

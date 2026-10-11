@@ -1,0 +1,596 @@
+#!/usr/bin/env node
+// scripts/theming.mjs — the D15 theming gate and the generated reference.
+//
+// Two jobs, one source of truth (plain Node, no dependencies):
+//
+//   node scripts/theming.mjs check      (default; `pnpm theming:check`)
+//     Read every sets/**/*.css and FAIL if any rule below is broken.
+//
+//   node scripts/theming.mjs write      (`pnpm theming:docs`)
+//     Regenerate THEMING.md from the component CSS + TSX. Run it after
+//     touching a stylesheet. scripts/theming.test.ts re-runs this and fails
+//     if the committed THEMING.md has drifted, so the reference cannot go out
+//     of date with the CSS.
+//
+// ---------------------------------------------------------------------------
+// RULES (the "decide the exact rule" of card 5). Every component stylesheet
+// (sets/**/*.css) is checked on its comment-stripped text (comments are never
+// checked — they explain the CSS, and the prose mentions px freely). A value
+// that breaks a rule is a violation UNLESS the offending line, or the line
+// directly above it, carries an inline `/* theming: <reason> */` exception
+// comment. The gate records every exception so it stays visible.
+//
+//   1. LAYER.  All CSS lives inside ONE top-level `@layer yadad.*` block
+//      (yadad.components today). Unlayered host CSS must always win (D15), so
+//      nothing may sit outside the layer.
+//
+//   2. COLORS. No hard-coded color: no hex (#fff/#ffffff), no functional
+//      color (rgb/rgba/hsl/hsla/oklch/oklab/lab/lch with parentheses), and no
+//      CSS named color on a color property. The only allowed color keywords
+//      are `transparent`, `currentColor` and `inherit`. Every real color
+//      comes from a token (var(--yadad-*)).
+//
+//   3. LENGTHS. The only hard-coded length allowed is the `1px` hairline
+//      (border/outline weights — the repo-wide convention, also guarded by
+//      registry/styles.test.ts). Every other length (px/rem/em) must be a
+//      token or a per-component variable default. `0` and percentages
+//      (relative sizing, e.g. `inline-size: 100%`) are not lengths and are
+//      not flagged.
+//
+//   4. UNITLESS. Unitless numbers are not lengths — font-weight (600/700),
+//      opacity (0.6), line-height, z-index and calc multipliers (* 2, * 0.5)
+//      are never flagged.
+//
+// The exception comment is the escape hatch for a genuine, documented need
+// (a length with no token, a value the engine requires). It must state a
+// reason; it is recorded by `check` and surfaced in the gate output.
+// ---------------------------------------------------------------------------
+import { globSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const SETS = path.join(root, "sets");
+const THEMING_MD = path.join(root, "THEMING.md");
+
+// The theme tokens (TOKEN_NAMES in @yadad/theme). Each is --yadad-<name>.
+// A component "reads" a token when its CSS references var(--yadad-<name>).
+const TOKENS = [
+  "color-text", "color-text-muted", "color-background", "color-surface",
+  "color-border", "color-accent", "color-danger",
+  "space-1", "space-2", "space-3", "space-4",
+  "radius-sm", "radius-md",
+  "font-family", "font-size-sm", "font-size-md", "focus-ring-width",
+];
+
+const TOKEN_SET = new Set(TOKENS);
+
+// "What each token is" for the reference.
+const TOKEN_DESCRIPTION = {
+  "color-text": "main text color",
+  "color-text-muted": "secondary / muted text (labels, captions, empty states)",
+  "color-background": "page and control background",
+  "color-surface": "raised surface (sections, panels, table headers)",
+  "color-border": "borders and dividers",
+  "color-accent": "brand / primary accent — links, focus ring, selected state",
+  "color-danger": "error / danger text and borders",
+  "space-1": "spacing scale, step 1 (tightest)",
+  "space-2": "spacing scale, step 2",
+  "space-3": "spacing scale, step 3",
+  "space-4": "spacing scale, step 4 (loosest)",
+  "radius-sm": "small corner radius (inputs, buttons, chips)",
+  "radius-md": "medium corner radius (cards, panels, sections)",
+  "font-family": "base font stack",
+  "font-size-sm": "small text (labels, secondary, table cells)",
+  "font-size-md": "base text (inputs, body, tab labels)",
+  "focus-ring-width": "keyboard focus-ring width",
+};
+
+// The only color keywords D15 allows without a token.
+const COLOR_KEYWORDS = new Set(["transparent", "currentcolor", "inherit"]);
+
+// Property names that take a color in their value (for named-color detection,
+// to avoid flagging layout keywords). Hex and functional colors are caught
+// regardless of property.
+const COLOR_PROPS = new Set([
+  "color", "background", "background-color", "background-image",
+  "border", "border-color", "border-top", "border-right", "border-bottom", "border-left",
+  "border-top-color", "border-right-color", "border-bottom-color", "border-left-color",
+  "border-inline", "border-inline-color", "border-inline-start", "border-inline-end",
+  "border-block", "border-block-color", "border-block-start", "border-block-end",
+  "outline", "outline-color", "fill", "stroke", "accent-color",
+  "box-shadow", "text-shadow", "caret-color", "text-decoration-color", "column-rule-color",
+]);
+
+// The 148 CSS named colors (CSS Color Module Level 3) to reject on a color
+// property. Hex + functional colors are caught by pattern; named colors need
+// an explicit list. Excluded: transparent, currentColor, inherit (allowed).
+const NAMED_COLORS = new Set([
+  "aliceblue","antiquewhite","aqua","aquamarine","azure","beige","bisque","black",
+  "blanchedalmond","blue","blueviolet","brown","burlywood","cadetblue","chartreuse",
+  "chocolate","coral","cornflowerblue","cornsilk","crimson","cyan","darkblue",
+  "darkcyan","darkgoldenrod","darkgray","darkgreen","darkkhaki","darkmagenta",
+  "darkolivegreen","darkorange","darkorchid","darkred","darksalmon","darkseagreen",
+  "darkslateblue","darkslategray","darkturquoise","darkviolet","deeppink",
+  "deepskyblue","dimgray","dodgerblue","firebrick","floralwhite","forestgreen",
+  "fuchsia","gainsboro","ghostwhite","gold","goldenrod","gray","green",
+  "greenyellow","honeydew","hotpink","indianred","indigo","ivory","khaki",
+  "lavender","lavenderblush","lawngreen","lemonchiffon","lightblue","lightcoral",
+  "lightcyan","lightgoldenrodyellow","lightgray","lightgreen","lightpink",
+  "lightsalmon","lightseagreen","lightskyblue","lightslategray","lightsteelblue",
+  "lightyellow","lime","limegreen","linen","magenta","maroon","mediumaquamarine",
+  "mediumblue","mediumorchid","mediumpurple","mediumseagreen","mediumslateblue",
+  "mediumspringgreen","mediumturquoise","mediumvioletred","midnightblue","mintcream",
+  "mistyrose","moccasin","navajowhite","navy","oldlace","olive","olivedrab",
+  "orange","orangered","orchid","palegoldenrod","palegreen","paleturquoise",
+  "palevioletred","papayawhip","peachpuff","peru","pink","plum","powderblue",
+  "purple","rebeccapurple","red","rosybrown","royalblue","saddlebrown","salmon",
+  "sandybrown","seagreen","seashell","sienna","silver","skyblue","slateblue",
+  "slategray","snow","springgreen","steelblue","tan","teal","thistle","tomato",
+  "turquoise","violet","wheat","white","whitesmoke","yellow","yellowgreen",
+]);
+
+// --- CSS comment stripping (line-preserving) --------------------------------
+// Replace comment characters with spaces but keep newlines, so line numbers of
+// the code stay stable. Returns { code, exemptLines } where exemptLines is the
+// set of 1-based line numbers that carry (or directly precede) a
+// `/* theming: */` exception comment.
+function stripComments(css) {
+  const out = Array.from(css);
+  const exempt = new Set();
+  let i = 0;
+  while (i < out.length) {
+    const open = out.join("").slice(i).indexOf("/*");
+    if (open === -1) break;
+    const start = i + open;
+    const closeRel = out.join("").slice(start + 2).indexOf("*/");
+    const end = closeRel === -1 ? out.length : start + closeRel + 4; // index just past the closing '/'
+    const text = out.slice(start, end).join("");
+    const isExempt = /theming:/.test(text);
+    for (let k = start; k < end; k++) if (out[k] !== "\n") out[k] = " ";
+    if (isExempt) {
+      // Mark the line of the closing */ (covers both an inline comment and a
+      // standalone comment sitting on the line above the offending rule), and
+      // the line of the opening /* for a single-line comment.
+      const lastLine = lineOf(out, end - 1);
+      const firstLine = lineOf(out, start);
+      exempt.add(lastLine);
+      exempt.add(firstLine);
+    }
+    i = end;
+  }
+  return { code: out.join(""), exempt };
+}
+function lineOf(arr, idx) {
+  let n = 1;
+  for (let k = 0; k < idx; k++) if (arr[k] === "\n") n++;
+  return n;
+}
+function lineOfCode(code, idx) {
+  let n = 1;
+  for (let k = 0; k < idx; k++) if (code[k] === "\n") n++;
+  return n;
+}
+
+// --- rule checks ------------------------------------------------------------
+const HEX = /#[0-9a-fA-F]{3,8}\b/g;
+const FUNC_COLOR = /\b(rgba?|hsla?|oklch|oklab|lab|lch)\s*\(/g;
+const LENGTH = /(\d*\.?\d+)(px|rem|em)\b/g;
+
+function isExempt(exempt, line) {
+  return exempt.has(line) || exempt.has(line - 1);
+}
+
+function checkFile(file, css) {
+  const { code, exempt } = stripComments(css);
+  const violations = [];
+  const exceptions = [];
+  const record = (kind, msg, line) => {
+    const p = { kind, msg, file, line };
+    if (isExempt(exempt, line)) { exceptions.push(p); }
+    else { violations.push(p); }
+  };
+
+  // 1. layer: the whole file is one top-level `@layer yadad.* { ... }` block.
+  // Brace-count from the layer's opening brace (comments are already blanked,
+  // so every brace here is a real CSS brace).
+  const t = code.trim();
+  const lm = t.match(/^@layer\s+yadad\.[a-z0-9.-]+\s*\{/);
+  if (!lm) {
+    record("layer", "file is not wrapped in a single @layer yadad.* block", 1);
+  } else {
+    let depth = 0, closeIdx = -1;
+    for (let i = lm.index + lm[0].length - 1; i < t.length; i++) {
+      if (t[i] === "{") depth++;
+      else if (t[i] === "}") { depth--; if (depth === 0) { closeIdx = i; break; } }
+    }
+    if (closeIdx === -1) record("layer", "unbalanced braces: the @layer block never closes", 1);
+    else if (t.slice(closeIdx + 1).trim() !== "") record("layer", "content found outside the @layer yadad.* block", 1);
+  }
+
+  // 2 + 3. per-line color and length checks on the code.
+  const lines = code.split("\n");
+  lines.forEach((raw, idx) => {
+    const line = idx + 1;
+    const declMatch = raw.match(/^\s*([a-z-]+)\s*:/);
+    const prop = declMatch ? declMatch[1].toLowerCase() : null;
+
+    let h;
+    HEX.lastIndex = 0;
+    while ((h = HEX.exec(raw)) !== null) record("color", `hard-coded hex color ${h[0]}`, line);
+
+    let f;
+    FUNC_COLOR.lastIndex = 0;
+    while ((f = FUNC_COLOR.exec(raw)) !== null) record("color", `hard-coded ${f[1]}(...) color`, line);
+
+    if (prop && COLOR_PROPS.has(prop)) {
+      for (const word of raw.slice(raw.indexOf(":") + 1).split(/[,\s();()]+/g)) {
+        const w = word.toLowerCase();
+        if (!w) continue;
+        if (COLOR_KEYWORDS.has(w)) continue;
+        if (NAMED_COLORS.has(w)) record("color", `named color "${w}" on ${prop}`, line);
+      }
+    }
+
+    let l;
+    LENGTH.lastIndex = 0;
+    while ((l = LENGTH.exec(raw)) !== null) {
+      const num = l[1], unit = l[2];
+      // allowed: zero (any unit) and the 1px hairline
+      if (num === "0" || (num === "1" && unit === "px")) continue;
+      record("length", `hard-coded length ${num}${unit} (use a token or a per-component variable)`, line);
+    }
+  });
+
+  return { file, violations, exceptions };
+}
+
+export function checkStyles() {
+  const files = globSync(path.join(SETS, "**", "*.css")).sort();
+  const allViolations = [];
+  const allExceptions = [];
+  for (const file of files) {
+    const r = checkFile(path.relative(root, file), readFileSync(file, "utf8"));
+    allViolations.push(...r.violations);
+    allExceptions.push(...r.exceptions);
+  }
+  return { files: files.map((f) => path.relative(root, f)), violations: allViolations, exceptions: allExceptions };
+}
+
+// --- reference generation ---------------------------------------------------
+// What each data-part is, per component. Curated prose; the generator FAILS
+// if the TSX renders a part not described here (loud, not silent drift).
+const PART_DESCRIPTION = {
+  boolean: { input: "the checkbox `<input>`", display: "read-only value" },
+  button: { root: "the `<button>`" },
+  count: { root: "the widget wrapper", label: "the count label", value: "the counted value (wraps when long)" },
+  date: { input: "the date `<input>`", display: "read-only value (`<time>`)" },
+  "error-summary": { root: "the alert region", item: "one error line", message: "the error message", hint: "the error hint" },
+  "field-frame": { root: "the field wrapper (label, control, error)", label: "the field `<label>`", required: "the required marker", errors: "the error list region", error: "one error message" },
+  number: { root: "the field wrapper (input + unit)", input: "the number `<input>`", unit: "the unit suffix (e.g. kg)", display: "read-only value" },
+  panel: { root: "the panel wrapper", title: "the panel title" },
+  section: { root: "the `<fieldset>` wrapper", title: "the `<legend>` title" },
+  select: { input: "the `<select>` picker", display: "read-only value" },
+  table: { root: "the table wrapper (scroll container)", table: "the `<table>`", caption: "the `<caption>`", header: "a column `<th>`", sort: "a sortable-header button", "sort-indicator": "the sort direction arrow", empty: "the empty-state cell", row: "a data `<tr>`", cell: "a data `<td>`" },
+  tabs: { root: "the tab component wrapper", list: "the `<tablist>` (scrolls internally for long lists)", tab: "a tab button", panel: "the selected tab's panel" },
+  text: { input: "the text `<input>`", display: "read-only value" },
+};
+
+const COMPONENT_INTRO = {
+  boolean: "A single on/off field, rendered as a checkbox.",
+  button: "A pressable control with primary/secondary variants.",
+  count: "A big-number widget with a label (e.g. a total).",
+  date: "A date field, rendered as a native date input.",
+  "error-summary": "An alert that lists the document's errors up front.",
+  "field-frame": "The label + control + error wrapper every field type uses.",
+  number: "A numeric field with an optional unit suffix.",
+  panel: "A titled or untitled content surface with a scrollable body.",
+  section: "A titled or untitled grouping with a border.",
+  select: "A single-choice field, rendered as a native picker.",
+  table: "A data table with sortable headers and an empty state.",
+  tabs: "A tab list with a single selected tab and its panel.",
+  text: "A single-line text field.",
+};
+
+// Per-component variable descriptions. Keys are the variable's suffix
+// (without the --yadad-<component>- prefix). The generator FAILS if the CSS
+// declares a variable whose suffix is not described here.
+const VAR_DESCRIPTION = {
+  // shared vocabulary
+  padding: "inner padding", width: "inline size", radius: "corner radius",
+  color: "foreground color", background: "background", border: "border color",
+  "border-width": "border width", "border-invalid": "border color when invalid",
+  "focus": "focus-ring color", "font-family": "font stack", "font-size": "font size",
+  "font-weight": "font weight", gap: "gap between parts", spacing: "space after the component",
+  size: "control size", accent: "accent color",
+  // boolean
+  "boolean-size": "box size",
+  // button
+  "button-padding": "inner padding", tap: "minimum tap-target height (phone)",
+  "primary-color": "primary variant text", "primary-background": "primary variant background",
+  "secondary-color": "secondary variant text", "secondary-background": "secondary variant background",
+  "disabled-opacity": "opacity when disabled",
+  // count
+  "count-gap": "gap between label and value", "label-size": "label font size",
+  "label-color": "label color", "value-size": "value font size", "value-color": "value color",
+  // date
+  "date-padding": "inner padding",
+  // error-summary
+  "error-summary-spacing": "space after the summary", "error-summary-padding": "inner padding",
+  "error-summary-bar-width": "leading bar width", "error-summary-bar": "leading bar color",
+  "error-summary-radius": "corner radius", "error-summary-background": "background",
+  "error-summary-color": "message color", "hint-color": "hint color",
+  // field-frame
+  "field-frame-gap": "gap between label, control and error",
+  "field-frame-spacing": "space after the field", "label-size": "label font size",
+  "label-color": "label color", "checkbox-tap": "minimum tap-target height of the checkbox label (phone)",
+  "required-color": "required-marker color", "error-size": "error font size", "error-color": "error color",
+  // number
+  "number-gap": "gap between input and unit",
+  "unit-size": "unit font size", "unit-color": "unit color",
+  // panel
+  "panel-padding": "inner padding", "title-size": "title font size",
+  // section
+  "section-spacing": "space after the section", "section-padding": "inner padding",
+  "section-background": "background", "title-size": "title font size",
+  "title-weight": "title font weight", "title-color": "title color",
+  // select
+  "select-padding": "inner padding", "select-tap": "minimum tap-target height (phone)",
+  // table
+  "table-spacing": "space after the table", "table-font-size": "cell font size",
+  "table-color": "text color", "table-caption-size": "caption font size",
+  "cell-padding": "cell padding", "table-border": "row border color",
+  "header-background": "header background", "sort-tap": "minimum tap-target height of a sortable header (phone)",
+  "empty-color": "empty-state text color",
+  // tabs
+  "tabs-ring-clearance": "clearance around the focus ring (padding + indicator offset)",
+  "tabs-gap": "gap between tabs", "tabs-spacing": "space after the tab list",
+  "tabs-padding": "tab inner padding", "tabs-color": "unselected tab color",
+  "indicator-width": "selected-tab indicator thickness",
+  "selected-color": "selected tab color", "indicator": "selected-tab indicator color",
+  "tabs-tap": "minimum tap-target height (phone)",
+  // text
+  "text-padding": "inner padding",
+};
+
+function tokensIn(value) {
+  const found = new Set();
+  const re = /--yadad-([a-z0-9-]+)/g;
+  let m;
+  while ((m = re.exec(value)) !== null) if (TOKEN_SET.has(m[1])) found.add(m[1]);
+  return [...found].sort();
+}
+
+function describeDefault(def) {
+  if (def === undefined || def === "") return "no default — the host must set it";
+  const d = def.trim();
+  // exact single-token fallback
+  const t = d.match(/^var\((--yadad-([a-z0-9-]+))\)$/);
+  if (t && TOKEN_SET.has(t[2])) return `token \`${t[1]}\` (${TOKEN_DESCRIPTION[t[2]] ?? t[2]})`;
+  const toks = tokensIn(d);
+  if (toks.length) return `\`${d}\` (token-derived: ${toks.map((x) => `\`--yadad-${x}\``).join(", ")}${/\d+\s*(px|rem|em)/.test(d) ? "" : ""})`;
+  return `\`${d}\``;
+}
+
+function componentOf(fileRel) {
+  // sets/base/<component>/vN/<component>.css
+  const parts = fileRel.split(path.sep);
+  return parts[2];
+}
+
+export function loadSources() {
+  const cssFiles = globSync(path.join(SETS, "**", "*.css")).sort();
+  const components = [...new Set(cssFiles.map((f) => componentOf(path.relative(root, f))))].sort();
+  const data = [];
+  for (const comp of components) {
+    const cssFile = cssFiles.find((f) => path.basename(f) === `${comp}.css` && f.includes(`/${comp}/`));
+    const css = readFileSync(cssFile, "utf8");
+    const { code } = stripComments(css);
+    const tsxFile = path.join(path.dirname(cssFile), `${toPascal(comp)}.tsx`);
+    const tsx = existsSafe(tsxFile);
+
+    // data-parts from the TSX (the rendered surface), in first-seen order.
+    // Also record which parts carry the data-yadad marker on their own tag
+    // (targetable in the compound form) and which are nested inside the
+    // component root (descendant form only) — a host that styles a nested
+    // part with the compound form silently matches nothing.
+    const parts = [];
+    const marked = new Set();
+    if (tsx) {
+      const seen = new Set();
+      const tagRe = /<([a-zA-Z][a-zA-Z0-9.]*)\b[^>]*>/g;
+      let mt;
+      while ((mt = tagRe.exec(tsx)) !== null) {
+        const tag = mt[0];
+        const partM = tag.match(/data-part="([a-z0-9-]+)"/);
+        if (!partM) continue;
+        const part = partM[1];
+        if (!seen.has(part)) { seen.add(part); parts.push(part); }
+        if (/data-yadad="[^"]+"/.test(tag)) marked.add(part);
+      }
+    }
+
+    // Per-component variables: custom-property definitions inside the layer
+    // (value wins as the documented default) and `var(--yadad-<comp>-x,
+    // fallback)` references (fallback becomes the default when no definition
+    // exists). Unique by suffix, first-seen order.
+    const defs = parseLayerBody(code);
+    const vars = new Map();
+    const order = [];
+    const note = (name, def, fromDef) => {
+      if (!vars.has(name)) { order.push(name); vars.set(name, { def, fromDef }); }
+      else if (fromDef) vars.get(name).def = def; // definition overrides inline default
+    };
+    for (const [name, def] of defs) if (name.startsWith(comp + "-")) note(name.slice(comp.length + 1), def, true);
+    for (let i = code.indexOf("var("); i !== -1; ) {
+      const ref = scanVarRef(code, i);
+      if (ref.name.startsWith(`--yadad-${comp}-`)) note(ref.name.slice(`--yadad-${comp}-`.length), ref.fallback, false);
+      i = code.indexOf("var(", ref.close + 1);
+    }
+
+    // theme tokens read anywhere in the CSS.
+    const tokens = new Set();
+    const reTok = /--yadad-([a-z0-9-]+)/g;
+    let mt;
+    while ((mt = reTok.exec(code)) !== null) if (TOKEN_SET.has(mt[1])) tokens.add(mt[1]);
+
+    data.push({ comp, intro: COMPONENT_INTRO[comp], parts, marked, vars: { order, map: vars }, tokens: [...tokens].sort() });
+  }
+  return data;
+}
+function toPascal(s) { return s.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(""); }
+function existsSafe(p) { try { return readFileSync(p, "utf8"); } catch { return null; } }
+
+// Balanced scanner for a `var(...)` reference starting at the "v" of `var`.
+// Returns { name, fallback, close } — fallback is the full default expression
+// (itself possibly a var() or calc(...)), or undefined when there is none.
+// Balanced because defaults nest: var(--a, var(--b)) or var(--x, calc(...)).
+function scanVarRef(code, start) {
+  const open = code.indexOf("(", start);
+  let depth = 0, idx = -1;
+  for (let i = open; i < code.length; i++) {
+    const c = code[i];
+    if (c === "(") depth++;
+    else if (c === ")") { depth--; if (depth === 0) { idx = i; break; } }
+  }
+  const inner = code.slice(open + 1, idx);
+  const comma = inner.indexOf(",");
+  const name = (comma === -1 ? inner : inner.slice(0, comma)).trim();
+  const fallback = comma === -1 ? undefined : inner.slice(comma + 1).trim();
+  return { name, fallback, close: idx };
+}
+
+// Parse custom-property declarations in the file's single `@layer` body.
+// Comments are already blanked, so the braces scanned here are real CSS
+// braces. Returns a Map of `--yadad-<name>` -> raw value at any nesting depth.
+function parseLayerBody(code) {
+  const lm = code.match(/^@layer\s+yadad\.[a-z0-9.-]+\s*\{/);
+  if (!lm) return new Map();
+  const openBrace = lm.index + lm[0].length - 1;
+  let depth = 0, bodyEnd = -1;
+  for (let i = openBrace; i < code.length; i++) {
+    if (code[i] === "{") depth++;
+    else if (code[i] === "}") { depth--; if (depth === 0) { bodyEnd = i; break; } }
+  }
+  if (bodyEnd === -1) return new Map();
+  const body = code.slice(openBrace + 1, bodyEnd);
+  const props = new Map();
+  // Declarations split on top-level semicolons (depth 0 relative to the body).
+  const decls = [];
+  let buf = "", d = 0;
+  for (const c of body) {
+    if (c === "{") d++;
+    else if (c === "}") d--;
+    if (c === ";" && d === 0) { decls.push(buf); buf = ""; } else buf += c;
+  }
+  if (buf.trim()) decls.push(buf);
+  for (const decl of decls) {
+    const m = decl.match(/--yadad-([a-z0-9-]+)\s*:\s*([\s\S]*)$/);
+    if (m) props.set(m[1], m[2].trim());
+  }
+  return props;
+}
+
+export function generateThemingDoc() {
+  const src = loadSources();
+  const L = [];
+  const push = (s = "") => L.push(s);
+  // Silent-drift guard: the description tables are hand-curated; if the CSS or
+  // TSX declares a part or variable suffix that is not described here, fail
+  // loudly instead of emitting a "component variable" placeholder.
+  for (const c of src) {
+    for (const p of c.parts) if (!PART_DESCRIPTION[c.comp]?.[p]) throw new Error(`THEMING.md: ${c.comp} data-part "${p}" has no description in PART_DESCRIPTION`);
+    for (const name of c.vars.order) {
+      const key = `${c.comp}-${name}`;
+      if (!VAR_DESCRIPTION[key] && !VAR_DESCRIPTION[name]) throw new Error(`THEMING.md: --yadad-${key} has no description in VAR_DESCRIPTION`);
+    }
+  }
+  push("# Theming reference");
+  push();
+  push("> Generated by `scripts/theming.mjs` from the component CSS and TSX. Do not");
+  push("> edit by hand — run `pnpm theming:docs` to regenerate. The gate fails if this");
+  push("> file drifts from the CSS (`scripts/theming.test.ts`).");
+  push();
+  push("## How to theme yadad");
+  push();
+  push("Every component styles itself through a public, host-configurable surface (engine DECISIONS D15). You theme yadad three ways, in order of preference:");
+  push();
+  push("1. **Theme tokens** — set the `--yadad-*` tokens on `:root` (or any scope). This restyles the *whole* set at once and is the right tool for a new color scheme, a different spacing scale, a new font, or a different radius. Components read tokens only; they never hard-code a color, length, radius or font, so a token override reaches every component.");
+  push("2. **Per-component variables** — set a `--yadad-<component>-<name>` on a component (or any ancestor) to override just that part. Each defaults to a token, so you inherit the theme and override one value. Use these to nudge a single component without touching the rest (a different button radius, a custom table header background).");
+  push("3. **`data-part` selectors** — target a part directly with the `data-part` attribute for anything the variables don't expose. Parts that carry the `data-yadad=\"<component>\"` marker on their own tag take the compound form `[data-yadad=\"text\"][data-part=\"input\"]`; parts nested inside the component root take the descendant form `[data-yadad=\"table\"] [data-part=\"header\"]`. Stable names; renaming one is a breaking change.");
+  push();
+  push("**Why host CSS wins.** All component CSS lives in `@layer yadad.components` (tokens in `@layer yadad.tokens`, ordered before it). Unlayered host CSS always beats layered CSS, and an earlier layer beats a later one — so your unlayered rules win, and you can also override the tokens by writing your own `@layer yadad.tokens` *before* importing the component styles, or by unlayered `:root` custom properties.");
+  push();
+  push("### Restyling one component");
+  push();
+  push("Give every input a pill shape and a thicker focus ring, in just your host CSS — no component edits:");
+  push();
+  push("```css");
+  push("/* unlayered, so it wins over @layer yadad.components */");
+  push(":root {");
+  push("  --yadad-radius-sm: 999px;              /* token: rounds every small-radius surface */");
+  push("}");
+  push("/* 'input' is nested inside the field root, so this is the descendant form */");
+  push("[data-yadad=\"text\"] [data-part=\"input\"] {");
+  push("  --yadad-text-border: var(--yadad-color-accent);  /* per-component variable */");
+  push("  padding-inline-start: var(--yadad-space-4);     /* data-part selector */");
+  push("}");
+  push("```");
+  push();
+  push("A full, clearly-different look (rounded, high-contrast, a brand color) is exactly what the gallery's third theme demonstrates — it is built only from the tokens and variables documented below.");
+  push();
+  push("## Theme tokens");
+  push();
+  push("Set these on `:root` (or any scope). Each is `--yadad-<name>`.");
+  push();
+  push("| Token | Purpose |");
+  push("| --- | --- |");
+  for (const name of TOKENS) push(`| \`--yadad-${name}\` | ${TOKEN_DESCRIPTION[name]} |`);
+  push();
+  push("## Components");
+  for (const c of src) {
+    push();
+    push(`### ${c.comp}`);
+    push();
+    push(c.intro);
+    push();
+    push(`**\`data-part\` names** (marked parts carry the component marker and take \`[data-yadad="<component>"][data-part="<name>"]\`; nested parts are inside the component root and take the descendant form \`[data-yadad="<component>"] [data-part="<name>"]\` — the compound form on a nested part matches nothing):`);
+    push();
+    for (const p of c.parts) {
+      const d = PART_DESCRIPTION[c.comp]?.[p];
+      if (!d) throw new Error(`THEMING.md: ${c.comp} data-part "${p}" has no description`);
+      const form = c.marked.has(p)
+        ? `[data-yadad="${c.comp}"][data-part="${p}"]`
+        : `[data-yadad="${c.comp}"] [data-part="${p}"]`;
+      push(`- \`${p}\` — ${d} (target with \`${form}\`)`);
+    }
+    push();
+    push("**Per-component variables** (set on the component or an ancestor; the default is shown):");
+    push();
+    for (const name of c.vars.order) {
+      const { def } = c.vars.map.get(name);
+      push(`- \`--yadad-${c.comp}-${name}\` — ${VAR_DESCRIPTION[`${c.comp}-${name}`] ?? VAR_DESCRIPTION[name] ?? "component variable"}; default: ${describeDefault(def)}`);
+    }
+    push();
+    push(`**Theme tokens it reads:** ${c.tokens.length ? c.tokens.map((t) => `\`--yadad-${t}\``).join(", ") : "none"}`);
+  }
+  push();
+  return L.join("\n");
+}
+
+// --- CLI --------------------------------------------------------------------
+const cmd = process.argv[2] ?? "check";
+if (cmd === "write") {
+  const doc = generateThemingDoc();
+  writeFileSync(THEMING_MD, doc + "\n");
+  console.log(`THEMING.md written (${doc.split("\n").length} lines)`);
+} else if (cmd === "check") {
+  const { files, violations, exceptions } = checkStyles();
+  for (const e of exceptions) console.log(`EXCEPT ${e.file}:${e.line}  [${e.kind}] ${e.msg}  (theming: exception)`);
+  for (const v of violations) console.log(`FAIL   ${v.file}:${v.line}  [${v.kind}] ${v.msg}`);
+  console.log(`\n${files.length} files checked, ${violations.length} violations, ${exceptions.length} exceptions`);
+  if (violations.length) process.exit(1);
+} else {
+  console.error(`unknown command: ${cmd} (use check or write)`);
+  process.exit(2);
+}

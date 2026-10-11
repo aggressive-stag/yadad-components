@@ -53,13 +53,17 @@ Each registry entry is checked by the contract test kit from `@yadad/testing`:
 
 ## Styling contract
 
-Styling is fully configurable by the host (engine DECISIONS D15):
+Styling is fully configurable by the host (engine DECISIONS D15). **[THEMING.md](./THEMING.md) is the canonical, generated reference for everything a host can change** — the theme tokens, every component's `data-part` names and per-component variables (with their token defaults), and how `@layer yadad` lets host CSS win. It is generated from the CSS and TSX by `scripts/theming.mjs` and the test suite fails if it drifts, so it cannot go out of date.
+
+The rules it documents:
 
 - Read theme tokens — `--yadad-*` CSS variables from `@yadad/theme`. No hard-coded colors, spacing, radii or fonts.
 - Expose per-component variables that default to tokens, e.g. `--yadad-text-border` falls back to `var(--yadad-color-border)`.
 - Every rendered element gets a stable `data-part` (`input`, `display`, `label`, `error`, …) plus a `data-yadad="<type>"` marker. Hosts style against these; renaming one is a breaking change.
 - All CSS lives in a layer (`@layer yadad.components`) so unlayered host CSS always wins.
 - Plain CSS only — no Tailwind or build-time CSS tooling. The repo ships pre-built CSS that hosts may import or skip.
+
+The rules above are enforced by the test gate (`scripts/theming.test.mjs` → `scripts/theming.mjs check`), not just documented: a hard-coded color, a stray length, or CSS outside the layer fails the build. Regenerate the reference with `corepack pnpm theming:docs`.
 
 ## Real-browser checks
 
