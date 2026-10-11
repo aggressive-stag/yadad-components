@@ -82,6 +82,24 @@ Both exit non-zero on any failure. If the machine's Chromium differs from the on
 
 `phone-touch.mjs` drives the gallery at 390×844 and 320 px wide with touch enabled, in both themes and at 200% text, and asserts that the tap targets (buttons, the checkbox label, sortable headers, tabs and pickers) are at least 44×44 CSS px, that nothing forces the host page to scroll sideways (the table scrolls inside its own container and long text wraps), that inputs render at 16 px or larger so iOS Safari does not zoom on focus, that the long tab list stays scrollable with the selected tab visible, and that a real touch tap activates the button. The one exception it reports instead of failing on is a native date control's intrinsic minimum width, which a browser does not let CSS shrink: if the date input is the only thing pushing the page wide, it is reported as a documented limitation.
 
+## Keeping up with engine releases
+
+`peerDependencies` declares which `@yadad/core` versions this set works with. Pre-1.0, every new core minor (`0.3 → 0.4`) falls outside a `^0.3.0` range, so until the range is widened, hosts on the newest engine get a peer-dependency conflict and have to force the install. The engine publishes often, so this is a check, not memory:
+
+```sh
+corepack pnpm check:engine
+```
+
+asks the registry for every published `@yadad/core` and `@yadad/testing` version, reports the newest, and exits non-zero if the declared range does not cover it (or if the newest testing kit cannot run the kit against that core). A CI job runs it on every push with `continue-on-error`, so a stale range shows up as a red check without blocking unrelated work — a new engine minor lands *before* the components can prove themselves against it, and the point of the job is to make that visible, not to hold the line.
+
+Widening the range requires proof, because the linked `../yadad` source may differ from the newest published version:
+
+```sh
+corepack pnpm check:engine --install
+```
+
+copies this repo to a temp dir, swaps the `link:../yadad` dev dependencies for the newest published `@yadad/core` and `@yadad/testing`, installs them, and runs the full test gate there. Only a passing run justifies adding the new minor to `peerDependencies` (in the existing `^0.1.0 || ^0.2.0 || …` style) and releasing a patch changeset. If the gate fails against the published engine, the range stays and the failure is recorded: it is either a component bug to fix here or a contract change to report.
+
 ## Phone touch variables
 
 On a phone a thumb needs at least a 44×44 CSS px target. 44 px cannot be written as a literal (the length guardrail) and is not one of the theme's length tokens, so the tap-target components each declare a variable whose default is token-derived — two `space-4` plus `space-3`, which is 44 px at the default tokens and doubles to 88 px at 200% text (and rescales with any host token override). Override the variable on the element or any ancestor:

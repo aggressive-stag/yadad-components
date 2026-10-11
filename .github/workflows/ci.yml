@@ -59,3 +59,49 @@ jobs:
       - name: Build the stylesheet
         working-directory: yadad-components
         run: pnpm build:css && test -s dist/yadad-components.css
+
+  # Watchdog for the @yadad/core peer range. The engine publishes often and a
+  # new core minor (0.x -> 0.x+1) falls outside the declared range until
+  # someone proves compatibility and widens it, so this job is what makes a
+  # stale range visible. continue-on-error: it must flag, not block — a new
+  # engine minor lands *before* components can prove themselves against it,
+  # and failing the main job on every unrelated push would hide the signal.
+  engine-range:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      # Same checkout/install shape as the main job: the check runs in the
+      # installed workspace (needs node_modules to resolve semver) and
+      # queries the registry for published @yadad/* versions.
+      - uses: actions/checkout@v7
+        with:
+          path: yadad-components
+
+      - uses: actions/checkout@v7
+        with:
+          repository: aggressive-stag/yadad
+          path: yadad
+
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: yadad-components/package.json
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: |
+            yadad/pnpm-lock.yaml
+            yadad-components/pnpm-lock.yaml
+
+      - name: Install the engine
+        working-directory: yadad
+        run: pnpm install --frozen-lockfile
+
+      - name: Install
+        working-directory: yadad-components
+        run: pnpm install --frozen-lockfile
+
+      - name: Peer range covers the newest published @yadad/core
+        working-directory: yadad-components
+        run: pnpm check:engine
