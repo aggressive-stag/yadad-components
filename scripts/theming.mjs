@@ -61,6 +61,7 @@ const TOKENS = [
   "space-1", "space-2", "space-3", "space-4",
   "radius-sm", "radius-md",
   "font-family", "font-size-sm", "font-size-md", "focus-ring-width",
+  "shadow-sm", "shadow-md",
 ];
 
 const TOKEN_SET = new Set(TOKENS);
@@ -84,6 +85,8 @@ const TOKEN_DESCRIPTION = {
   "font-size-sm": "small text (labels, secondary, table cells)",
   "font-size-md": "base text (inputs, body, tab labels)",
   "focus-ring-width": "keyboard focus-ring width",
+  "shadow-sm": "small elevation shadow (sections); optional, no shadow when unset",
+  "shadow-md": "medium elevation shadow (panels, cards); optional, no shadow when unset",
 };
 
 // The only color keywords D15 allows without a token.
@@ -271,7 +274,7 @@ const PART_DESCRIPTION = {
   panel: { root: "the panel wrapper", title: "the panel title" },
   section: { root: "the `<fieldset>` wrapper", title: "the `<legend>` title" },
   select: { input: "the `<select>` picker", display: "read-only value" },
-  table: { root: "the table wrapper (scroll container)", table: "the `<table>`", caption: "the `<caption>`", header: "a column `<th>`", sort: "a sortable-header button", "sort-indicator": "the sort direction arrow", empty: "the empty-state cell", row: "a data `<tr>`", cell: "a data `<td>`" },
+  table: { root: "the table wrapper (scroll container)", table: "the `<table>`", caption: "the `<caption>`", header: "a column `<th>`", sort: "a sortable-header button", "sort-indicator": "the sort direction arrow", "sort-status": "visually hidden sort direction text inside the sort button", empty: "the empty-state cell", row: "a data `<tr>`", cell: "a data `<td>`" },
   tabs: { root: "the tab component wrapper", list: "the `<tablist>` (scrolls internally for long lists)", tab: "a tab button", panel: "the selected tab's panel" },
   text: { input: "the text `<input>`", display: "read-only value" },
 };
@@ -340,7 +343,8 @@ const VAR_DESCRIPTION = {
   "table-spacing": "space after the table", "table-font-size": "cell font size",
   "table-color": "text color", "table-caption-size": "caption font size",
   "cell-padding": "cell padding", "table-border": "row border color",
-  "header-background": "header background", "sort-tap": "minimum tap-target height of a sortable header (phone)",
+  "header-background": "header background", "table-card-radius": "corner radius of a stacked row card (phone)", "table-label-color": "stacked cell label color (phone)",
+  "sort-tap": "minimum tap-target height of a sortable header (phone)",
   "empty-color": "empty-state text color",
   // tabs
   "tabs-ring-clearance": "clearance around the focus ring (padding + indicator offset)",

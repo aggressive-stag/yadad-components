@@ -55,6 +55,8 @@ Set these on `:root` (or any scope). Each is `--yadad-<name>`.
 | `--yadad-font-size-sm` | small text (labels, secondary, table cells) |
 | `--yadad-font-size-md` | base text (inputs, body, tab labels) |
 | `--yadad-focus-ring-width` | keyboard focus-ring width |
+| `--yadad-shadow-sm` | small elevation shadow (sections); optional, no shadow when unset |
+| `--yadad-shadow-md` | medium elevation shadow (panels, cards); optional, no shadow when unset |
 
 ## Components
 
@@ -250,7 +252,7 @@ A titled or untitled content surface with a scrollable body.
 - `--yadad-panel-font-family` — font stack; default: token `--yadad-font-family` (base font stack)
 - `--yadad-panel-title-size` — title font size; default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
 
-**Theme tokens it reads:** `--yadad-color-background`, `--yadad-color-border`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-md`, `--yadad-space-3`, `--yadad-space-4`
+**Theme tokens it reads:** `--yadad-color-background`, `--yadad-color-border`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-md`, `--yadad-shadow-md`, `--yadad-space-3`, `--yadad-space-4`
 
 ### section
 
@@ -274,7 +276,7 @@ A titled or untitled grouping with a border.
 - `--yadad-section-title-weight` — title font weight; default: `600`
 - `--yadad-section-title-color` — title color; default: token `--yadad-color-text` (main text color)
 
-**Theme tokens it reads:** `--yadad-color-border`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-md`, `--yadad-space-2`, `--yadad-space-4`
+**Theme tokens it reads:** `--yadad-color-border`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-md`, `--yadad-shadow-sm`, `--yadad-space-2`, `--yadad-space-4`
 
 ### select
 
@@ -313,6 +315,7 @@ A data table with sortable headers and an empty state.
 - `caption` — the `<caption>` (target with `[data-yadad="table"] [data-part="caption"]`)
 - `header` — a column `<th>` (target with `[data-yadad="table"] [data-part="header"]`)
 - `sort` — a sortable-header button (target with `[data-yadad="table"] [data-part="sort"]`)
+- `sort-status` — visually hidden sort direction text inside the sort button (target with `[data-yadad="table"] [data-part="sort-status"]`)
 - `sort-indicator` — the sort direction arrow (target with `[data-yadad="table"] [data-part="sort-indicator"]`)
 - `empty` — the empty-state cell (target with `[data-yadad="table"] [data-part="empty"]`)
 - `row` — a data `<tr>` (target with `[data-yadad="table"] [data-part="row"]`)
@@ -331,8 +334,10 @@ A data table with sortable headers and an empty state.
 - `--yadad-table-sort-tap` — minimum tap-target height of a sortable header (phone); default: `calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))` (token-derived: `--yadad-space-3`, `--yadad-space-4`)
 - `--yadad-table-focus` — focus-ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-table-empty-color` — empty-state text color; default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
+- `--yadad-table-card-radius` — corner radius of a stacked row card (phone); default: token `--yadad-radius-md` (medium corner radius (cards, panels, sections))
+- `--yadad-table-label-color` — stacked cell label color (phone); default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
 
-**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-border`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-space-1`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-border`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-md`, `--yadad-space-1`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 
 ### tabs
 
