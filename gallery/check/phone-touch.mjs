@@ -16,7 +16,15 @@
  *   5. Many tabs stay reachable (the list scrolls) and the selected one
  *      remains visible.
  *   6. A real touch tap activates the button (hit test, not just a mouse).
- *   7. Labels and errors stay attached to their inputs and nothing overlaps
+ *   7. The stacked table (phone widths, via a container query that jsdom
+ *      cannot evaluate): rows render as cards (display block), every data cell
+ *      shows its column label, long cells wrap inside the card, the header
+ *      strip's sort buttons stay >=44px tall and receive real taps. At desktop
+ *      width the table is still a normal table (no labels, table display).
+ *   8. Sections and panels pick up a box-shadow when the engine's shadow
+ *      tokens are applied (light and engine dark), and none when they are not
+ *      (the gallery's stress theme defines no shadow tokens).
+ *   9. Labels and errors stay attached to their inputs and nothing overlaps
  *      or runs off the right edge at 200% text.
  *
  * Not published with the package. Run it against the gallery (see README
@@ -159,7 +167,72 @@ for (const vp of VIEWPORTS) {
         check(run, `input font >=16px (${k})`, v !== null && v >= 16, v === null ? "missing" : `${v}px`);
       }
 
-      // 7. labels/errors attached, nothing overlaps or overflows the page
+      // 7. stacked table: cards, labels, wrapping, sort strip
+      for (const id of ["table-few-rows", "table-many-rows-long-text"]) {
+        const t = await page.evaluate((id) => {
+          const root = document.querySelector(`#${id} [data-yadad=table]`);
+          const display = (el) => getComputedStyle(el).display;
+          const rows = [...root.querySelectorAll("tbody tr[data-part=row]")];
+          const cells = [...root.querySelectorAll("tbody td[data-part=cell]")];
+          const unlabeled = cells.filter((c) => {
+            const content = getComputedStyle(c, "::before").content;
+            return content !== `"${c.dataset.label}"` || !c.dataset.label;
+          }).length;
+          const unwrapped = cells.filter((c) => c.scrollWidth > c.clientWidth + 1).length;
+          const first = cells[0];
+          const lineH = parseFloat(getComputedStyle(first).lineHeight) || parseFloat(getComputedStyle(first).fontSize) * 1.2;
+          const longCells = cells.filter((c) => c.textContent.length > 60);
+          return {
+            tableDisplay: display(root.querySelector("table")),
+            nonBlockRows: rows.filter((r) => display(r) !== "block").length,
+            nonFlexCells: cells.filter((c) => display(c) !== "flex").length,
+            rows: rows.length,
+            cells: cells.length,
+            unlabeled,
+            unwrapped,
+            longWrapped: longCells.length === 0 ? null : longCells.every((c) => c.getBoundingClientRect().height > lineH * 1.5),
+            rootOverflow: root.scrollWidth - root.clientWidth,
+            rowRightMax: Math.max(...rows.map((r) => r.getBoundingClientRect().right)),
+          };
+        }, id);
+        check(run, `${id}: rows render as cards`, t.rows > 0 && t.tableDisplay === "block" && t.nonBlockRows === 0 && t.nonFlexCells === 0, JSON.stringify(t));
+        check(run, `${id}: every data cell shows its column label`, t.cells > 0 && t.unlabeled === 0, `${t.unlabeled}/${t.cells} unlabeled`);
+        check(run, `${id}: card cells wrap, no sideways scroll`, t.unwrapped === 0 && t.rootOverflow <= 1 && t.rowRightMax <= vp.width + 1 && t.longWrapped !== false,
+          `unwrapped=${t.unwrapped} rootOverflow=${t.rootOverflow} rowRight=${Math.round(t.rowRightMax)} longWrapped=${t.longWrapped}`);
+      }
+      {
+        await page.locator("#table-few-rows [data-part=sort]").first().scrollIntoViewIfNeeded();
+        const strip = await page.evaluate(() => {
+          const btns = [...document.querySelectorAll("#table-few-rows [data-part=sort]")];
+          return btns.map((b) => {
+            const r = b.getBoundingClientRect();
+            const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+            return { w: Math.round(r.width), h: Math.round(r.height), hit: b.contains(hit) };
+          });
+        });
+        check(run, "table sort strip: buttons >=44x44 and hit-testable", strip.length === 2 && strip.every((b) => b.w >= 44 && b.h >= 44 && b.hit), JSON.stringify(strip));
+        const sortBtn = page.locator("#table-few-rows [data-part=sort]").first();
+        await sortBtn.scrollIntoViewIfNeeded();
+        await page.evaluate(() => {
+          window.__sorts = 0;
+          if (!window.__sortHook) {
+            window.__sortHook = true;
+            document.querySelector("#table-few-rows").addEventListener("click", (e) => { if (e.target.closest("[data-part=sort]")) window.__sorts++; });
+          }
+        });
+        await sortBtn.tap();
+        await page.waitForTimeout(100);
+        check(run, "table sort strip: a touch tap sorts", (await page.evaluate(() => window.__sorts)) === 1, "tap -> click");
+        const hidden = await page.evaluate(() => {
+          const h = [...document.querySelectorAll("#table-few-rows thead [data-part=header]")].find((e) => !e.querySelector("[data-part=sort]"));
+          if (!h) return null;
+          const r = h.getBoundingClientRect();
+          return { w: r.width, h: r.height };
+        });
+        check(run, "table: non-sortable header hidden visually only", hidden !== null && hidden.w <= 1 && hidden.h <= 1, JSON.stringify(hidden));
+      }
+
+      // 9. labels/errors attached, nothing overlaps or overflows the page
       const attach = await page.evaluate(() => {
         const issues = [];
         const inHScroll = (el) => {
@@ -230,6 +303,48 @@ for (const vp of VIEWPORTS) {
   const clicks = await page.evaluate(() => window.__taps || 0);
   check(`vp${vp.id} touch`, "touch tap activates button", clicks >= 1, `${clicks} clicks`);
 
+  await ctx.close();
+}
+
+// Desktop: the table is still a normal table, and section/panel shadows follow
+// the shadow tokens of the applied theme.
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  await page.goto(url, { waitUntil: "networkidle" });
+  for (const [theme, expectShadow] of [["light", true], ["dark", true], ["stress", false]]) {
+    const run = `desktop ${theme} 100%`;
+    await page.locator(".controls button", { hasText: theme }).click();
+    await page.waitForTimeout(250);
+    const t = await page.evaluate(() => {
+      const root = document.querySelector("#table-few-rows [data-yadad=table]");
+      const d = (el, pseudo) => getComputedStyle(el, pseudo);
+      const cell = root.querySelector("td[data-part=cell]");
+      const status = document.querySelector("#table-sort-asc [data-part=sort-status]");
+      const h = document.querySelector("#table-few-rows thead [data-part=header]");
+      const rects = [...root.querySelectorAll("thead th")].map((e) => e.getBoundingClientRect());
+      return {
+        table: d(root.querySelector("table")).display,
+        row: d(root.querySelector("tbody tr")).display,
+        cell: d(cell).display,
+        label: d(cell, "::before").content,
+        headerSideBySide: rects.every((r, i) => i === 0 || r.left >= rects[i - 1].right - 1),
+        headerVisible: h.getBoundingClientRect().width > 20,
+        statusClipped: status ? status.getBoundingClientRect().width <= 1 : null,
+        pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      };
+    });
+    check(run, "table is a normal table at desktop width",
+      t.table === "table" && t.row === "table-row" && t.cell === "table-cell" && (t.label === "none" || t.label === "normal") && t.headerSideBySide && t.headerVisible && t.statusClipped === true && t.pageOverflow <= 1,
+      JSON.stringify(t));
+    const sh = await page.evaluate(() => {
+      const get = (sel) => getComputedStyle(document.querySelector(sel)).boxShadow;
+      return { section: get("#section-titled [data-yadad=section]"), panel: get("#panel-titled [data-yadad=panel]") };
+    });
+    for (const [k, v] of Object.entries(sh)) {
+      check(run, `${k} box-shadow ${expectShadow ? "from the engine token" : "none without the token"}`, expectShadow ? v !== "none" && v !== "" : v === "none", v);
+    }
+  }
   await ctx.close();
 }
 
