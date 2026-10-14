@@ -55,12 +55,14 @@ body {
 
 .controls {
   display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
   align-items: center;
 }
 
 .controls span {
   display: inline-flex;
+  flex-wrap: wrap;
   gap: var(--yadad-space-1);
   align-items: center;
 }

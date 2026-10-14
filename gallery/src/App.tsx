@@ -8,7 +8,7 @@
  * way a host would. Each state gets a heading and a stable anchor id so a
  * check can link to it.
  */
-import { lightTheme, themeToCss, type Theme } from "@yadad/theme";
+import { darkTheme, lightTheme, themeToCss, type Theme } from "@yadad/theme";
 import type { DocumentError, FieldValueTypes, FieldType } from "@yadad/core";
 import { useState } from "react";
 import type { ReactNode } from "react";
@@ -20,9 +20,10 @@ const { FieldFrame, Section, Button, Table, ErrorSummary, Tabs, Panel } = baseRe
 const Count = baseRegistry.widgets.count;
 
 /**
- * A deliberately different dark token set, defined here on purpose: if a
- * component followed the engine's dark theme instead of the tokens, it would
- * not pick up these values.
+ * The "stress" theme: a deliberately different dark token set, defined here
+ * on purpose. If a component followed the engine's dark theme instead of the
+ * tokens, it would not pick up these values. The "dark" option is the
+ * engine's own darkTheme, which is what hosts actually get.
  */
 export const galleryDarkTheme: Theme = {
   "color-text": "#e8f0e8",
@@ -108,6 +109,13 @@ const brandOverridesCss = `
   font-weight: 700;
 }
 `;
+
+const THEMES: Record<"light" | "dark" | "stress" | "brand", Theme> = {
+  light: lightTheme,
+  dark: darkTheme,
+  stress: galleryDarkTheme,
+  brand: galleryBrandTheme,
+};
 
 const state = (id: string, title: string, children: ReactNode): ReactNode => (
   <div className="state" id={id}>
@@ -260,12 +268,12 @@ const FIELD_STATES = ["empty", "filled", "required", "invalid", "display-value",
 const FIELD_TYPES: readonly ("text" | "number" | "boolean" | "select" | "date")[] = ["text", "number", "boolean", "select", "date"];
 
 export default function App(): ReactNode {
-  const [mode, setMode] = useState<"light" | "dark" | "brand">("light");
+  const [mode, setMode] = useState<"light" | "dark" | "stress" | "brand">("light");
   const [textScale, setTextScale] = useState<"100" | "200">("100");
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: themeToCss(mode === "light" ? lightTheme : mode === "dark" ? galleryDarkTheme : galleryBrandTheme) }} />
+      <style dangerouslySetInnerHTML={{ __html: themeToCss(THEMES[mode]) }} />
       {mode === "brand" ? (
         <style dangerouslySetInnerHTML={{ __html: brandOverridesCss }} />
       ) : null}
@@ -279,6 +287,9 @@ export default function App(): ReactNode {
             </button>{" "}
             <button type="button" aria-pressed={mode === "dark"} onClick={() => setMode("dark")}>
               dark
+            </button>{" "}
+            <button type="button" aria-pressed={mode === "stress"} onClick={() => setMode("stress")}>
+              stress
             </button>{" "}
             <button type="button" aria-pressed={mode === "brand"} onClick={() => setMode("brand")}>
               brand
