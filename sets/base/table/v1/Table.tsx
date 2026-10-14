@@ -44,7 +44,7 @@ export function Table({ caption, columns, rows, onSort, empty }: TableProps<Reac
             </tr>
           ) : (
             rows.map((row) => (
-              <tr key={row.id} role="row" data-part="row">
+              <tr key={row.id} role="row" data-yadad-row={row.id} data-part="row">
                 {row.cells.map((cell, i) => (
                   <td key={columns[i]?.id ?? i} role="cell" data-label={columns[i]?.label} data-part="cell">
                     {cell}

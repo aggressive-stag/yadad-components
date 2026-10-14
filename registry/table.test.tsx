@@ -22,4 +22,9 @@ describe("table markup", () => {
     const cells = [...container.querySelectorAll('[data-part="cell"]')].map((c) => c.getAttribute("data-label"));
     expect(cells).toEqual(["Date", "Name"]);
   });
+
+  it("tags each body row with its stable id", () => {
+    const { container } = render(<Table caption="c" columns={columns} rows={rows} onSort={() => {}} empty="none" />);
+    expect(container.querySelector('tr[data-yadad-row="r1"]')).not.toBeNull();
+  });
 });
