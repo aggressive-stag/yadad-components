@@ -43,6 +43,8 @@ export const galleryDarkTheme: Theme = {
   "font-size-sm": "0.8125rem",
   "font-size-md": "1.0625rem",
   "focus-ring-width": "4px",
+  "shadow-sm": "0 0 0 1px #5ce27a",
+  "shadow-md": "0 0 12px #5ce27a",
 };
 
 /**
@@ -70,6 +72,8 @@ export const galleryBrandTheme: Theme = {
   "font-size-sm": "0.9375rem",
   "font-size-md": "1.125rem",
   "focus-ring-width": "5px",
+  "shadow-sm": "3px 3px 0 #3d2c63",
+  "shadow-md": "6px 6px 0 #3d2c63",
 };
 
 /**

@@ -21,9 +21,8 @@
  *      shows its column label, long cells wrap inside the card, the header
  *      strip's sort buttons stay >=44px tall and receive real taps. At desktop
  *      width the table is still a normal table (no labels, table display).
- *   8. Sections and panels pick up a box-shadow when the engine's shadow
- *      tokens are applied (light and engine dark), and none when they are not
- *      (the gallery's stress theme defines no shadow tokens).
+ *   8. Sections and panels pick up a box-shadow from the shadow tokens of
+ *      every gallery theme.
  *   9. Labels and errors stay attached to their inputs and nothing overlaps
  *      or runs off the right edge at 200% text.
  *
@@ -312,7 +311,7 @@ for (const vp of VIEWPORTS) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await ctx.newPage();
   await page.goto(url, { waitUntil: "networkidle" });
-  for (const [theme, expectShadow] of [["light", true], ["dark", true], ["stress", false]]) {
+  for (const [theme, expectShadow] of [["light", true], ["dark", true], ["stress", true], ["brand", true]]) {
     const run = `desktop ${theme} 100%`;
     await page.locator(".controls button", { hasText: theme }).click();
     await page.waitForTimeout(250);
@@ -342,7 +341,7 @@ for (const vp of VIEWPORTS) {
       return { section: get("#section-titled [data-yadad=section]"), panel: get("#panel-titled [data-yadad=panel]") };
     });
     for (const [k, v] of Object.entries(sh)) {
-      check(run, `${k} box-shadow ${expectShadow ? "from the engine token" : "none without the token"}`, expectShadow ? v !== "none" && v !== "" : v === "none", v);
+      check(run, `${k} box-shadow ${expectShadow ? "from the theme's shadow token" : "none without the token"}`, expectShadow ? v !== "none" && v !== "" : v === "none", v);
     }
   }
   await ctx.close();
