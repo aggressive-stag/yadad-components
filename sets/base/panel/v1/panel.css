@@ -8,6 +8,7 @@
     border: var(--yadad-panel-border-width, 1px) solid var(--yadad-panel-border, var(--yadad-color-border));
     border-radius: var(--yadad-panel-radius, var(--yadad-radius-md));
     background: var(--yadad-panel-background, var(--yadad-color-background));
+    box-shadow: var(--yadad-shadow-md, none);
     font-family: var(--yadad-panel-font-family, var(--yadad-font-family));
   }
 
@@ -25,5 +26,6 @@
     border-block-end: 0;
     border-radius: 0;
     background: none;
+    box-shadow: none;
   }
 }

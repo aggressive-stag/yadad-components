@@ -6,6 +6,7 @@
     border: var(--yadad-section-border-width, 1px) solid var(--yadad-section-border, var(--yadad-color-border));
     border-radius: var(--yadad-section-radius, var(--yadad-radius-md));
     background: var(--yadad-section-background, var(--yadad-color-surface));
+    box-shadow: var(--yadad-shadow-sm, none);
     font-family: var(--yadad-section-font-family, var(--yadad-font-family));
   }
 
