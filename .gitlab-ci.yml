@@ -20,3 +20,30 @@ release:
     COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
   script:
     - sh scripts/release/publish.sh
+
+# Watchdog for the @yadad/core peer range, with a real verdict: this runner
+# can reach the engine registry, which GitHub's public runners cannot (there
+# the same check skips). Non-blocking and last: .post runs after deploy, so
+# it can neither hold up nor reorder publishing, and allow_failure keeps the
+# pipeline green when the range is stale (the job shows as a warning).
+# Runs `check:engine --install`: the range check plus the full gate against
+# the newest published engine.
+engine-range:
+  stage: .post
+  tags: [k8s]
+  image: docker.io/library/node:24.21.0-bookworm
+  timeout: 20m
+  allow_failure: true
+  variables:
+    COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+    npm_config_registry: "${CI_API_V4_URL}/packages/npm/"
+  script:
+    # Read access to the instance-level registry endpoint.
+    - printf '%s\n' "${CI_API_V4_URL#https:}/packages/npm/:_authToken=${CI_JOB_TOKEN}" > "${HOME}/.npmrc"
+    # Until contract-v0 is published the repo links ../yadad (as in release).
+    - git clone --depth 1 "${CI_SERVER_URL}/yadad/yadad.git" ../yadad
+    - git config --global --add safe.directory "${CI_PROJECT_DIR}"
+    - corepack enable
+    - (cd ../yadad && pnpm install --frozen-lockfile)
+    - pnpm install --frozen-lockfile
+    - pnpm check:engine --install
