@@ -67,7 +67,7 @@ The rules above are enforced by the test gate (`scripts/theming.test.mjs` → `s
 
 ## Real-browser checks
 
-`pnpm gallery` serves a page that renders every registry entry in all of its states, with light/dark and 100%/200% text toggles. Use it for any UI change (desktop and 390×844 with touch, keyboard-only).
+`pnpm gallery` serves a page that renders every registry entry in all of its states, with light, dark (the engine's `darkTheme`), stress (the gallery's own deliberately different dark tokens), brand and 100%/200% text toggles. Use it for any UI change (desktop and 390×844 with touch, keyboard-only).
 
 `gallery/check/` holds rerunnable checks that are not published:
 
@@ -80,7 +80,7 @@ Both exit non-zero on any failure. If the machine's Chromium differs from the on
 
 `tabs-keyboard.mjs` drives a real Chromium through the gallery and asserts that at 200% text the long tab list scrolls internally instead of forcing page-level horizontal overflow, that `End` reaches the last tab with its focus ring inside the viewport, and that the tablist's ring-clearance padding covers the focus-ring extent in both themes at both sizes.
 
-`phone-touch.mjs` drives the gallery at 390×844 and 320 px wide with touch enabled, in both themes and at 200% text, and asserts that the tap targets (buttons, the checkbox label, sortable headers, tabs and pickers) are at least 44×44 CSS px, that nothing forces the host page to scroll sideways (the table scrolls inside its own container and long text wraps), that inputs render at 16 px or larger so iOS Safari does not zoom on focus, that the long tab list stays scrollable with the selected tab visible, and that a real touch tap activates the button. The one exception it reports instead of failing on is a native date control's intrinsic minimum width, which a browser does not let CSS shrink: if the date input is the only thing pushing the page wide, it is reported as a documented limitation.
+`phone-touch.mjs` drives the gallery at 390×844 and 320 px wide with touch enabled, in both themes and at 200% text, and asserts that the tap targets (buttons, the checkbox label, sortable headers, tabs and pickers) are at least 44×44 CSS px, that nothing forces the host page to scroll sideways (the table scrolls inside its own container and long text wraps), that inputs render at 16 px or larger so iOS Safari does not zoom on focus, that the long tab list stays scrollable with the selected tab visible, and that a real touch tap activates the button. It also checks the stacked phone table (rows as cards, a column label on every cell, wrapping, the sort strip's tap targets), that the table is a normal table at desktop width, and that section and panel pick up a shadow from the engine's shadow tokens. The one exception it reports instead of failing on is a native date control's intrinsic minimum width, which a browser does not let CSS shrink: if the date input is the only thing pushing the page wide, it is reported as a documented limitation.
 
 ## Keeping up with engine releases
 
