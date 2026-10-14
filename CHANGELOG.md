@@ -1,5 +1,19 @@
 # @yadad/components
 
+## 0.4.0
+
+### Minor Changes
+
+- ae398fa: Table stacks its rows as cards under a narrow container (cells labelled by column), sort buttons name their direction, and section/panel read optional `--yadad-shadow-sm` / `--yadad-shadow-md` tokens (no shadow when unset).
+
+### Patch Changes
+
+- 9480af4: Accept `@yadad/core` 0.5.x in `peerDependencies`. Proved with
+  `pnpm check:engine --install`: a temp copy of the repo with the
+  published `@yadad/core@0.5.0` and `@yadad/testing@0.1.5` passes the
+  full gate (5 files, 168 tests).
+- b5ffb71: Table: the sort button no longer overflows its header cell in the stacked phone layout.
+
 ## 0.3.1
 
 ### Patch Changes
