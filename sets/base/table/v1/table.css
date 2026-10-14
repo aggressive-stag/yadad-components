@@ -39,6 +39,9 @@
 
   :where([data-yadad="table"]) :where([data-part="sort"]) {
     all: unset;
+    /* all: unset resets box-sizing to content-box; the stacked layout adds
+       inline padding to a 100%-wide button, which must not overflow. */
+    box-sizing: border-box;
     /* The thumb taps the column header, not just the label inside it, so the
        button fills the header cell: the whole cell is the tap target. */
     display: flex;

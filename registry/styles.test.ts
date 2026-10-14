@@ -21,6 +21,16 @@ describe.each(files)("%s", (file) => {
     expect(body.match(/\b(?!1px\b)\d*\.?\d+(px|rem|em)\b/g) ?? []).toEqual([]);
   });
 
+  test("the table sort button is border-box so its stacked padding cannot overflow", () => {
+    // all: unset resets box-sizing to content-box; the card layout adds inline
+    // padding to a 100%-wide button, which overflowed its container (found in
+    // a real browser; jsdom cannot evaluate the container query).
+    if (!file.includes("/table/")) return;
+    const rule = body.match(/:where\(\[data-part="sort"\]\)\s*\{([^}]*all:\s*unset[^}]*)\}/);
+    expect(rule, "sort rule").toBeTruthy();
+    expect(rule?.[1]).toMatch(/box-sizing:\s*border-box/);
+  });
+
   test("the tabs list scrolls internally and clears the focus ring", () => {
     // Regression guard for card 3: a long tab list used to force the host
     // page to scroll horizontally (overflow-x:visible), and the scroll
