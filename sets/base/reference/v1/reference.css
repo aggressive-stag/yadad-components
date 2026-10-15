@@ -1,0 +1,24 @@
+/* reference/v1. The picker itself is the select component (data-yadad="select"),
+   so the --yadad-select-* variables style it. This sheet only styles the status
+   line under the picker and the read-only label. Override any
+   --yadad-reference-* variable (on the element or any ancestor) or the
+   underlying --yadad-* tokens; the fallbacks below are the defaults. */
+@layer yadad.components {
+  :where([data-yadad="reference"][data-part="status"]) {
+    display: block;
+    margin-block-start: var(--yadad-reference-status-gap, var(--yadad-space-1));
+    font-family: var(--yadad-reference-font-family, var(--yadad-font-family));
+    font-size: var(--yadad-reference-status-font-size, var(--yadad-font-size-sm));
+    color: var(--yadad-reference-status-color, var(--yadad-color-text-muted));
+  }
+
+  :where([data-yadad="reference"][data-part="status"][data-state="error"]) {
+    color: var(--yadad-reference-status-color-error, var(--yadad-color-danger));
+  }
+
+  :where([data-yadad="reference"][data-part="display"][data-status="missing"]),
+  :where([data-yadad="reference"][data-part="display"][data-status="error"]) {
+    color: var(--yadad-reference-missing-color, var(--yadad-color-text-muted));
+    font-style: italic;
+  }
+}

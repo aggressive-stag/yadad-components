@@ -9,11 +9,11 @@
  * check can link to it.
  */
 import { darkTheme, lightTheme, themeToCss, type Theme } from "@yadad/theme";
-import type { DocumentError, FieldValueTypes, FieldType } from "@yadad/core";
+import type { DocumentError, FieldDisplayExtras, FieldDisplayProps, FieldInputExtras, FieldInputProps, FieldType, FieldValueTypes } from "@yadad/core";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { baseRegistry } from "../../registry/base.js";
-import { invalidError, requiredError, samples } from "./fixtures.js";
+import { invalidError, referenceOptions, requiredError, samples } from "./fixtures.js";
 import "./gallery.css";
 
 const { FieldFrame, Section, Button, Table, ErrorSummary, Tabs, Panel } = baseRegistry.layout;
@@ -128,17 +128,29 @@ const state = (id: string, title: string, children: ReactNode): ReactNode => (
   </div>
 );
 
+/**
+ * Renders a component with its props. The compiler cannot check JSX on a
+ * generic component type, so this calls it inside its own render, which is the
+ * same thing for React.
+ */
+function Host<P>({ component, props }: { component: (props: P) => ReactNode; props: P }): ReactNode {
+  return component(props);
+}
+
 /** FieldFrame + the type's Input, exactly as the contract kit renders it. */
 function Field<K extends FieldType>({
   type,
   value,
   errors,
   idPrefix,
+  extras,
 }: {
   type: K;
   value: FieldValueTypes[K] | undefined;
   errors?: readonly DocumentError[];
   idPrefix: string;
+  /** Overrides the sample's extra Input props (e.g. a reference picker that is still loading). */
+  extras?: FieldInputExtras[K];
 }): ReactNode {
   const sample = samples[type];
   const { field } = sample;
@@ -147,13 +159,20 @@ function Field<K extends FieldType>({
   const errorId = `${inputId}-errors`;
   return (
     <FieldFrame inputId={inputId} errorId={errorId} label={field.label} required={field.required === true} errors={errors ?? []}>
-      <entry.Input
-        inputId={inputId}
-        field={field}
-        value={value}
-        onChange={() => {}}
-        invalid={errors !== undefined && errors.length > 0}
-        {...(errors && errors.length > 0 ? { describedBy: errorId } : {})}
+      <Host
+        component={entry.Input as (props: FieldInputProps<K>) => ReactNode}
+        props={Object.assign(
+          {},
+          {
+            inputId,
+            field,
+            value,
+            onChange: () => {},
+            invalid: errors !== undefined && errors.length > 0,
+            ...(errors && errors.length > 0 ? { describedBy: errorId } : {}),
+          },
+          extras ?? sample.inputExtras,
+        )}
       />
     </FieldFrame>
   );
@@ -182,9 +201,28 @@ function FieldGroup<K extends FieldType>({ type }: { type: K }): ReactNode {
       {state(`${type}-filled`, "filled", <Field type={type} value={value} idPrefix={`g-${type}-filled`} />)}
       {state(`${type}-required`, "required (no value)", <Field type={type} value={undefined} idPrefix={`g-${type}-required`} />)}
       {state(`${type}-invalid`, "invalid, with an error message", <Field type={type} value={value} errors={errors} idPrefix={`g-${type}-invalid`} />)}
-      {state(`${type}-display-value`, "display: value", <entry.Display field={field} value={value} />)}
-      {state(`${type}-display-empty`, "display: no value", <entry.Display field={field} value={undefined} />)}
+      {state(`${type}-display-value`, "display: value", <Host component={entry.Display as (props: FieldDisplayProps<K>) => ReactNode} props={Object.assign({}, { field, value }, sample.displayExtras)} />)}
+      {state(`${type}-display-empty`, "display: no value", <Host component={entry.Display as (props: FieldDisplayProps<K>) => ReactNode} props={Object.assign({}, { field, value: undefined }, sample.displayExtras)} />)}
       <p className="note">The contract's InputProps has no disabled state, so none is shown.</p>
+    </section>
+  );
+}
+
+/** The states only a reference has: options still loading, failed, empty or cut short; a value outside the options; labels that did not resolve. */
+function ReferenceStates(): ReactNode {
+  const { field, value } = samples.reference;
+  const Display = baseRegistry.fields.reference.Display;
+  return (
+    <section id="group-reference-states">
+      <h2>reference: option and label states</h2>
+      {state("reference-loading", "options loading", <Field type="reference" value={undefined} idPrefix="g-reference-loading" extras={{ options: { status: "loading" } }} />)}
+      {state("reference-error", "options failed to load", <Field type="reference" value={undefined} idPrefix="g-reference-error" extras={{ options: { status: "error", message: "The server is unreachable." } }} />)}
+      {state("reference-no-options", "no records to choose from", <Field type="reference" value={undefined} idPrefix="g-reference-none" extras={{ options: { status: "ready", options: [], more: false } }} />)}
+      {state("reference-more", "more records than listed", <Field type="reference" value={value} idPrefix="g-reference-more" extras={{ options: { status: "ready", options: referenceOptions, more: true } }} />)}
+      {state("reference-outside-options", "value not among the options (shows its label)", <Field type="reference" value="e99" idPrefix="g-reference-outside" extras={{ options: { status: "ready", options: referenceOptions, more: true }, valueLabel: "Zercher squat" }} />)}
+      {state("reference-display-loading", "display: label loading (raw id)", <Display field={field} value="e99" label="e99" status="loading" />)}
+      {state("reference-display-missing", "display: record deleted", <Display field={field} value="e99" label="Unknown" status="missing" />)}
+      {state("reference-display-long", "display: long label", <Display field={field} value="e4" label={referenceOptions[3]?.label ?? ""} status="found" />)}
     </section>
   );
 }
@@ -269,7 +307,7 @@ const LAYOUT_ANCHORS = [
 ] as const;
 
 const FIELD_STATES = ["empty", "filled", "required", "invalid", "display-value", "display-empty"] as const;
-const FIELD_TYPES: readonly ("text" | "number" | "boolean" | "select" | "date")[] = ["text", "number", "boolean", "select", "date"];
+const FIELD_TYPES: readonly FieldType[] = ["text", "number", "boolean", "select", "date", "reference"];
 
 export default function App(): ReactNode {
   const [mode, setMode] = useState<"light" | "dark" | "stress" | "brand">("light");
@@ -353,6 +391,8 @@ export default function App(): ReactNode {
         <FieldGroup type="boolean" />
         <FieldGroup type="select" />
         <FieldGroup type="date" />
+        <FieldGroup type="reference" />
+        <ReferenceStates />
 
         <section id="group-field-frame">
           <h2>field-frame</h2>

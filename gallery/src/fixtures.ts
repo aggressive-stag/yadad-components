@@ -6,13 +6,27 @@
  * wider shapes this gallery adds: a select with many choices and a date with
  * min/max.
  */
-import type { DocumentError, FieldDefinitions, FieldValueTypes, FieldType } from "@yadad/core";
+import type { DocumentError, FieldDefinitions, FieldDisplayExtras, FieldInputExtras, FieldValueTypes, FieldType } from "@yadad/core";
 
 /** A field definition and a value to drive it with, per field type. */
 export interface FieldSample<K extends FieldType> {
   readonly field: FieldDefinitions[K];
   readonly value: FieldValueTypes[K];
+  /** Extra props the Input needs (a reference picker's options). */
+  readonly inputExtras: FieldInputExtras[K];
+  /** Extra props the Display needs (a reference's label). */
+  readonly displayExtras: FieldDisplayExtras[K];
 }
+
+const NONE = {};
+
+/** The records a reference picker offers: long labels included, so wrapping and truncation show. */
+export const referenceOptions = [
+  { id: "e1", label: "Squat" },
+  { id: "e2", label: "Bench press" },
+  { id: "e3", label: "Deadlift" },
+  { id: "e4", label: "Overhead press, strict, from the rack, with a pause at the bottom of every repetition" },
+];
 
 export type FieldSamples = { readonly [K in FieldType]: FieldSample<K> };
 
@@ -21,9 +35,9 @@ export type FieldSamples = { readonly [K in FieldType]: FieldSample<K> };
  * wider shape than the kit's default (select: many choices; date: min/max).
  */
 export const samples: FieldSamples = {
-  text: { field: { id: "name", type: "text", label: "Name", required: true }, value: "Ada" },
-  number: { field: { id: "weight", type: "number", label: "Weight", min: 0, step: 2.5, unit: "kg" }, value: 102.5 },
-  boolean: { field: { id: "warmup", type: "boolean", label: "Warm-up set" }, value: true },
+  text: { field: { id: "name", type: "text", label: "Name", required: true }, value: "Ada", inputExtras: NONE, displayExtras: NONE },
+  number: { field: { id: "weight", type: "number", label: "Weight", min: 0, step: 2.5, unit: "kg" }, value: 102.5, inputExtras: NONE, displayExtras: NONE },
+  boolean: { field: { id: "warmup", type: "boolean", label: "Warm-up set" }, value: true, inputExtras: NONE, displayExtras: NONE },
   select: {
     field: {
       id: "exercise",
@@ -48,8 +62,16 @@ export const samples: FieldSamples = {
       },
     },
     value: "Bench press",
+    inputExtras: NONE,
+    displayExtras: NONE,
   },
-  date: { field: { id: "day", type: "date", label: "Day", min: "2026-01-01", max: "2026-12-31" }, value: "2026-10-04" },
+  date: { field: { id: "day", type: "date", label: "Day", min: "2026-01-01", max: "2026-12-31" }, value: "2026-10-04", inputExtras: NONE, displayExtras: NONE },
+  reference: {
+    field: { id: "lift", type: "reference", label: "Lift", entity: "exercise" },
+    value: "e2",
+    inputExtras: { options: { status: "ready", options: referenceOptions, more: false } },
+    displayExtras: { label: "Bench press", status: "found" },
+  },
 };
 
 /** The error shapes the contract kit drives components with. */

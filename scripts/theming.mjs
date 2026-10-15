@@ -273,6 +273,7 @@ const PART_DESCRIPTION = {
   number: { root: "the field wrapper (input + unit)", input: "the number `<input>`", unit: "the unit suffix (e.g. kg)", display: "read-only value" },
   panel: { root: "the panel wrapper", title: "the panel title" },
   section: { root: "the `<fieldset>` wrapper", title: "the `<legend>` title" },
+  reference: { input: "the picker `<select>`; it carries `data-yadad=\"select\"`, so style it with the select component's variables and selector, not this component's", status: "the status line under the picker (loading, error, empty, cut short)", display: "read-only label of the referenced record" },
   select: { input: "the `<select>` picker", display: "read-only value" },
   table: { root: "the table wrapper (scroll container)", table: "the `<table>`", caption: "the `<caption>`", header: "a column `<th>`", sort: "a sortable-header button", "sort-indicator": "the sort direction arrow", "sort-status": "visually hidden sort direction text inside the sort button", empty: "the empty-state cell", row: "a data `<tr>`", cell: "a data `<td>`" },
   tabs: { root: "the tab component wrapper", list: "the `<tablist>` (scrolls internally for long lists)", tab: "a tab button", panel: "the selected tab's panel" },
@@ -289,6 +290,7 @@ const COMPONENT_INTRO = {
   number: "A numeric field with an optional unit suffix.",
   panel: "A titled or untitled content surface with a scrollable body.",
   section: "A titled or untitled grouping with a border.",
+  reference: "A link to a record of another entity, rendered as a native picker styled by the select component (its `--yadad-select-*` variables apply).",
   select: "A single-choice field, rendered as a native picker.",
   table: "A data table with sortable headers and an empty state.",
   tabs: "A tab list with a single selected tab and its panel.",
@@ -337,6 +339,11 @@ const VAR_DESCRIPTION = {
   "section-spacing": "space after the section", "section-padding": "inner padding",
   "section-background": "background", "title-size": "title font size",
   "title-weight": "title font weight", "title-color": "title color",
+  // reference
+  "reference-font-family": "status line font family", "reference-status-gap": "space between the picker and the status line",
+  "reference-status-font-size": "status line font size", "reference-status-color": "status line color",
+  "reference-status-color-error": "status line color when options failed to load",
+  "reference-missing-color": "label color when the record is missing or could not be looked up",
   // select
   "select-padding": "inner padding", "select-tap": "minimum tap-target height (phone)",
   // table

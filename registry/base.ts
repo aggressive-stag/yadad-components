@@ -9,6 +9,7 @@ import { FieldFrame } from "../sets/base/field-frame/v1/index.js";
 import { NumberDisplay, NumberInput } from "../sets/base/number/v1/index.js";
 import { Panel } from "../sets/base/panel/v1/index.js";
 import { Section } from "../sets/base/section/v1/index.js";
+import { ReferenceDisplay, ReferenceInput } from "../sets/base/reference/v1/index.js";
 import { SelectDisplay, SelectInput } from "../sets/base/select/v1/index.js";
 import { Table } from "../sets/base/table/v1/index.js";
 import { Tabs } from "../sets/base/tabs/v1/index.js";
@@ -25,6 +26,7 @@ export const baseRegistry: Registry<ReactNode> = {
     boolean: { type: "boolean", Input: BooleanInput, Display: BooleanDisplay },
     select: { type: "select", Input: SelectInput, Display: SelectDisplay },
     date: { type: "date", Input: DateInput, Display: DateDisplay },
+    reference: { type: "reference", Input: ReferenceInput, Display: ReferenceDisplay },
   },
   layout: { FieldFrame, Section, Button, Table, ErrorSummary, Tabs, Panel },
   widgets: { count: Count },

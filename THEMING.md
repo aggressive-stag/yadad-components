@@ -254,6 +254,27 @@ A titled or untitled content surface with a scrollable body.
 
 **Theme tokens it reads:** `--yadad-color-background`, `--yadad-color-border`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-md`, `--yadad-shadow-md`, `--yadad-space-3`, `--yadad-space-4`
 
+### reference
+
+A link to a record of another entity, rendered as a native picker styled by the select component (its `--yadad-select-*` variables apply).
+
+**`data-part` names** (marked parts carry the component marker and take `[data-yadad="<component>"][data-part="<name>"]`; nested parts are inside the component root and take the descendant form `[data-yadad="<component>"] [data-part="<name>"]` — the compound form on a nested part matches nothing):
+
+- `input` — the picker `<select>`; it carries `data-yadad="select"`, so style it with the select component's variables and selector, not this component's (target with `[data-yadad="reference"][data-part="input"]`)
+- `status` — the status line under the picker (loading, error, empty, cut short) (target with `[data-yadad="reference"][data-part="status"]`)
+- `display` — read-only label of the referenced record (target with `[data-yadad="reference"][data-part="display"]`)
+
+**Per-component variables** (set on the component or an ancestor; the default is shown):
+
+- `--yadad-reference-status-gap` — space between the picker and the status line; default: token `--yadad-space-1` (spacing scale, step 1 (tightest))
+- `--yadad-reference-font-family` — status line font family; default: token `--yadad-font-family` (base font stack)
+- `--yadad-reference-status-font-size` — status line font size; default: token `--yadad-font-size-sm` (small text (labels, secondary, table cells))
+- `--yadad-reference-status-color` — status line color; default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
+- `--yadad-reference-status-color-error` — status line color when options failed to load; default: token `--yadad-color-danger` (error / danger text and borders)
+- `--yadad-reference-missing-color` — label color when the record is missing or could not be looked up; default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
+
+**Theme tokens it reads:** `--yadad-color-danger`, `--yadad-color-text-muted`, `--yadad-font-family`, `--yadad-font-size-sm`, `--yadad-space-1`
+
 ### section
 
 A titled or untitled grouping with a border.
