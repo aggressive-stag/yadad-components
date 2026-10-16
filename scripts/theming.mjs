@@ -288,6 +288,7 @@ const PART_DESCRIPTION = {
     day: "one day's `role=\"gridcell\"`",
     "day-head": "a day cell's day-number + today-badge row",
     "day-number": "a day cell's day-of-month number",
+    "day-date": "a day cell's full-date heading, shown only in the phone agenda reflow",
     "today-badge": "the visible \"Today\" word badge",
     entries: "a day cell's entry list",
     entry: "one entry (list item)",

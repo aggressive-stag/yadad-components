@@ -81,6 +81,15 @@ body {
   color: var(--yadad-color-text-muted);
 }
 
+/* A fixed-width preview frame for components with container-query reflow,
+   so the narrow layout is visible in the gallery without resizing the
+   actual browser viewport. */
+.phone-frame {
+  inline-size: 390px;
+  border: 1px dashed var(--yadad-color-border);
+  padding: var(--yadad-space-2);
+}
+
 a {
   color: var(--yadad-color-accent);
 }

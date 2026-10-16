@@ -395,6 +395,7 @@ const LAYOUT_ANCHORS = [
   "calendar-month-today",
   "calendar-week",
   "calendar-one-mode",
+  "calendar-phone-agenda",
 ] as const;
 
 const FIELD_STATES = ["empty", "filled", "required", "invalid", "display-value", "display-empty"] as const;
@@ -618,6 +619,13 @@ export default function App(): ReactNode {
             "calendar-one-mode",
             "one mode only (no mode switch)",
             <CalendarHarness id="Travel" initialMode="month" oneModeOnly initialAnchor={CALENDAR_TODAY} entries={calendarFixtureEntries} />,
+          )}
+          {state(
+            "calendar-phone-agenda",
+            "phone agenda reflow (390px container)",
+            <div className="phone-frame">
+              <CalendarHarness id="Training (phone)" initialMode="month" initialAnchor={CALENDAR_TODAY} entries={calendarFixtureEntries} />
+            </div>,
           )}
         </section>
       </div>

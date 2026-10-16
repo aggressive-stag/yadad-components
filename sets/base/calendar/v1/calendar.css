@@ -66,6 +66,7 @@
       [data-part="nav-today"],
       [data-part="nav-next"],
       [data-part="mode-button"],
+      [data-part="day"],
       [data-part="entry-open"],
       [data-part="move-trigger"],
       [data-part="move-confirm"],
@@ -199,6 +200,13 @@
     color: var(--yadad-calendar-today, var(--yadad-color-accent));
   }
 
+  /* Full-date heading: redundant with the weekday column headers in grid
+     mode (hidden there), the only day heading in the phone agenda (card 11
+     issue 4: a month grid is unreadable at 390px). */
+  :where([data-yadad="calendar"]) :where([data-part="day-date"]) {
+    display: none;
+  }
+
   :where([data-yadad="calendar"]) :where([data-part="entries"]) {
     display: flex;
     flex-direction: column;
@@ -290,5 +298,44 @@
     background: var(--yadad-calendar-selected-background, var(--yadad-color-accent));
     color: var(--yadad-calendar-selected-color, var(--yadad-color-surface));
     border-color: var(--yadad-calendar-selected-background, var(--yadad-color-accent));
+  }
+
+  /* Phone width (same 50ch convention as table.css's card reflow): a month
+     grid is unreadable at 390px (card 11 issue 4), so below this width the
+     grid becomes a vertical agenda — one block per visible day, in document
+     order, with a visible full-date heading replacing the (now hidden)
+     weekday column headers. The grid/row/gridcell roles and the roving
+     tabindex keyboard model are unchanged; only the visual layout reflows. */
+  @container (max-width: 50ch) {
+    :where([data-yadad="calendar"]) :where([data-part="weekday-row"]) {
+      display: none;
+    }
+
+    :where([data-yadad="calendar"]) :where([data-part="day-row"]) {
+      display: block;
+    }
+
+    :where([data-yadad="calendar"]) :where([data-part="day-row"]) + :where([data-part="day-row"]) {
+      border-block-start: 0;
+    }
+
+    :where([data-yadad="calendar"]) :where([data-part="day"]) {
+      min-block-size: 0;
+      border-inline-start: 0;
+      border-block-end: 1px solid var(--yadad-calendar-border, var(--yadad-color-border));
+    }
+
+    :where([data-yadad="calendar"]) :where([data-part="day"][data-in-month="false"]):not(:has([data-part="entries"] [data-part="entry"])) {
+      display: none;
+    }
+
+    :where([data-yadad="calendar"]) :where([data-part="day-date"]) {
+      display: inline;
+      font-weight: 600;
+    }
+
+    :where([data-yadad="calendar"]) :where([data-part="day-number"]) {
+      display: none;
+    }
   }
 }

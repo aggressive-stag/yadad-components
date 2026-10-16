@@ -124,10 +124,18 @@ function EntryView({
 
 function DayCell({
   day,
+  focused,
+  registerCell,
+  onCellKeyDown,
+  onCellFocus,
   onOpenEntry,
   onMove,
 }: {
   day: CalendarDayProps<ReactNode>;
+  focused: boolean;
+  registerCell: (date: string, el: HTMLDivElement | null) => void;
+  onCellKeyDown: (date: string, e: KeyboardEvent<HTMLDivElement>) => void;
+  onCellFocus: (date: string) => void;
   onOpenEntry?: (id: string) => void;
   onMove?: (id: string, date: string) => void;
 }): ReactNode {
@@ -136,15 +144,21 @@ function DayCell({
   const hidden = day.entries.length - visible.length;
   return (
     <div
+      ref={(el) => registerCell(day.date, el)}
       role="gridcell"
       aria-label={day.label}
       aria-current={day.isToday ? "date" : undefined}
+      tabIndex={focused ? 0 : -1}
+      onKeyDown={(e) => onCellKeyDown(day.date, e)}
+      onFocus={() => onCellFocus(day.date)}
       data-part="day"
       data-in-month={day.inMonth}
       data-today={day.isToday}
     >
       <div data-part="day-head">
         <span data-part="day-number">{day.dayOfMonth}</span>
+        {/* Visible only in the phone agenda reflow, where the weekday column headers are gone. */}
+        <span data-part="day-date">{day.label}</span>
         {day.isToday ? <span data-part="today-badge">Today</span> : null}
       </div>
       <ul data-part="entries" aria-label={`Entries for ${day.label}`}>
@@ -190,10 +204,90 @@ export function Calendar({
   const titleId = `${base}-title`;
   const noun = nounFor(mode);
 
+  // Roving tabindex (ARIA grid pattern): one gridcell is in the Tab order at
+  // a time; arrow keys move the "active" cell, Home/End to the week's ends,
+  // PageUp/PageDown page the whole view via the same callbacks the nav
+  // buttons use. Tab from the active cell reaches its own entries next,
+  // since they're its DOM children — no extra wiring needed for that part.
+  const dates = days.map((d) => d.date);
+  const [focusedDate, setFocusedDate] = useState<string>(() => days.find((d) => d.isToday)?.date ?? days[0]?.date ?? "");
+  const cellsRef = useRef<Map<string, HTMLDivElement>>(new Map());
+  const pendingFocusRef = useRef(false);
+
+  useEffect(() => {
+    if (!dates.includes(focusedDate)) {
+      setFocusedDate(days.find((d) => d.isToday)?.date ?? days[0]?.date ?? "");
+      pendingFocusRef.current = true;
+    }
+  }, [days]);
+
+  useEffect(() => {
+    if (pendingFocusRef.current) {
+      pendingFocusRef.current = false;
+      cellsRef.current.get(focusedDate)?.focus();
+    }
+  }, [focusedDate]);
+
+  const registerCell = (date: string, el: HTMLDivElement | null): void => {
+    if (el) cellsRef.current.set(date, el);
+    else cellsRef.current.delete(date);
+  };
+
+  const focusDelta = (from: string, delta: number): void => {
+    const idx = dates.indexOf(from);
+    if (idx < 0) return;
+    const next = dates[Math.min(Math.max(idx + delta, 0), dates.length - 1)];
+    if (next === undefined) return;
+    pendingFocusRef.current = true;
+    setFocusedDate(next);
+  };
+
+  const onCellKeyDown = (date: string, e: KeyboardEvent<HTMLDivElement>): void => {
+    const idx = dates.indexOf(date);
+    switch (e.key) {
+      case "ArrowRight":
+        e.preventDefault();
+        focusDelta(date, 1);
+        break;
+      case "ArrowLeft":
+        e.preventDefault();
+        focusDelta(date, -1);
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        focusDelta(date, 7);
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        focusDelta(date, -7);
+        break;
+      case "Home":
+        e.preventDefault();
+        focusDelta(date, -(idx % 7));
+        break;
+      case "End":
+        e.preventDefault();
+        focusDelta(date, 6 - (idx % 7));
+        break;
+      case "PageUp":
+        e.preventDefault();
+        pendingFocusRef.current = true;
+        onPrevious();
+        break;
+      case "PageDown":
+        e.preventDefault();
+        pendingFocusRef.current = true;
+        onNext();
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <section aria-label={label} data-yadad="calendar" data-part="root" data-mode={mode}>
       <header data-part="header">
-        <h2 id={titleId} data-part="title">
+        <h2 id={titleId} data-part="title" aria-live="polite">
           {title}
         </h2>
         <div role="group" aria-label={`${label} navigation`} data-part="nav">
@@ -246,7 +340,16 @@ export function Calendar({
         {weekRows(days).map((row, r) => (
           <div key={row[0]?.date ?? r} role="row" data-part="day-row">
             {row.map((day) => (
-              <DayCell key={day.date} day={day} {...(onOpenEntry ? { onOpenEntry } : {})} {...(onMove ? { onMove } : {})} />
+              <DayCell
+                key={day.date}
+                day={day}
+                focused={day.date === focusedDate}
+                registerCell={registerCell}
+                onCellKeyDown={onCellKeyDown}
+                onCellFocus={setFocusedDate}
+                {...(onOpenEntry ? { onOpenEntry } : {})}
+                {...(onMove ? { onMove } : {})}
+              />
             ))}
           </div>
         ))}
