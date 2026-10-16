@@ -177,6 +177,8 @@ A month/week grid of entries with navigation, a colour-slot legend, and a keyboa
 - `--yadad-calendar-day-min` — minimum day-cell block size; default: `calc(var(--yadad-space-4) * 6)` (token-derived: `--yadad-space-4`)
 - `--yadad-calendar-outside-color` — text color of a day outside the current month; default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
 - `--yadad-calendar-outside-background` — background of a day outside the current month; default: `transparent`
+- `--yadad-calendar-drop-target` — drag drop-target outline color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-calendar-drop-target-background` — drag drop-target background; default: `var(--yadad-calendar-header-background, var(--yadad-color-surface))` (token-derived: `--yadad-color-surface`)
 - `--yadad-calendar-today` — today ring and badge color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-calendar-link` — move-trigger / overflow button text color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 

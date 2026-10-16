@@ -362,6 +362,8 @@ const VAR_DESCRIPTION = {
   today: "today ring and badge color",
   "calendar-link": "move-trigger / overflow button text color",
   "calendar-radius-full": "legend/entry swatch corner radius (circular)",
+  "calendar-drop-target": "drag drop-target outline color",
+  "calendar-drop-target-background": "drag drop-target background",
   "slot-0": "colour slot 0 (categorical entry/legend color)",
   "slot-1": "colour slot 1 (categorical entry/legend color)",
   "slot-2": "colour slot 2 (categorical entry/legend color)",

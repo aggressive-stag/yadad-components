@@ -178,6 +178,19 @@
     background: var(--yadad-calendar-outside-background, transparent);
   }
 
+  /* Drag drop target (desktop, card 9): a visible highlight while a
+     draggable entry is over a day cell; the component never moves the
+     entry itself, only calls onMove on drop, so this is purely visual. */
+  :where([data-yadad="calendar"]) :where([data-part="day"][data-drag-over="true"]) {
+    outline: var(--yadad-focus-ring-width) dashed var(--yadad-calendar-drop-target, var(--yadad-color-accent));
+    outline-offset: calc(var(--yadad-focus-ring-width) * -1);
+    background: var(--yadad-calendar-drop-target-background, var(--yadad-calendar-header-background, var(--yadad-color-surface)));
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="entry"][data-movable="true"]) {
+    cursor: grab;
+  }
+
   /* Today: colour alone is too subtle (card 11 issue 6) — a ring plus a
      visible "Today" word badge, not colour alone. */
   :where([data-yadad="calendar"]) :where([data-part="day"][data-today="true"]) {

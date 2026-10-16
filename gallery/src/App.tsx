@@ -10,7 +10,7 @@
  */
 import { darkTheme, lightTheme, themeToCss, type Theme } from "@yadad/theme";
 import type { DocumentError, FieldDisplayExtras, FieldDisplayProps, FieldInputExtras, FieldInputProps, FieldType, FieldValueTypes } from "@yadad/core";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { baseRegistry } from "../../registry/base.js";
 import {
@@ -308,8 +308,10 @@ function entryContent(title: string, detail?: string): ReactNode {
 
 /**
  * A stateful month/week calendar harness: owns the visible range like a real
- * renderer would. Card 7 does not wire onOpenEntry/onMove (those are cards 8
- * and 9); nav and the mode switch are real.
+ * renderer would. `movable`/`openable` wire onMove/onOpenEntry with a tiny
+ * local "renderer": it owns entry state, optimistic move, and an
+ * announcement — moves onto a weekend are refused, to demo that path
+ * (cards 8/9; card 7 passed neither).
  */
 function CalendarHarness({
   id,
@@ -319,6 +321,8 @@ function CalendarHarness({
   entries,
   legend,
   notice,
+  movable,
+  openable,
 }: {
   id: string;
   initialMode: "month" | "week";
@@ -327,13 +331,19 @@ function CalendarHarness({
   entries: typeof calendarFixtureEntries;
   legend?: boolean;
   notice?: ReactNode;
+  movable?: boolean;
+  openable?: boolean;
 }): ReactNode {
   const [mode, setMode] = useState<"month" | "week">(initialMode);
   const [anchor, setAnchor] = useState(initialAnchor);
+  const [localEntries, setLocalEntries] = useState(entries);
+  const [announcement, setAnnouncement] = useState<{ seq: number; text: string } | undefined>(undefined);
+  const [openedId, setOpenedId] = useState<string | null>(null);
+  const seqRef = useRef(0);
 
   const dates = mode === "month" ? monthGridDates(anchor) : weekGridDates(anchor);
   const title = mode === "month" ? monthTitle(anchor) : weekTitle(dates);
-  const days = calendarDays(dates, mode === "month" ? anchor : dates[0] ?? anchor, entries).map((d) => ({
+  const days = calendarDays(dates, mode === "month" ? anchor : dates[0] ?? anchor, localEntries).map((d) => ({
     ...d,
     entries: d.entries.map((e) => ({ ...e, content: entryContent(e.title, e.detail) })),
   }));
@@ -347,22 +357,45 @@ function CalendarHarness({
     });
   };
 
+  const onMove = movable
+    ? (id: string, date: string): void => {
+        const entry = localEntries.find((e) => e.id === id);
+        if (!entry) return;
+        const weekday = new Date(`${date}T00:00:00Z`).getUTCDay();
+        seqRef.current += 1;
+        if (weekday === 0 || weekday === 6) {
+          setAnnouncement({ seq: seqRef.current, text: `Move refused: "${entry.title}" can't be scheduled on a weekend.` });
+          return;
+        }
+        setLocalEntries((prev) => prev.map((e) => (e.id === id ? { ...e, date } : e)));
+        setAnnouncement({ seq: seqRef.current, text: `Moved "${entry.title}" to ${date}.` });
+      }
+    : undefined;
+
+  const onOpenEntry = openable ? (id: string): void => setOpenedId(id) : undefined;
+
   return (
-    <Calendar
-      label={id}
-      title={title}
-      mode={mode}
-      modes={oneModeOnly ? [{ mode, label: mode === "month" ? "Month" : "Week" }] : [{ mode: "month", label: "Month" }, { mode: "week", label: "Week" }]}
-      weekdays={calendarWeekdays}
-      days={days}
-      legend={legend === false ? [] : [...calendarLegend]}
-      loading={false}
-      {...(notice !== undefined ? { notice } : {})}
-      onModeChange={setMode}
-      onPrevious={() => step(-1)}
-      onNext={() => step(1)}
-      onToday={() => setAnchor(CALENDAR_TODAY)}
-    />
+    <>
+      <Calendar
+        label={id}
+        title={title}
+        mode={mode}
+        modes={oneModeOnly ? [{ mode, label: mode === "month" ? "Month" : "Week" }] : [{ mode: "month", label: "Month" }, { mode: "week", label: "Week" }]}
+        weekdays={calendarWeekdays}
+        days={days}
+        legend={legend === false ? [] : [...calendarLegend]}
+        loading={false}
+        {...(notice !== undefined ? { notice } : {})}
+        {...(announcement ? { announcement } : {})}
+        onModeChange={setMode}
+        onPrevious={() => step(-1)}
+        onNext={() => step(1)}
+        onToday={() => setAnchor(CALENDAR_TODAY)}
+        {...(onMove ? { onMove } : {})}
+        {...(onOpenEntry ? { onOpenEntry } : {})}
+      />
+      {openedId ? <p className="note">Opened entry: {openedId}</p> : null}
+    </>
   );
 }
 
@@ -396,6 +429,7 @@ const LAYOUT_ANCHORS = [
   "calendar-week",
   "calendar-one-mode",
   "calendar-phone-agenda",
+  "calendar-movable",
 ] as const;
 
 const FIELD_STATES = ["empty", "filled", "required", "invalid", "display-value", "display-empty"] as const;
@@ -626,6 +660,18 @@ export default function App(): ReactNode {
             <div className="phone-frame">
               <CalendarHarness id="Training (phone)" initialMode="month" initialAnchor={CALENDAR_TODAY} entries={calendarFixtureEntries} />
             </div>,
+          )}
+          {state(
+            "calendar-movable",
+            "movable + openable entries (drag or keyboard move; weekend moves are refused, live-announced)",
+            <CalendarHarness
+              id="Training (movable)"
+              initialMode="month"
+              initialAnchor={CALENDAR_TODAY}
+              entries={calendarFixtureEntries}
+              movable
+              openable
+            />,
           )}
         </section>
       </div>

@@ -102,6 +102,7 @@ function EntryView({
   onOpenEntry?: (id: string) => void;
   onMove?: (id: string, date: string) => void;
 }): ReactNode {
+  const draggable = entry.movable && !!onMove;
   const content = (
     <>
       {entry.color ? <span data-part="entry-color" data-slot={entry.color.slot} aria-hidden="true" /> : null}
@@ -109,7 +110,20 @@ function EntryView({
     </>
   );
   return (
-    <li data-part="entry" data-pending={entry.pending} data-movable={entry.movable}>
+    <li
+      data-part="entry"
+      data-pending={entry.pending}
+      data-movable={entry.movable}
+      draggable={draggable}
+      onDragStart={
+        draggable
+          ? (e) => {
+              e.dataTransfer.setData("text/plain", entry.id);
+              e.dataTransfer.effectAllowed = "move";
+            }
+          : undefined
+      }
+    >
       {onOpenEntry ? (
         <button type="button" data-part="entry-open" aria-label={entry.label} onClick={() => onOpenEntry(entry.id)}>
           {content}
@@ -125,23 +139,32 @@ function EntryView({
 function DayCell({
   day,
   focused,
+  dragOver,
   registerCell,
   onCellKeyDown,
   onCellFocus,
   onOpenEntry,
   onMove,
+  onDragEnter,
+  onDragLeave,
+  onDrop,
 }: {
   day: CalendarDayProps<ReactNode>;
   focused: boolean;
+  dragOver: boolean;
   registerCell: (date: string, el: HTMLDivElement | null) => void;
   onCellKeyDown: (date: string, e: KeyboardEvent<HTMLDivElement>) => void;
   onCellFocus: (date: string) => void;
   onOpenEntry?: (id: string) => void;
   onMove?: (id: string, date: string) => void;
+  onDragEnter?: (date: string) => void;
+  onDragLeave?: (date: string) => void;
+  onDrop?: (date: string, entryId: string) => void;
 }): ReactNode {
   const [expanded, setExpanded] = useState(false);
   const visible = expanded ? day.entries : day.entries.slice(0, MAX_VISIBLE_ENTRIES);
   const hidden = day.entries.length - visible.length;
+  const canDrop = !!onMove;
   return (
     <div
       ref={(el) => registerCell(day.date, el)}
@@ -154,6 +177,19 @@ function DayCell({
       data-part="day"
       data-in-month={day.inMonth}
       data-today={day.isToday}
+      data-drag-over={canDrop && dragOver ? "true" : undefined}
+      onDragOver={canDrop ? (e) => e.preventDefault() : undefined}
+      onDragEnter={canDrop ? () => onDragEnter?.(day.date) : undefined}
+      onDragLeave={canDrop ? () => onDragLeave?.(day.date) : undefined}
+      onDrop={
+        canDrop
+          ? (e) => {
+              e.preventDefault();
+              const id = e.dataTransfer.getData("text/plain");
+              if (id) onDrop?.(day.date, id);
+            }
+          : undefined
+      }
     >
       <div data-part="day-head">
         <span data-part="day-number">{day.dayOfMonth}</span>
@@ -231,6 +267,18 @@ export function Calendar({
   const registerCell = (date: string, el: HTMLDivElement | null): void => {
     if (el) cellsRef.current.set(date, el);
     else cellsRef.current.delete(date);
+  };
+
+  // Drag (desktop, card 9): the component never moves the entry itself —
+  // it only calls onMove on drop. The renderer owns optimistic state and
+  // reverts refused moves (RFC 0004); dragOverDate is purely the visible
+  // drop-target highlight.
+  const [dragOverDate, setDragOverDate] = useState<string | null>(null);
+  const onDragEnter = (date: string): void => setDragOverDate(date);
+  const onDragLeave = (date: string): void => setDragOverDate((cur) => (cur === date ? null : cur));
+  const onDrop = (date: string, entryId: string): void => {
+    setDragOverDate(null);
+    onMove?.(entryId, date);
   };
 
   const focusDelta = (from: string, delta: number): void => {
@@ -314,8 +362,11 @@ export function Calendar({
 
       {notice !== undefined ? <div data-part="notice">{notice}</div> : null}
 
+      {/* key={announcement.seq}: a refusal can repeat the same text as a
+          prior announcement (e.g. two refused moves in a row); without a
+          key change screen readers won't re-announce unchanged text. */}
       <div role="status" aria-live="polite" data-part="status">
-        {announcement?.text}
+        <span key={announcement?.seq ?? 0}>{announcement?.text}</span>
       </div>
 
       {legend.length > 0 ? (
@@ -344,9 +395,13 @@ export function Calendar({
                 key={day.date}
                 day={day}
                 focused={day.date === focusedDate}
+                dragOver={day.date === dragOverDate}
                 registerCell={registerCell}
                 onCellKeyDown={onCellKeyDown}
                 onCellFocus={setFocusedDate}
+                onDragEnter={onDragEnter}
+                onDragLeave={onDragLeave}
+                onDrop={onDrop}
                 {...(onOpenEntry ? { onOpenEntry } : {})}
                 {...(onMove ? { onMove } : {})}
               />
