@@ -28,6 +28,7 @@ function registryEntryTypes(): readonly string[] {
     ErrorSummary: "error-summary",
     Tabs: "tabs",
     Panel: "panel",
+    Calendar: "calendar",
   } as const;
   for (const name of Object.keys(layout)) {
     entryTypes.push(layoutNames[name as keyof typeof layoutNames]);

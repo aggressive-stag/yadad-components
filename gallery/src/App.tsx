@@ -13,11 +13,27 @@ import type { DocumentError, FieldDisplayExtras, FieldDisplayProps, FieldInputEx
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { baseRegistry } from "../../registry/base.js";
-import { invalidError, referenceOptions, requiredError, samples } from "./fixtures.js";
+import {
+  CALENDAR_TODAY,
+  calendarDays,
+  calendarFixtureEntries,
+  calendarLegend,
+  calendarWeekdays,
+  invalidError,
+  monthGridDates,
+  monthTitle,
+  referenceOptions,
+  requiredError,
+  samples,
+  weekGridDates,
+  weekTitle,
+} from "./fixtures.js";
 import "./gallery.css";
 
-const { FieldFrame, Section, Button, Table, ErrorSummary, Tabs, Panel } = baseRegistry.layout;
+const { FieldFrame, Section, Button, Table, ErrorSummary, Tabs, Panel, Calendar: CalendarMaybe } = baseRegistry.layout;
 const Count = baseRegistry.widgets.count;
+if (!CalendarMaybe) throw new Error("layout.Calendar missing from baseRegistry");
+const Calendar = CalendarMaybe;
 
 /**
  * The "stress" theme: a deliberately different dark token set, defined here
@@ -280,6 +296,76 @@ function TabsState({ many }: { many?: boolean }): ReactNode {
   );
 }
 
+/** Builds the CalendarProps<ReactNode> content: title + small detail fields, with a real gap between them (card 11 issue 1). */
+function entryContent(title: string, detail?: string): ReactNode {
+  return (
+    <>
+      <span>{title}</span>
+      {detail ? <span className="calendar-entry-detail">{detail}</span> : null}
+    </>
+  );
+}
+
+/**
+ * A stateful month/week calendar harness: owns the visible range like a real
+ * renderer would. Card 7 does not wire onOpenEntry/onMove (those are cards 8
+ * and 9); nav and the mode switch are real.
+ */
+function CalendarHarness({
+  id,
+  initialMode,
+  oneModeOnly,
+  initialAnchor,
+  entries,
+  legend,
+  notice,
+}: {
+  id: string;
+  initialMode: "month" | "week";
+  oneModeOnly?: boolean;
+  initialAnchor: string;
+  entries: typeof calendarFixtureEntries;
+  legend?: boolean;
+  notice?: ReactNode;
+}): ReactNode {
+  const [mode, setMode] = useState<"month" | "week">(initialMode);
+  const [anchor, setAnchor] = useState(initialAnchor);
+
+  const dates = mode === "month" ? monthGridDates(anchor) : weekGridDates(anchor);
+  const title = mode === "month" ? monthTitle(anchor) : weekTitle(dates);
+  const days = calendarDays(dates, mode === "month" ? anchor : dates[0] ?? anchor, entries).map((d) => ({
+    ...d,
+    entries: d.entries.map((e) => ({ ...e, content: entryContent(e.title, e.detail) })),
+  }));
+
+  const step = (n: number): void => {
+    setAnchor((a) => {
+      const d = new Date(`${a}T00:00:00Z`);
+      if (mode === "month") d.setUTCMonth(d.getUTCMonth() + n);
+      else d.setUTCDate(d.getUTCDate() + n * 7);
+      return d.toISOString().slice(0, 10);
+    });
+  };
+
+  return (
+    <Calendar
+      label={id}
+      title={title}
+      mode={mode}
+      modes={oneModeOnly ? [{ mode, label: mode === "month" ? "Month" : "Week" }] : [{ mode: "month", label: "Month" }, { mode: "week", label: "Week" }]}
+      weekdays={calendarWeekdays}
+      days={days}
+      legend={legend === false ? [] : [...calendarLegend]}
+      loading={false}
+      {...(notice !== undefined ? { notice } : {})}
+      onModeChange={setMode}
+      onPrevious={() => step(-1)}
+      onNext={() => step(1)}
+      onToday={() => setAnchor(CALENDAR_TODAY)}
+    />
+  );
+}
+
 const LAYOUT_ANCHORS = [
   "field-frame-errors",
   "field-frame-clean",
@@ -304,6 +390,11 @@ const LAYOUT_ANCHORS = [
   "count-small",
   "count-large",
   "count-loading",
+  "calendar-month-empty",
+  "calendar-month-busy",
+  "calendar-month-today",
+  "calendar-week",
+  "calendar-one-mode",
 ] as const;
 
 const FIELD_STATES = ["empty", "filled", "required", "invalid", "display-value", "display-empty"] as const;
@@ -493,6 +584,41 @@ export default function App(): ReactNode {
           {state("count-small", "a small number", <Count label="Working sets" value={4} />)}
           {state("count-large", "a large number", <Count label="Total reps this year" value={1234567} />)}
           {state("count-loading", "loading (no value)", <Count label="Working sets" value={undefined} />)}
+        </section>
+
+        <section id="group-calendar">
+          <h2>calendar</h2>
+          {state(
+            "calendar-month-empty",
+            "empty month",
+            <CalendarHarness id="Training (empty)" initialMode="month" initialAnchor="2026-12-01" entries={[]} legend={false} />,
+          )}
+          {state(
+            "calendar-month-busy",
+            "busy day with overflow (+N more)",
+            <CalendarHarness id="Training" initialMode="month" initialAnchor={CALENDAR_TODAY} entries={calendarFixtureEntries} />,
+          )}
+          {state(
+            "calendar-month-today",
+            "today marked, with a notice",
+            <CalendarHarness
+              id="Training (today)"
+              initialMode="month"
+              initialAnchor={CALENDAR_TODAY}
+              entries={calendarFixtureEntries}
+              notice={<p>Showing the first 2,000 of 2,431 entries.</p>}
+            />,
+          )}
+          {state(
+            "calendar-week",
+            "week mode",
+            <CalendarHarness id="Training (week)" initialMode="week" initialAnchor={CALENDAR_TODAY} entries={calendarFixtureEntries} />,
+          )}
+          {state(
+            "calendar-one-mode",
+            "one mode only (no mode switch)",
+            <CalendarHarness id="Travel" initialMode="month" oneModeOnly initialAnchor={CALENDAR_TODAY} entries={calendarFixtureEntries} />,
+          )}
         </section>
       </div>
     </>

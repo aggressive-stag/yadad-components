@@ -2,6 +2,7 @@ import type { Registry } from "@yadad/core";
 import type { ReactNode } from "react";
 import { BooleanDisplay, BooleanInput } from "../sets/base/boolean/v1/index.js";
 import { Button } from "../sets/base/button/v1/index.js";
+import { Calendar } from "../sets/base/calendar/v1/index.js";
 import { Count } from "../sets/base/count/v1/index.js";
 import { DateDisplay, DateInput } from "../sets/base/date/v1/index.js";
 import { ErrorSummary } from "../sets/base/error-summary/v1/index.js";
@@ -28,6 +29,6 @@ export const baseRegistry: Registry<ReactNode> = {
     date: { type: "date", Input: DateInput, Display: DateDisplay },
     reference: { type: "reference", Input: ReferenceInput, Display: ReferenceDisplay },
   },
-  layout: { FieldFrame, Section, Button, Table, ErrorSummary, Tabs, Panel },
+  layout: { FieldFrame, Section, Button, Table, ErrorSummary, Tabs, Panel, Calendar },
   widgets: { count: Count },
 };

@@ -105,6 +105,83 @@ A pressable control with primary/secondary variants.
 
 **Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-sm`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 
+### calendar
+
+A month/week grid of entries with navigation, a colour-slot legend, and a keyboard/touch move control.
+
+**`data-part` names** (marked parts carry the component marker and take `[data-yadad="<component>"][data-part="<name>"]`; nested parts are inside the component root and take the descendant form `[data-yadad="<component>"] [data-part="<name>"]` — the compound form on a nested part matches nothing):
+
+- `move-trigger` — the "Move to day…" button for a movable entry (target with `[data-yadad="calendar"] [data-part="move-trigger"]`)
+- `move-panel` — the inline panel with the date input and confirm/cancel buttons (target with `[data-yadad="calendar"] [data-part="move-panel"]`)
+- `move-label` — the move panel's date-input `<label>` (target with `[data-yadad="calendar"] [data-part="move-label"]`)
+- `move-input` — the move panel's date `<input>` (target with `[data-yadad="calendar"] [data-part="move-input"]`)
+- `move-confirm` — the move panel's confirm button (target with `[data-yadad="calendar"] [data-part="move-confirm"]`)
+- `move-cancel` — the move panel's cancel button (target with `[data-yadad="calendar"] [data-part="move-cancel"]`)
+- `entry-color` — an entry's colour-slot swatch (target with `[data-yadad="calendar"] [data-part="entry-color"]`)
+- `entry-content` — an entry's title + detail fields (target with `[data-yadad="calendar"] [data-part="entry-content"]`)
+- `entry` — one entry (list item) (target with `[data-yadad="calendar"] [data-part="entry"]`)
+- `entry-open` — an entry rendered as an open-entry button (when `onOpenEntry` is set) (target with `[data-yadad="calendar"] [data-part="entry-open"]`)
+- `entry-static` — an entry rendered as plain content (when `onOpenEntry` is not set) (target with `[data-yadad="calendar"] [data-part="entry-static"]`)
+- `day` — one day's `role="gridcell"` (target with `[data-yadad="calendar"] [data-part="day"]`)
+- `day-head` — a day cell's day-number + today-badge row (target with `[data-yadad="calendar"] [data-part="day-head"]`)
+- `day-number` — a day cell's day-of-month number (target with `[data-yadad="calendar"] [data-part="day-number"]`)
+- `today-badge` — the visible "Today" word badge (target with `[data-yadad="calendar"] [data-part="today-badge"]`)
+- `entries` — a day cell's entry list (target with `[data-yadad="calendar"] [data-part="entries"]`)
+- `overflow` — the "+N more" button that reveals entries hidden past the per-day cap (target with `[data-yadad="calendar"] [data-part="overflow"]`)
+- `root` — the `<section>` wrapper (target with `[data-yadad="calendar"][data-part="root"]`)
+- `header` — the title + nav + mode-switch row (target with `[data-yadad="calendar"] [data-part="header"]`)
+- `title` — the current month/week title (`<h2>`) (target with `[data-yadad="calendar"] [data-part="title"]`)
+- `nav` — the previous/today/next button group (target with `[data-yadad="calendar"] [data-part="nav"]`)
+- `nav-previous` — the previous-period button (target with `[data-yadad="calendar"] [data-part="nav-previous"]`)
+- `nav-today` — the jump-to-today button (target with `[data-yadad="calendar"] [data-part="nav-today"]`)
+- `nav-next` — the next-period button (target with `[data-yadad="calendar"] [data-part="nav-next"]`)
+- `mode-switch` — the month/week toggle button group (target with `[data-yadad="calendar"] [data-part="mode-switch"]`)
+- `notice` — the notice shown above the grid (e.g. a result was truncated) (target with `[data-yadad="calendar"] [data-part="notice"]`)
+- `status` — the live region announcing the result of a move or a refusal (target with `[data-yadad="calendar"] [data-part="status"]`)
+- `legend` — the colour-slot legend list (target with `[data-yadad="calendar"] [data-part="legend"]`)
+- `legend-item` — one legend entry (target with `[data-yadad="calendar"] [data-part="legend-item"]`)
+- `legend-swatch` — one legend entry's colour swatch (target with `[data-yadad="calendar"] [data-part="legend-swatch"]`)
+- `legend-label` — one legend entry's label text (target with `[data-yadad="calendar"] [data-part="legend-label"]`)
+- `grid` — the `role="grid"` wrapper (target with `[data-yadad="calendar"] [data-part="grid"]`)
+- `weekday-row` — the weekday header row (target with `[data-yadad="calendar"] [data-part="weekday-row"]`)
+- `weekday` — one weekday column header (target with `[data-yadad="calendar"] [data-part="weekday"]`)
+- `day-row` — one week's row of day cells (target with `[data-yadad="calendar"] [data-part="day-row"]`)
+
+**Per-component variables** (set on the component or an ancestor; the default is shown):
+
+- `--yadad-calendar-font-family` — font stack; default: token `--yadad-font-family` (base font stack)
+- `--yadad-calendar-font-size` — font size; default: token `--yadad-font-size-sm` (small text (labels, secondary, table cells))
+- `--yadad-calendar-color` — foreground color; default: token `--yadad-color-text` (main text color)
+- `--yadad-calendar-title-size` — title font size; default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
+- `--yadad-calendar-tap` — minimum tap-target height (phone); default: `calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))` (token-derived: `--yadad-space-3`, `--yadad-space-4`)
+- `--yadad-calendar-border` — border color; default: token `--yadad-color-border` (borders and dividers)
+- `--yadad-calendar-radius` — corner radius; default: token `--yadad-radius-md` (medium corner radius (cards, panels, sections))
+- `--yadad-calendar-selected-background` — selected mode-switch button background; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-calendar-selected-color` — selected mode-switch button text color; default: token `--yadad-color-surface` (raised surface (sections, panels, table headers))
+- `--yadad-calendar-focus` — focus-ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-calendar-notice-border` — notice border color; default: token `--yadad-color-border` (borders and dividers)
+- `--yadad-calendar-notice-background` — notice background; default: token `--yadad-color-surface` (raised surface (sections, panels, table headers))
+- `--yadad-calendar-status-color` — live-region (status) text color; default: token `--yadad-color-text` (main text color)
+- `--yadad-calendar-status-accent` — live-region leading bar color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-calendar-status-background` — live-region background; default: token `--yadad-color-surface` (raised surface (sections, panels, table headers))
+- `--yadad-calendar-radius-full` — legend/entry swatch corner radius (circular); default: `50%`
+- `--yadad-calendar-slot-0` — colour slot 0 (categorical entry/legend color); default: no default — the host must set it
+- `--yadad-calendar-slot-1` — colour slot 1 (categorical entry/legend color); default: no default — the host must set it
+- `--yadad-calendar-slot-2` — colour slot 2 (categorical entry/legend color); default: no default — the host must set it
+- `--yadad-calendar-slot-3` — colour slot 3 (categorical entry/legend color); default: no default — the host must set it
+- `--yadad-calendar-slot-4` — colour slot 4 (categorical entry/legend color); default: no default — the host must set it
+- `--yadad-calendar-slot-5` — colour slot 5 (categorical entry/legend color); default: no default — the host must set it
+- `--yadad-calendar-slot-6` — colour slot 6 (categorical entry/legend color); default: no default — the host must set it
+- `--yadad-calendar-slot-7` — colour slot 7 (categorical entry/legend color); default: no default — the host must set it
+- `--yadad-calendar-header-background` — header background; default: token `--yadad-color-surface` (raised surface (sections, panels, table headers))
+- `--yadad-calendar-day-min` — minimum day-cell block size; default: `calc(var(--yadad-space-4) * 6)` (token-derived: `--yadad-space-4`)
+- `--yadad-calendar-outside-color` — text color of a day outside the current month; default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
+- `--yadad-calendar-outside-background` — background of a day outside the current month; default: `transparent`
+- `--yadad-calendar-today` — today ring and badge color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-calendar-link` — move-trigger / overflow button text color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-md`, `--yadad-space-1`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
+
 ### count
 
 A big-number widget with a label (e.g. a total).

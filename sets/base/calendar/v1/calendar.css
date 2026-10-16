@@ -1,0 +1,294 @@
+/* calendar/v1. Override any --yadad-calendar-* variable or the underlying
+   tokens. Eight colour slots (RFC 0004) are component-owned tokens because
+   the base theme (`@yadad/theme`) does not define a categorical palette;
+   defaults are composed from the theme's own accent/danger/muted tokens via
+   color-mix() (no hard-coded colors), and are never the only signal (every
+   entry/legend swatch sits next to its text). */
+@layer yadad.components {
+  :where([data-yadad="calendar"][data-part="root"]) {
+    --yadad-calendar-slot-0: var(--yadad-color-accent);
+    --yadad-calendar-slot-1: var(--yadad-color-danger);
+    --yadad-calendar-slot-2: color-mix(in srgb, var(--yadad-color-accent) 50%, var(--yadad-color-danger) 50%);
+    --yadad-calendar-slot-3: color-mix(in srgb, var(--yadad-color-accent) 65%, var(--yadad-color-text) 35%);
+    --yadad-calendar-slot-4: color-mix(in srgb, var(--yadad-color-danger) 65%, var(--yadad-color-text) 35%);
+    --yadad-calendar-slot-5: color-mix(in srgb, var(--yadad-color-accent) 45%, var(--yadad-color-text-muted) 55%);
+    --yadad-calendar-slot-6: color-mix(in srgb, var(--yadad-color-danger) 45%, var(--yadad-color-text-muted) 55%);
+    --yadad-calendar-slot-7: var(--yadad-color-text-muted);
+
+    display: block;
+    font-family: var(--yadad-calendar-font-family, var(--yadad-font-family));
+    font-size: var(--yadad-calendar-font-size, var(--yadad-font-size-sm));
+    color: var(--yadad-calendar-color, var(--yadad-color-text));
+    container-type: inline-size;
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="header"]) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--yadad-space-3);
+    margin-block-end: var(--yadad-space-3);
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="title"]) {
+    margin: 0;
+    font-size: var(--yadad-calendar-title-size, var(--yadad-font-size-md));
+    font-weight: 600;
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="nav"], [data-part="mode-switch"]) {
+    display: flex;
+    gap: var(--yadad-space-1);
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="nav-previous"], [data-part="nav-today"], [data-part="nav-next"], [data-part="mode-button"]) {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding-inline: var(--yadad-space-3);
+    min-block-size: var(--yadad-calendar-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    border: 1px solid var(--yadad-calendar-border, var(--yadad-color-border));
+    border-radius: var(--yadad-calendar-radius, var(--yadad-radius-md));
+    cursor: pointer;
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="mode-button"][aria-pressed="true"]) {
+    background: var(--yadad-calendar-selected-background, var(--yadad-color-accent));
+    color: var(--yadad-calendar-selected-color, var(--yadad-color-surface));
+    border-color: var(--yadad-calendar-selected-background, var(--yadad-color-accent));
+  }
+
+  :where([data-yadad="calendar"])
+    :where(
+      [data-part="nav-previous"],
+      [data-part="nav-today"],
+      [data-part="nav-next"],
+      [data-part="mode-button"],
+      [data-part="entry-open"],
+      [data-part="move-trigger"],
+      [data-part="move-confirm"],
+      [data-part="move-cancel"],
+      [data-part="overflow"]
+    ):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-calendar-focus, var(--yadad-color-accent));
+    outline-offset: var(--yadad-focus-ring-width);
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="notice"]) {
+    margin-block-end: var(--yadad-space-2);
+    padding: var(--yadad-space-2) var(--yadad-space-3);
+    border: 1px solid var(--yadad-calendar-notice-border, var(--yadad-color-border));
+    border-radius: var(--yadad-calendar-radius, var(--yadad-radius-md));
+    background: var(--yadad-calendar-notice-background, var(--yadad-color-surface));
+  }
+
+  /* The live region carries the move/refusal announcement to screen readers;
+     it is also kept visible (card 11 issue 5: refused moves were easy to
+     miss) so sighted users see the same text, not only hear it. */
+  :where([data-yadad="calendar"]) :where([data-part="status"]) {
+    min-block-size: calc(var(--yadad-font-size-sm) * 1.4);
+    margin-block-end: var(--yadad-space-2);
+    font-weight: 600;
+    color: var(--yadad-calendar-status-color, var(--yadad-color-text));
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="status"]):not(:empty) {
+    padding: var(--yadad-space-1) var(--yadad-space-3);
+    border-inline-start: calc(var(--yadad-space-1) / 2) solid var(--yadad-calendar-status-accent, var(--yadad-color-accent));
+    background: var(--yadad-calendar-status-background, var(--yadad-color-surface));
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="legend"]) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--yadad-space-3);
+    margin: 0 0 var(--yadad-space-3);
+    padding: 0;
+    list-style: none;
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="legend-item"]) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--yadad-space-1);
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="legend-swatch"], [data-part="entry-color"]) {
+    inline-size: calc(var(--yadad-font-size-sm) * 0.8);
+    block-size: calc(var(--yadad-font-size-sm) * 0.8);
+    border-radius: var(--yadad-calendar-radius-full, 50%);
+    flex: 0 0 auto;
+    background: var(--yadad-calendar-slot-0);
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="legend-swatch"][data-slot="1"], [data-part="entry-color"][data-slot="1"]) { background: var(--yadad-calendar-slot-1); }
+  :where([data-yadad="calendar"]) :where([data-part="legend-swatch"][data-slot="2"], [data-part="entry-color"][data-slot="2"]) { background: var(--yadad-calendar-slot-2); }
+  :where([data-yadad="calendar"]) :where([data-part="legend-swatch"][data-slot="3"], [data-part="entry-color"][data-slot="3"]) { background: var(--yadad-calendar-slot-3); }
+  :where([data-yadad="calendar"]) :where([data-part="legend-swatch"][data-slot="4"], [data-part="entry-color"][data-slot="4"]) { background: var(--yadad-calendar-slot-4); }
+  :where([data-yadad="calendar"]) :where([data-part="legend-swatch"][data-slot="5"], [data-part="entry-color"][data-slot="5"]) { background: var(--yadad-calendar-slot-5); }
+  :where([data-yadad="calendar"]) :where([data-part="legend-swatch"][data-slot="6"], [data-part="entry-color"][data-slot="6"]) { background: var(--yadad-calendar-slot-6); }
+  :where([data-yadad="calendar"]) :where([data-part="legend-swatch"][data-slot="7"], [data-part="entry-color"][data-slot="7"]) { background: var(--yadad-calendar-slot-7); }
+
+  /* Month/week grid: CSS grid of 7 columns; the weekday row and each week's
+     row are DOM row groups (role="row") so the ARIA grid tree stays valid
+     while the visual columns come from document order within each row. */
+  :where([data-yadad="calendar"]) :where([data-part="grid"]) {
+    display: block;
+    border: 1px solid var(--yadad-calendar-border, var(--yadad-color-border));
+    border-radius: var(--yadad-calendar-radius, var(--yadad-radius-md));
+    overflow: hidden;
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="weekday-row"], [data-part="day-row"]) {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="weekday-row"]) {
+    background: var(--yadad-calendar-header-background, var(--yadad-color-surface));
+    font-weight: 600;
+    font-size: var(--yadad-font-size-sm);
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="weekday"]) {
+    padding: var(--yadad-space-2);
+    text-align: center;
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="day-row"]) + :where([data-part="day-row"]) {
+    border-block-start: 1px solid var(--yadad-calendar-border, var(--yadad-color-border));
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="day"]) {
+    box-sizing: border-box;
+    min-block-size: var(--yadad-calendar-day-min, calc(var(--yadad-space-4) * 6));
+    padding: var(--yadad-space-1) var(--yadad-space-2);
+    border-inline-start: 1px solid var(--yadad-calendar-border, var(--yadad-color-border));
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="day"]:first-child) {
+    border-inline-start: 0;
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="day"][data-in-month="false"]) {
+    color: var(--yadad-calendar-outside-color, var(--yadad-color-text-muted));
+    background: var(--yadad-calendar-outside-background, transparent);
+  }
+
+  /* Today: colour alone is too subtle (card 11 issue 6) — a ring plus a
+     visible "Today" word badge, not colour alone. */
+  :where([data-yadad="calendar"]) :where([data-part="day"][data-today="true"]) {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-calendar-today, var(--yadad-color-accent));
+    outline-offset: calc(var(--yadad-focus-ring-width) * -1);
+    position: relative;
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="day-head"]) {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--yadad-space-1);
+    margin-block-end: var(--yadad-space-1);
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="today-badge"]) {
+    font-size: calc(var(--yadad-font-size-sm) * 0.9);
+    font-weight: 600;
+    color: var(--yadad-calendar-today, var(--yadad-color-accent));
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="entries"]) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--yadad-space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Detail fields run together without a gap (card 11 issue 1): the title
+     and each detail field are separate flex children with a real gap. */
+  :where([data-yadad="calendar"]) :where([data-part="entry-content"]) {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--yadad-space-1) / 2);
+    text-align: start;
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="entry-open"], [data-part="entry-static"]) {
+    all: unset;
+    box-sizing: border-box;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--yadad-space-1);
+    inline-size: 100%;
+    padding: var(--yadad-space-1);
+    border-radius: var(--yadad-calendar-radius, var(--yadad-radius-md));
+    font: inherit;
+    color: inherit;
+    text-align: start;
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="entry-open"]) {
+    cursor: pointer;
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="entry-color"]) {
+    margin-block-start: calc(var(--yadad-space-1) * 1.4);
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="entry"][data-pending="true"]) {
+    opacity: 0.6;
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="move-trigger"], [data-part="overflow"]) {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    padding: var(--yadad-space-1) var(--yadad-space-2);
+    font-size: var(--yadad-font-size-sm);
+    color: var(--yadad-calendar-link, var(--yadad-color-accent));
+    cursor: pointer;
+    min-block-size: var(--yadad-space-4);
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="move-panel"]) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--yadad-space-1);
+    margin-block-start: var(--yadad-space-1);
+    padding: var(--yadad-space-1);
+    border: 1px solid var(--yadad-calendar-border, var(--yadad-color-border));
+    border-radius: var(--yadad-calendar-radius, var(--yadad-radius-md));
+    background: var(--yadad-calendar-header-background, var(--yadad-color-surface));
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="move-label"]) {
+    font-size: var(--yadad-font-size-sm);
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="move-input"]) {
+    font: inherit;
+    min-block-size: var(--yadad-space-4);
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="move-confirm"], [data-part="move-cancel"]) {
+    all: unset;
+    box-sizing: border-box;
+    padding-inline: var(--yadad-space-2);
+    min-block-size: var(--yadad-calendar-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    border: 1px solid var(--yadad-calendar-border, var(--yadad-color-border));
+    border-radius: var(--yadad-calendar-radius, var(--yadad-radius-md));
+    cursor: pointer;
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="move-confirm"]) {
+    background: var(--yadad-calendar-selected-background, var(--yadad-color-accent));
+    color: var(--yadad-calendar-selected-color, var(--yadad-color-surface));
+    border-color: var(--yadad-calendar-selected-background, var(--yadad-color-accent));
+  }
+}
