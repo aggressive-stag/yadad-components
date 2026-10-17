@@ -38,8 +38,8 @@
     "build": "tsc -p tsconfig.build.json && node scripts/build-css.ts",
     "typecheck": "tsc && tsc -p scripts/tsconfig.json",
     "test": "vitest run",
-    "theming:check": "node scripts/theming.mjs check",
-    "theming:docs": "node scripts/theming.mjs write",
+    "theming:check": "node scripts/theming.ts check",
+    "theming:docs": "node scripts/theming.ts write",
     "check:engine": "node scripts/check-engine.mjs",
     "check:engine:install": "node scripts/check-engine.mjs --install",
     "build:css": "node scripts/build-css.ts"

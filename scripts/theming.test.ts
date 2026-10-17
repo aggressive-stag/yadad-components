@@ -1,20 +1,20 @@
 // The card 5 gate: the D15 theming rules are enforced (not just documented),
 // and the generated reference cannot drift from the CSS.
 //
-//   1. `scripts/theming.mjs check` fails on hard-coded colors/lengths,
+//   1. `scripts/theming.ts check` fails on hard-coded colors/lengths,
 //      unlayered CSS, or an unexplained exception.
-//   2. `THEMING.md` must be byte-identical to what `scripts/theming.mjs write`
+//   2. `THEMING.md` must be byte-identical to what `scripts/theming.ts write`
 //      produces from the current CSS + TSX. Regenerate with
 //      `pnpm theming:docs` after touching a stylesheet.
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { describe, expect, test } from "vitest";
-import { checkStyles, generateThemingDoc } from "./theming.mjs";
+import { checkStyles, generateThemingDoc } from "./theming.ts";
 
 const THEMING_MD = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "THEMING.md");
 
-describe("D15 theming rules (scripts/theming.mjs)", () => {
+describe("D15 theming rules (scripts/theming.ts)", () => {
   test("every component stylesheet is layered, token-sourced, and exception-free", () => {
     const { files, violations, exceptions } = checkStyles();
     expect(files.length).toBeGreaterThan(0);

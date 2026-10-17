@@ -1,12 +1,11 @@
-#!/usr/bin/env node
-// scripts/theming.mjs — the D15 theming gate and the generated reference.
+// scripts/theming.ts — the D15 theming gate and the generated reference.
 //
 // Two jobs, one source of truth (plain Node, no dependencies):
 //
-//   node scripts/theming.mjs check      (default; `pnpm theming:check`)
+//   node scripts/theming.ts check      (default; `pnpm theming:check`)
 //     Read every sets/**/*.css and FAIL if any rule below is broken.
 //
-//   node scripts/theming.mjs write      (`pnpm theming:docs`)
+//   node scripts/theming.ts write      (`pnpm theming:docs`)
 //     Regenerate THEMING.md from the component CSS + TSX. Run it after
 //     touching a stylesheet. scripts/theming.test.ts re-runs this and fails
 //     if the committed THEMING.md has drifted, so the reference cannot go out
@@ -67,7 +66,7 @@ const TOKENS = [
 const TOKEN_SET = new Set(TOKENS);
 
 // "What each token is" for the reference.
-const TOKEN_DESCRIPTION = {
+const TOKEN_DESCRIPTION: Record<string, string> = {
   "color-text": "main text color",
   "color-text-muted": "secondary / muted text (labels, captions, empty states)",
   "color-background": "page and control background",
@@ -138,9 +137,9 @@ const NAMED_COLORS = new Set([
 // the code stay stable. Returns { code, exemptLines } where exemptLines is the
 // set of 1-based line numbers that carry (or directly precede) a
 // `/* theming: */` exception comment.
-function stripComments(css) {
+function stripComments(css: string): { code: string; exempt: Set<number> } {
   const out = Array.from(css);
-  const exempt = new Set();
+  const exempt = new Set<number>();
   let i = 0;
   while (i < out.length) {
     const open = out.join("").slice(i).indexOf("/*");
@@ -164,12 +163,12 @@ function stripComments(css) {
   }
   return { code: out.join(""), exempt };
 }
-function lineOf(arr, idx) {
+function lineOf(arr: string[], idx: number): number {
   let n = 1;
   for (let k = 0; k < idx; k++) if (arr[k] === "\n") n++;
   return n;
 }
-function lineOfCode(code, idx) {
+function lineOfCode(code: string, idx: number): number {
   let n = 1;
   for (let k = 0; k < idx; k++) if (code[k] === "\n") n++;
   return n;
@@ -180,16 +179,23 @@ const HEX = /#[0-9a-fA-F]{3,8}\b/g;
 const FUNC_COLOR = /\b(rgba?|hsla?|oklch|oklab|lab|lch)\s*\(/g;
 const LENGTH = /(\d*\.?\d+)(px|rem|em)\b/g;
 
-function isExempt(exempt, line) {
+function isExempt(exempt: Set<number>, line: number): boolean {
   return exempt.has(line) || exempt.has(line - 1);
 }
 
-function checkFile(file, css) {
+export interface Finding {
+  kind: string;
+  msg: string;
+  file: string;
+  line: number;
+}
+
+function checkFile(file: string, css: string): { file: string; violations: Finding[]; exceptions: Finding[] } {
   const { code, exempt } = stripComments(css);
-  const violations = [];
-  const exceptions = [];
-  const record = (kind, msg, line) => {
-    const p = { kind, msg, file, line };
+  const violations: Finding[] = [];
+  const exceptions: Finding[] = [];
+  const record = (kind: string, msg: string, line: number): void => {
+    const p: Finding = { kind, msg, file, line };
     if (isExempt(exempt, line)) { exceptions.push(p); }
     else { violations.push(p); }
   };
@@ -203,7 +209,7 @@ function checkFile(file, css) {
     record("layer", "file is not wrapped in a single @layer yadad.* block", 1);
   } else {
     let depth = 0, closeIdx = -1;
-    for (let i = lm.index + lm[0].length - 1; i < t.length; i++) {
+    for (let i = (lm.index ?? 0) + lm[0].length - 1; i < t.length; i++) {
       if (t[i] === "{") depth++;
       else if (t[i] === "}") { depth--; if (depth === 0) { closeIdx = i; break; } }
     }
@@ -216,13 +222,13 @@ function checkFile(file, css) {
   lines.forEach((raw, idx) => {
     const line = idx + 1;
     const declMatch = raw.match(/^\s*([a-z-]+)\s*:/);
-    const prop = declMatch ? declMatch[1].toLowerCase() : null;
+    const prop = declMatch?.[1] ? declMatch[1].toLowerCase() : null;
 
-    let h;
+    let h: RegExpExecArray | null;
     HEX.lastIndex = 0;
     while ((h = HEX.exec(raw)) !== null) record("color", `hard-coded hex color ${h[0]}`, line);
 
-    let f;
+    let f: RegExpExecArray | null;
     FUNC_COLOR.lastIndex = 0;
     while ((f = FUNC_COLOR.exec(raw)) !== null) record("color", `hard-coded ${f[1]}(...) color`, line);
 
@@ -235,10 +241,10 @@ function checkFile(file, css) {
       }
     }
 
-    let l;
+    let l: RegExpExecArray | null;
     LENGTH.lastIndex = 0;
     while ((l = LENGTH.exec(raw)) !== null) {
-      const num = l[1], unit = l[2];
+      const num = l[1] ?? "", unit = l[2] ?? "";
       // allowed: zero (any unit) and the 1px hairline
       if (num === "0" || (num === "1" && unit === "px")) continue;
       record("length", `hard-coded length ${num}${unit} (use a token or a per-component variable)`, line);
@@ -248,10 +254,10 @@ function checkFile(file, css) {
   return { file, violations, exceptions };
 }
 
-export function checkStyles() {
+export function checkStyles(): { files: string[]; violations: Finding[]; exceptions: Finding[] } {
   const files = globSync(path.join(SETS, "**", "*.css")).sort();
-  const allViolations = [];
-  const allExceptions = [];
+  const allViolations: Finding[] = [];
+  const allExceptions: Finding[] = [];
   for (const file of files) {
     const r = checkFile(path.relative(root, file), readFileSync(file, "utf8"));
     allViolations.push(...r.violations);
@@ -263,7 +269,7 @@ export function checkStyles() {
 // --- reference generation ---------------------------------------------------
 // What each data-part is, per component. Curated prose; the generator FAILS
 // if the TSX renders a part not described here (loud, not silent drift).
-const PART_DESCRIPTION = {
+const PART_DESCRIPTION: Record<string, Record<string, string>> = {
   board: {
     root: "the `<section>` wrapper",
     header: "the title + group-by row",
@@ -346,7 +352,7 @@ const PART_DESCRIPTION = {
   text: { input: "the text `<input>`", display: "read-only value" },
 };
 
-const COMPONENT_INTRO = {
+const COMPONENT_INTRO: Record<string, string> = {
   boolean: "A single on/off field, rendered as a checkbox.",
   board: "Cards in columns, one column per value of a field, with a group-by picker; columns scroll sideways and each column scrolls on its own.",
   calendar: "A month/week grid of entries with navigation, a colour-slot legend, and a keyboard/touch move control.",
@@ -368,7 +374,7 @@ const COMPONENT_INTRO = {
 // Per-component variable descriptions. Keys are the variable's suffix
 // (without the --yadad-<component>- prefix). The generator FAILS if the CSS
 // declares a variable whose suffix is not described here.
-const VAR_DESCRIPTION = {
+const VAR_DESCRIPTION: Record<string, string> = {
   // shared vocabulary
   padding: "inner padding", width: "inline size", radius: "corner radius",
   color: "foreground color", background: "background", border: "border color",
@@ -428,8 +434,8 @@ const VAR_DESCRIPTION = {
   "secondary-color": "secondary variant text", "secondary-background": "secondary variant background",
   "disabled-opacity": "opacity when disabled",
   // count
-  "count-gap": "gap between label and value", "label-size": "label font size",
-  "label-color": "label color", "value-size": "value font size", "value-color": "value color",
+  "count-gap": "gap between label and value",
+  "value-size": "value font size", "value-color": "value color",
   // date
   "date-padding": "inner padding",
   // error-summary
@@ -446,7 +452,7 @@ const VAR_DESCRIPTION = {
   "number-gap": "gap between input and unit",
   "unit-size": "unit font size", "unit-color": "unit color",
   // panel
-  "panel-padding": "inner padding", "title-size": "title font size",
+  "panel-padding": "inner padding",
   // section
   "section-spacing": "space after the section", "section-padding": "inner padding",
   "section-background": "background", "title-size": "title font size",
@@ -476,37 +482,47 @@ const VAR_DESCRIPTION = {
   "text-padding": "inner padding",
 };
 
-function tokensIn(value) {
-  const found = new Set();
+function tokensIn(value: string): string[] {
+  const found = new Set<string>();
   const re = /--yadad-([a-z0-9-]+)/g;
-  let m;
-  while ((m = re.exec(value)) !== null) if (TOKEN_SET.has(m[1])) found.add(m[1]);
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(value)) !== null) if (m[1] !== undefined && TOKEN_SET.has(m[1])) found.add(m[1]);
   return [...found].sort();
 }
 
-function describeDefault(def) {
+function describeDefault(def: string | undefined): string {
   if (def === undefined || def === "") return "no default — the host must set it";
   const d = def.trim();
   // exact single-token fallback
   const t = d.match(/^var\((--yadad-([a-z0-9-]+))\)$/);
-  if (t && TOKEN_SET.has(t[2])) return `token \`${t[1]}\` (${TOKEN_DESCRIPTION[t[2]] ?? t[2]})`;
+  if (t && t[1] !== undefined && t[2] !== undefined && TOKEN_SET.has(t[2])) return `token \`${t[1]}\` (${TOKEN_DESCRIPTION[t[2]] ?? t[2]})`;
   const toks = tokensIn(d);
   if (toks.length) return `\`${d}\` (token-derived: ${toks.map((x) => `\`--yadad-${x}\``).join(", ")}${/\d+\s*(px|rem|em)/.test(d) ? "" : ""})`;
   return `\`${d}\``;
 }
 
-function componentOf(fileRel) {
+function componentOf(fileRel: string): string {
   // sets/base/<component>/vN/<component>.css
   const parts = fileRel.split(path.sep);
-  return parts[2];
+  return parts[2] ?? "";
 }
 
-export function loadSources() {
+export interface ComponentDoc {
+  comp: string;
+  intro: string | undefined;
+  parts: string[];
+  marked: Set<string>;
+  vars: { order: string[]; map: Map<string, { def: string | undefined; fromDef: boolean }> };
+  tokens: string[];
+}
+
+export function loadSources(): ComponentDoc[] {
   const cssFiles = globSync(path.join(SETS, "**", "*.css")).sort();
   const components = [...new Set(cssFiles.map((f) => componentOf(path.relative(root, f))))].sort();
-  const data = [];
+  const data: ComponentDoc[] = [];
   for (const comp of components) {
     const cssFile = cssFiles.find((f) => path.basename(f) === `${comp}.css` && f.includes(`/${comp}/`));
+    if (cssFile === undefined) throw new Error(`THEMING.md: no ${comp}.css found`);
     const css = readFileSync(cssFile, "utf8");
     const { code } = stripComments(css);
     const tsxFile = path.join(path.dirname(cssFile), `${toPascal(comp)}.tsx`);
@@ -517,16 +533,16 @@ export function loadSources() {
     // (targetable in the compound form) and which are nested inside the
     // component root (descendant form only) — a host that styles a nested
     // part with the compound form silently matches nothing.
-    const parts = [];
-    const marked = new Set();
+    const parts: string[] = [];
+    const marked = new Set<string>();
     if (tsx) {
-      const seen = new Set();
+      const seen = new Set<string>();
       const tagRe = /<([a-zA-Z][a-zA-Z0-9.]*)\b[^>]*>/g;
-      let mt;
+      let mt: RegExpExecArray | null;
       while ((mt = tagRe.exec(tsx)) !== null) {
         const tag = mt[0];
         const partM = tag.match(/data-part="([a-z0-9-]+)"/);
-        if (!partM) continue;
+        if (!partM || partM[1] === undefined) continue;
         const part = partM[1];
         if (!seen.has(part)) { seen.add(part); parts.push(part); }
         if (/data-yadad="[^"]+"/.test(tag)) marked.add(part);
@@ -538,11 +554,12 @@ export function loadSources() {
     // fallback)` references (fallback becomes the default when no definition
     // exists). Unique by suffix, first-seen order.
     const defs = parseLayerBody(code);
-    const vars = new Map();
-    const order = [];
-    const note = (name, def, fromDef) => {
-      if (!vars.has(name)) { order.push(name); vars.set(name, { def, fromDef }); }
-      else if (fromDef) vars.get(name).def = def; // definition overrides inline default
+    const vars = new Map<string, { def: string | undefined; fromDef: boolean }>();
+    const order: string[] = [];
+    const note = (name: string, def: string | undefined, fromDef: boolean): void => {
+      const prev = vars.get(name);
+      if (prev === undefined) { order.push(name); vars.set(name, { def, fromDef }); }
+      else if (fromDef) prev.def = def; // definition overrides inline default
     };
     for (const [name, def] of defs) if (name.startsWith(comp + "-")) note(name.slice(comp.length + 1), def, true);
     for (let i = code.indexOf("var("); i !== -1; ) {
@@ -552,23 +569,23 @@ export function loadSources() {
     }
 
     // theme tokens read anywhere in the CSS.
-    const tokens = new Set();
+    const tokens = new Set<string>();
     const reTok = /--yadad-([a-z0-9-]+)/g;
-    let mt;
-    while ((mt = reTok.exec(code)) !== null) if (TOKEN_SET.has(mt[1])) tokens.add(mt[1]);
+    let mk: RegExpExecArray | null;
+    while ((mk = reTok.exec(code)) !== null) if (mk[1] !== undefined && TOKEN_SET.has(mk[1])) tokens.add(mk[1]);
 
     data.push({ comp, intro: COMPONENT_INTRO[comp], parts, marked, vars: { order, map: vars }, tokens: [...tokens].sort() });
   }
   return data;
 }
-function toPascal(s) { return s.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(""); }
-function existsSafe(p) { try { return readFileSync(p, "utf8"); } catch { return null; } }
+function toPascal(s: string): string { return s.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(""); }
+function existsSafe(p: string): string | null { try { return readFileSync(p, "utf8"); } catch { return null; } }
 
 // Balanced scanner for a `var(...)` reference starting at the "v" of `var`.
 // Returns { name, fallback, close } — fallback is the full default expression
 // (itself possibly a var() or calc(...)), or undefined when there is none.
 // Balanced because defaults nest: var(--a, var(--b)) or var(--x, calc(...)).
-function scanVarRef(code, start) {
+function scanVarRef(code: string, start: number): { name: string; fallback: string | undefined; close: number } {
   const open = code.indexOf("(", start);
   let depth = 0, idx = -1;
   for (let i = open; i < code.length; i++) {
@@ -586,10 +603,10 @@ function scanVarRef(code, start) {
 // Parse custom-property declarations in the file's single `@layer` body.
 // Comments are already blanked, so the braces scanned here are real CSS
 // braces. Returns a Map of `--yadad-<name>` -> raw value at any nesting depth.
-function parseLayerBody(code) {
+function parseLayerBody(code: string): Map<string, string> {
   const lm = code.match(/^@layer\s+yadad\.[a-z0-9.-]+\s*\{/);
   if (!lm) return new Map();
-  const openBrace = lm.index + lm[0].length - 1;
+  const openBrace = (lm.index ?? 0) + lm[0].length - 1;
   let depth = 0, bodyEnd = -1;
   for (let i = openBrace; i < code.length; i++) {
     if (code[i] === "{") depth++;
@@ -597,9 +614,9 @@ function parseLayerBody(code) {
   }
   if (bodyEnd === -1) return new Map();
   const body = code.slice(openBrace + 1, bodyEnd);
-  const props = new Map();
+  const props = new Map<string, string>();
   // Declarations split on top-level semicolons (depth 0 relative to the body).
-  const decls = [];
+  const decls: string[] = [];
   let buf = "", d = 0;
   for (const c of body) {
     if (c === "{") d++;
@@ -609,15 +626,15 @@ function parseLayerBody(code) {
   if (buf.trim()) decls.push(buf);
   for (const decl of decls) {
     const m = decl.match(/--yadad-([a-z0-9-]+)\s*:\s*([\s\S]*)$/);
-    if (m) props.set(m[1], m[2].trim());
+    if (m && m[1] !== undefined && m[2] !== undefined) props.set(m[1], m[2].trim());
   }
   return props;
 }
 
-export function generateThemingDoc() {
+export function generateThemingDoc(): string {
   const src = loadSources();
-  const L = [];
-  const push = (s = "") => L.push(s);
+  const L: string[] = [];
+  const push = (s = ""): void => { L.push(s); };
   // Silent-drift guard: the description tables are hand-curated; if the CSS or
   // TSX declares a part or variable suffix that is not described here, fail
   // loudly instead of emitting a "component variable" placeholder.
@@ -630,7 +647,7 @@ export function generateThemingDoc() {
   }
   push("# Theming reference");
   push();
-  push("> Generated by `scripts/theming.mjs` from the component CSS and TSX. Do not");
+  push("> Generated by `scripts/theming.ts` from the component CSS and TSX. Do not");
   push("> edit by hand — run `pnpm theming:docs` to regenerate. The gate fails if this");
   push("> file drifts from the CSS (`scripts/theming.test.ts`).");
   push();
@@ -691,7 +708,7 @@ export function generateThemingDoc() {
     push("**Per-component variables** (set on the component or an ancestor; the default is shown):");
     push();
     for (const name of c.vars.order) {
-      const { def } = c.vars.map.get(name);
+      const def = c.vars.map.get(name)?.def;
       push(`- \`--yadad-${c.comp}-${name}\` — ${VAR_DESCRIPTION[`${c.comp}-${name}`] ?? VAR_DESCRIPTION[name] ?? "component variable"}; default: ${describeDefault(def)}`);
     }
     push();
