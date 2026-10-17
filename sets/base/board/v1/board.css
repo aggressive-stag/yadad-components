@@ -30,6 +30,7 @@
     display: inline-flex;
     align-items: center;
     gap: var(--yadad-space-2);
+    white-space: nowrap;
   }
 
   :where([data-yadad="board"]) :where([data-part="group-by"]) :where([data-yadad="select"][data-part="input"]) {

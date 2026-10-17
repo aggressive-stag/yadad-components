@@ -244,7 +244,7 @@ export function Board({ label, groupChoices, groupField, columns, loading, notic
       </div>
       {notice !== undefined ? <div data-part="notice">{notice}</div> : null}
       <div role="status" aria-live="polite" data-part="status">
-        <span key={announcement?.seq ?? 0}>{announcement?.text}</span>
+        {announcement ? <span key={announcement.seq}>{announcement.text}</span> : null}
       </div>
       <div data-part="columns">
         {columns.map((column) => (
