@@ -1,5 +1,11 @@
 # @yadad/components
 
+## 0.10.0
+
+### Minor Changes
+
+- 72075a9: Board: drag a movable card onto another column (calls `onMove`; the engine reverts refusals), and one column at a time with scroll snap on phone widths. The calendar's live region no longer shows its accent bar while empty.
+
 ## 0.9.0
 
 ### Minor Changes
