@@ -191,11 +191,10 @@ function ColumnView({
   return (
     <section
       data-part="column"
-      data-testid={`column-${column.id}`}
       data-column-id={column.id}
       data-droppable={column.droppable}
       data-drag-over={over ? "true" : undefined}
-      aria-labelledby={headingId}
+      aria-label={`${column.label}, ${column.count} ${column.count === 1 ? "card" : "cards"}`}
       {...(dropTarget
         ? {
             onDragOver: (e: DragEvent<HTMLElement>) => {
@@ -248,7 +247,6 @@ function ColumnView({
   );
 }
 
-// data-testid="board" and "column-<id>" exist only because the engine's contract kit looks them up (a kit gap; see the card report).
 /**
  * The board (RFC 0005): cards in columns, one column per value of the
  * grouping field. The renderer owns data, grouping and announcements; this
@@ -275,7 +273,6 @@ export function Board({ label, groupChoices, groupField, columns, loading, notic
       aria-label={label}
       aria-busy={loading}
       data-yadad="board"
-      data-testid="board"
       data-part="root"
       data-group-field={groupField}
       onKeyDownCapture={() => (movedCard.current = undefined)}
