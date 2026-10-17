@@ -1,6 +1,10 @@
 import type { BoardCard, BoardColumn, BoardProps } from "@yadad/core";
 import type { ReactNode } from "react";
+import type { DragEvent } from "react";
 import { useEffect, useId, useRef, useState } from "react";
+
+/** Drag payload type: the card id. Also set as text/plain so other drop targets and tests can read it. */
+const DRAG_TYPE = "application/x-yadad-board-card";
 
 /**
  * The "Move to…" control for one movable card: a trigger, always in the DOM
@@ -102,8 +106,8 @@ function MoveControl({
 
 /**
  * One card. A card with `onOpenCard` is a button (click or Enter opens it);
- * without it the card is plain content. A movable card also gets the
- * "Move to…" control. Card 11 hooks in here: the drag source goes on this `li`.
+ * without it the card is plain content. A movable card is a drag source and
+ * also gets the "Move to…" control. Neither exists without `onMove`.
  */
 function CardView({
   card,
@@ -120,8 +124,29 @@ function CardView({
   onMove?: (id: string, columnId: string) => void;
   onMoved: (id: string) => void;
 }): ReactNode {
+  const [dragging, setDragging] = useState(false);
+  // Only a card the renderer lets move is a drag source: no `onMove` or `movable: false` means no drag at all.
+  const canMove = onMove !== undefined && card.movable;
   return (
-    <li data-part="card" data-card-id={card.id} data-pending={card.pending} data-movable={card.movable}>
+    <li
+      data-part="card"
+      data-card-id={card.id}
+      data-pending={card.pending}
+      data-movable={card.movable}
+      data-dragging={dragging ? "true" : undefined}
+      {...(canMove
+        ? {
+            draggable: true,
+            onDragStart: (e: DragEvent<HTMLLIElement>) => {
+              e.dataTransfer.setData(DRAG_TYPE, card.id);
+              e.dataTransfer.setData("text/plain", card.id);
+              e.dataTransfer.effectAllowed = "move";
+              setDragging(true);
+            },
+            onDragEnd: () => setDragging(false),
+          }
+        : {})}
+    >
       {onOpenCard ? (
         <button type="button" data-part="card-open" aria-label={card.label} onClick={() => onOpenCard(card.id)}>
           <span data-part="card-content">{card.content}</span>
@@ -131,15 +156,15 @@ function CardView({
           <span data-part="card-content">{card.content}</span>
         </span>
       )}
-      {onMove && card.movable ? <MoveControl card={card} columnId={columnId} columns={columns} onMove={onMove} onMoved={onMoved} /> : null}
+      {canMove ? <MoveControl card={card} columnId={columnId} columns={columns} onMove={onMove} onMoved={onMoved} /> : null}
     </li>
   );
 }
 
 /**
  * One column: a labelled region with a heading (label and count) and a list
- * of cards that scrolls on its own. Card 11 hooks in here: `column.droppable`
- * is surfaced as `data-droppable` on the region, the drop target.
+ * of cards that scrolls on its own. A `droppable` column is a drop target
+ * while `onMove` is set (`data-droppable`, and `data-drag-over` during a drag).
  */
 function ColumnView({
   column,
@@ -159,8 +184,43 @@ function ColumnView({
   onMoved: (id: string) => void;
 }): ReactNode {
   const headingId = useId();
+  const [over, setOver] = useState(false);
+  // A drop target only when the renderer gave us `onMove` and the column accepts drops. The component never moves the card itself.
+  const dropTarget = onMove !== undefined && column.droppable;
+  const hasDrag = (e: DragEvent<HTMLElement>): boolean => e.dataTransfer.types.includes(DRAG_TYPE);
   return (
-    <section data-part="column" data-testid={`column-${column.id}`} data-column-id={column.id} data-droppable={column.droppable} aria-labelledby={headingId}>
+    <section
+      data-part="column"
+      data-testid={`column-${column.id}`}
+      data-column-id={column.id}
+      data-droppable={column.droppable}
+      data-drag-over={over ? "true" : undefined}
+      aria-labelledby={headingId}
+      {...(dropTarget
+        ? {
+            onDragOver: (e: DragEvent<HTMLElement>) => {
+              if (!hasDrag(e)) return;
+              e.preventDefault();
+              e.dataTransfer.dropEffect = "move";
+            },
+            onDragEnter: (e: DragEvent<HTMLElement>) => {
+              if (hasDrag(e)) setOver(true);
+            },
+            onDragLeave: (e: DragEvent<HTMLElement>) => {
+              // Leaving to a child of the column is not leaving the column.
+              if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOver(false);
+            },
+            onDrop: (e: DragEvent<HTMLElement>) => {
+              setOver(false);
+              if (!hasDrag(e)) return;
+              e.preventDefault();
+              const id = e.dataTransfer.getData(DRAG_TYPE);
+              if (id === "" || column.cards.some((c) => c.id === id)) return;
+              onMove(id, column.id);
+            },
+          }
+        : {})}
+    >
       <h3 id={headingId} data-part="column-heading">
         <span data-part="column-label">{column.label}</span>
         <span data-part="column-count" aria-label={`${column.count} ${column.count === 1 ? "card" : "cards"}`}>
@@ -193,8 +253,10 @@ function ColumnView({
  * The board (RFC 0005): cards in columns, one column per value of the
  * grouping field. The renderer owns data, grouping and announcements; this
  * component draws them. Columns sit side by side and scroll horizontally on
- * overflow; each column scrolls on its own. "Move to…" is here (the
- * contract kit requires it); drag and the phone layout are card 11.
+ * overflow; each column scrolls on its own. A movable card can be dragged
+ * onto a droppable column or moved with "Move to…" (keyboard, touch); both
+ * call `onMove` and nothing else: the engine moves it and reverts refusals.
+ * At phone widths the board shows one column at a time, with scroll snap.
  */
 export function Board({ label, groupChoices, groupField, columns, loading, notice, announcement, onGroupBy, onOpenCard, onMove }: BoardProps<ReactNode>): ReactNode {
   const groupId = useId();

@@ -379,6 +379,9 @@ const VAR_DESCRIPTION = {
   // board
   "board-column-width": "inline size of a column",
   "board-column-max-height": "tallest a column's card list gets before it scrolls",
+  "board-phone-column-max-height": "tallest a column's card list gets before it scrolls on a phone",
+  "board-drop-target": "outline color of the column a dragged card can drop on",
+  "board-drop-background": "background of the column a dragged card is over",
   "board-column-background": "column background",
   "board-card-background": "card background",
   "board-card-hover": "background of an openable card under the pointer",

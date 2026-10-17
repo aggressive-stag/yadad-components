@@ -1,8 +1,9 @@
 /* board/v1. Override any --yadad-board-* variable or the underlying tokens.
    Columns sit side by side and scroll horizontally on overflow; each column's
    card list scrolls on its own. The group-by picker is the select
-   component's own styling (data-yadad="select"). "Move to…" is the keyboard and touch move path;
-   drag and the phone layout are added by the next card. */
+   component's own styling (data-yadad="select"). "Move to…" is the keyboard and
+   touch move path; drag is the pointer path. At phone widths the columns snap
+   one at a time. */
 @layer yadad.components {
   :where([data-yadad="board"][data-part="root"]) {
     display: block;
@@ -190,5 +191,48 @@
   :where([data-yadad="board"]) :where([data-part="move-trigger"], [data-part="move-confirm"], [data-part="move-cancel"]):focus-visible {
     outline: var(--yadad-focus-ring-width) solid var(--yadad-board-focus, var(--yadad-color-accent));
     outline-offset: var(--yadad-focus-ring-width);
+  }
+
+  /* Drag: the card being dragged is dimmed, the column it can drop on gets a dashed outline (not colour alone). */
+  :where([data-yadad="board"]) :where([data-part="card"][draggable="true"]) {
+    cursor: grab;
+  }
+
+  :where([data-yadad="board"]) :where([data-part="card"][data-dragging="true"]) {
+    opacity: 0.5;
+  }
+
+  :where([data-yadad="board"]) :where([data-part="column"][data-drag-over="true"]) {
+    outline: var(--yadad-focus-ring-width) dashed var(--yadad-board-drop-target, var(--yadad-color-accent));
+    outline-offset: calc(var(--yadad-focus-ring-width) * -1);
+    background: var(--yadad-board-drop-background, var(--yadad-color-background));
+  }
+
+  /* Phone: one column at a time. The columns row scrolls sideways and snaps, so a swipe moves one column;
+     the next column's edge peeks in to show there is more. Header and group-by stay above the row. */
+  @container (max-width: 100ch) {
+    :where([data-yadad="board"]) :where([data-part="columns"]) {
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: var(--yadad-space-2);
+      overscroll-behavior-x: contain;
+    }
+
+    :where([data-yadad="board"]) :where([data-part="column"]) {
+      flex: 0 0 calc(100% - var(--yadad-space-4));
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+
+    :where([data-yadad="board"]) :where([data-part="cards"]) {
+      max-block-size: var(--yadad-board-phone-column-max-height, calc(var(--yadad-space-4) * 24));
+    }
+
+    :where([data-yadad="board"]) :where([data-part="card-open"]) {
+      min-block-size: var(--yadad-board-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    }
+
+    :where([data-yadad="board"]) :where([data-part="group-by"]) {
+      flex: 1 1 auto;
+    }
   }
 }

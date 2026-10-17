@@ -484,6 +484,59 @@ function BoardHarness({
   );
 }
 
+/**
+ * A board whose cards can move, like a renderer would drive it: the harness
+ * (not the component) changes a card's column. Every third card is not
+ * movable, and a move into "Done" is refused with a live-announced message.
+ * `readOnly` withholds `onMove`, as the renderer does for a viewer who may not edit.
+ */
+function MovableBoardHarness({ id, readOnly }: { id: string; readOnly?: boolean }): ReactNode {
+  const [rows, setRows] = useState(() =>
+    Array.from({ length: 9 }, (_, i) => ({ n: i + 1, status: STATUS_NAMES[i % 3] as string })),
+  );
+  const [announcement, setAnnouncement] = useState<{ seq: number; text: string } | undefined>(undefined);
+  const seq = useRef(0);
+  const say = (text: string): void => {
+    seq.current += 1;
+    setAnnouncement({ seq: seq.current, text });
+  };
+  const columns = STATUS_NAMES.map((name) =>
+    boardColumn(
+      `v:${name}`,
+      name,
+      rows
+        .filter((r) => r.status === name)
+        .map((r) => ({ ...boardCard(r.n, `Task ${r.n}`, r.n % 3 === 0 ? "Locked" : undefined), movable: r.n % 3 !== 0 })),
+    ),
+  );
+  return (
+    <Board
+      label={id}
+      groupChoices={[{ field: "status", label: "Status" }]}
+      groupField="status"
+      columns={columns}
+      loading={false}
+      {...(announcement ? { announcement } : {})}
+      onGroupBy={() => undefined}
+      onOpenCard={() => undefined}
+      {...(readOnly
+        ? {}
+        : {
+            onMove: (recordId: string, columnId: string) => {
+              const name = columnId.replace(/^v:/, "");
+              const n = Number(recordId.slice(1));
+              if (name === "Done") {
+                say(`Move refused: Task ${n} can't be moved to Done.`);
+                return;
+              }
+              setRows((rs) => rs.map((r) => (r.n === n ? { ...r, status: name } : r)));
+              say(`Moved Task ${n} to ${name}.`);
+            },
+          })}
+    />
+  );
+}
+
 const LAYOUT_ANCHORS = [
   "field-frame-errors",
   "field-frame-clean",
@@ -522,6 +575,9 @@ const LAYOUT_ANCHORS = [
   "board-group-by",
   "board-one-grouping",
   "board-loading",
+  "board-movable",
+  "board-phone",
+  "board-read-only",
 ] as const;
 
 const FIELD_STATES = ["empty", "filled", "required", "invalid", "display-value", "display-empty"] as const;
@@ -808,6 +864,19 @@ export default function App(): ReactNode {
               onGroupBy={() => undefined}
             />,
           )}
+          {state(
+            "board-movable",
+            "movable cards (drag onto a column, or Move to…); every third card is locked; moves into Done are refused",
+            <MovableBoardHarness id="Tasks (movable)" />,
+          )}
+          {state(
+            "board-phone",
+            "phone layout (390px container): one column at a time, swipe to the next",
+            <div className="phone-frame">
+              <MovableBoardHarness id="Tasks (phone)" />
+            </div>,
+          )}
+          {state("board-read-only", "no onMove (viewer may not edit): no drag, no Move to…", <MovableBoardHarness id="Tasks (read only)" readOnly />)}
         </section>
       </div>
     </>
