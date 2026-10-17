@@ -45,7 +45,7 @@ export function CustomerForm({ entity, view, dataSources }) {
 ## What is included
 
 - **Field types** (each an `Input` and a read-only `Display`): `text`, `number`, `boolean`, `select`, `date`.
-- **Layout:** `FieldFrame` (label, required marker and errors around any input), `Section`, `Panel`, `Tabs`, `Button`, `ErrorSummary`, and `Table`.
+- **Layout:** `FieldFrame` (label, required marker and errors around any input), `Section`, `Panel`, `Tabs`, `Button`, `ErrorSummary`, `Table`, `Calendar` (month and week grid of entries, with a phone agenda, drag and a "Move to day…" action) and `Board` (cards in columns, one column per value of a field, with a group-by picker, horizontal scroll, a scrolling card list per column and a "Move to…" action; the engine's `layout.Board` registry key).
 - **Table:** sortable column headers, and on a narrow container it switches to a stacked layout where each row becomes a card with a label on every cell.
 - **Widgets:** `count`.
 

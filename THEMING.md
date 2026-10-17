@@ -60,6 +60,66 @@ Set these on `:root` (or any scope). Each is `--yadad-<name>`.
 
 ## Components
 
+### board
+
+Cards in columns, one column per value of a field, with a group-by picker; columns scroll sideways and each column scrolls on its own.
+
+**`data-part` names** (marked parts carry the component marker and take `[data-yadad="<component>"][data-part="<name>"]`; nested parts are inside the component root and take the descendant form `[data-yadad="<component>"] [data-part="<name>"]` — the compound form on a nested part matches nothing):
+
+- `move-trigger` — the "Move to…" button on a movable card (target with `[data-yadad="board"] [data-part="move-trigger"]`)
+- `move-panel` — the inline form with the column list and confirm/cancel buttons (target with `[data-yadad="board"] [data-part="move-panel"]`)
+- `move-label` — the move list's `<label>` (target with `[data-yadad="board"] [data-part="move-label"]`)
+- `move-select` — the move list's `<select>` of columns (shares the select component's styling) (target with `[data-yadad="board"][data-part="move-select"]`)
+- `move-confirm` — the move form's confirm button (target with `[data-yadad="board"] [data-part="move-confirm"]`)
+- `move-cancel` — the move form's cancel button (target with `[data-yadad="board"] [data-part="move-cancel"]`)
+- `card` — one card (list item) (target with `[data-yadad="board"] [data-part="card"]`)
+- `card-open` — the button that opens a card (when the view has a row action) (target with `[data-yadad="board"] [data-part="card-open"]`)
+- `card-content` — a card's title and small card fields (target with `[data-yadad="board"] [data-part="card-content"]`)
+- `card-static` — a card's content when it cannot be opened (target with `[data-yadad="board"] [data-part="card-static"]`)
+- `column` — one column (a labelled region) (target with `[data-yadad="board"] [data-part="column"]`)
+- `column-heading` — a column's heading (`<h3>`) with label and count (target with `[data-yadad="board"] [data-part="column-heading"]`)
+- `column-label` — a column's label text (target with `[data-yadad="board"] [data-part="column-label"]`)
+- `column-count` — a column's card count (target with `[data-yadad="board"] [data-part="column-count"]`)
+- `cards` — a column's card list; scrolls on its own (target with `[data-yadad="board"] [data-part="cards"]`)
+- `column-empty` — the placeholder in a column with no cards (target with `[data-yadad="board"] [data-part="column-empty"]`)
+- `root` — the `<section>` wrapper (target with `[data-yadad="board"][data-part="root"]`)
+- `header` — the title + group-by row (target with `[data-yadad="board"] [data-part="header"]`)
+- `title` — the board title (`<h2>`) (target with `[data-yadad="board"] [data-part="title"]`)
+- `group-by` — the group-by picker wrapper (shown with more than one grouping) (target with `[data-yadad="board"] [data-part="group-by"]`)
+- `group-by-label` — the group-by picker's `<label>` (target with `[data-yadad="board"] [data-part="group-by-label"]`)
+- `input` — the group-by `<select>` (shares the select component's styling) (target with `[data-yadad="board"][data-part="input"]`)
+- `notice` — the notice above the columns (e.g. an over-cap message) (target with `[data-yadad="board"] [data-part="notice"]`)
+- `status` — the visible live region that announces changes (target with `[data-yadad="board"] [data-part="status"]`)
+- `columns` — the horizontally scrolling row of columns (target with `[data-yadad="board"] [data-part="columns"]`)
+
+**Per-component variables** (set on the component or an ancestor; the default is shown):
+
+- `--yadad-board-font-family` — font stack; default: token `--yadad-font-family` (base font stack)
+- `--yadad-board-font-size` — font size; default: token `--yadad-font-size-sm` (small text (labels, secondary, table cells))
+- `--yadad-board-color` — foreground color; default: token `--yadad-color-text` (main text color)
+- `--yadad-board-title-size` — board title font size; default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
+- `--yadad-board-notice-border` — notice border color; default: token `--yadad-color-border` (borders and dividers)
+- `--yadad-board-radius` — corner radius; default: token `--yadad-radius-md` (medium corner radius (cards, panels, sections))
+- `--yadad-board-notice-background` — notice background; default: token `--yadad-color-surface` (raised surface (sections, panels, table headers))
+- `--yadad-board-status-color` — live-region (status) text color; default: token `--yadad-color-text` (main text color)
+- `--yadad-board-status-accent` — live-region leading bar color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-board-status-background` — live-region background; default: token `--yadad-color-surface` (raised surface (sections, panels, table headers))
+- `--yadad-board-gap` — gap between parts; default: token `--yadad-space-3` (spacing scale, step 3)
+- `--yadad-board-column-width` — inline size of a column; default: `calc(var(--yadad-space-4) * 18)` (token-derived: `--yadad-space-4`)
+- `--yadad-board-border` — border color; default: token `--yadad-color-border` (borders and dividers)
+- `--yadad-board-column-background` — column background; default: token `--yadad-color-surface` (raised surface (sections, panels, table headers))
+- `--yadad-board-radius-full` — count badge corner radius; default: token `--yadad-radius-md` (medium corner radius (cards, panels, sections))
+- `--yadad-board-count-background` — column count badge background; default: token `--yadad-color-background` (page and control background)
+- `--yadad-board-count-color` — column count and empty-column text color; default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
+- `--yadad-board-column-max-height` — tallest a column's card list gets before it scrolls; default: `calc(var(--yadad-space-4) * 30)` (token-derived: `--yadad-space-4`)
+- `--yadad-board-card-background` — card background; default: token `--yadad-color-background` (page and control background)
+- `--yadad-board-card-hover` — background of an openable card under the pointer; default: token `--yadad-color-surface` (raised surface (sections, panels, table headers))
+- `--yadad-board-focus` — focus-ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-board-tap` — minimum height of the move buttons (the tap target on a phone); default: `calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))` (token-derived: `--yadad-space-3`, `--yadad-space-4`)
+- `--yadad-board-link` — move button text color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-md`, `--yadad-space-1`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
+
 ### boolean
 
 A single on/off field, rendered as a checkbox.

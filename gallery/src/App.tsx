@@ -9,7 +9,7 @@
  * check can link to it.
  */
 import { darkTheme, lightTheme, themeToCss, type Theme } from "@yadad/theme";
-import type { DocumentError, FieldDisplayExtras, FieldDisplayProps, FieldInputExtras, FieldInputProps, FieldType, FieldValueTypes } from "@yadad/core";
+import type { BoardCard, BoardColumn, DocumentError, FieldDisplayExtras, FieldDisplayProps, FieldInputExtras, FieldInputProps, FieldType, FieldValueTypes } from "@yadad/core";
 import { useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { baseRegistry } from "../../registry/base.js";
@@ -30,10 +30,12 @@ import {
 } from "./fixtures.js";
 import "./gallery.css";
 
-const { FieldFrame, Section, Button, Table, ErrorSummary, Tabs, Panel, Calendar: CalendarMaybe } = baseRegistry.layout;
+const { FieldFrame, Section, Button, Table, ErrorSummary, Tabs, Panel, Calendar: CalendarMaybe, Board: BoardMaybe } = baseRegistry.layout;
 const Count = baseRegistry.widgets.count;
 if (!CalendarMaybe) throw new Error("layout.Calendar missing from baseRegistry");
 const Calendar = CalendarMaybe;
+if (!BoardMaybe) throw new Error("layout.Board missing from baseRegistry");
+const Board = BoardMaybe;
 
 /**
  * The "stress" theme: a deliberately different dark token set, defined here
@@ -399,6 +401,89 @@ function CalendarHarness({
   );
 }
 
+/** Builds BoardProps<ReactNode> columns: title plus small card fields, as the renderer would. */
+function boardCard(n: number, title: string, detail?: string, detail2?: string): BoardCard<ReactNode> {
+  return {
+    id: `r${n}`,
+    label: [title, detail, detail2].filter(Boolean).join(", "),
+    movable: false,
+    pending: false,
+    content: (
+      <>
+        <span>{title}</span>
+        {detail ? <span className="calendar-entry-detail">{detail}</span> : null}
+        {detail2 ? <span className="calendar-entry-detail">{detail2}</span> : null}
+      </>
+    ),
+  };
+}
+
+function boardColumn(id: string, label: string, cards: BoardCard<ReactNode>[], droppable = true): BoardColumn<ReactNode> {
+  return { id, label, count: cards.length, droppable, cards };
+}
+
+const STATUS_NAMES = ["To do", "In progress", "Review", "Done"] as const;
+const OWNER_NAMES = ["Ada", "Grace", "Linus"] as const;
+
+/** A stateful board harness: owns the group-by choice like a real renderer would. */
+function BoardHarness({
+  id,
+  columnsBy,
+  many,
+  emptyColumn,
+  openable,
+  notice,
+}: {
+  id: string;
+  columnsBy?: "status" | "owner";
+  many?: boolean;
+  emptyColumn?: boolean;
+  openable?: boolean;
+  notice?: ReactNode;
+}): ReactNode {
+  const [field, setField] = useState<string>(columnsBy ?? "status");
+  const [opened, setOpened] = useState<string | null>(null);
+  const [announcement, setAnnouncement] = useState<{ seq: number; text: string } | undefined>(undefined);
+  const seq = useRef(0);
+  const total = many ? 40 : 7;
+  const rows = Array.from({ length: total }, (_, i) => ({
+    n: i + 1,
+    title: i % 5 === 0 ? `Task ${i + 1}: a long title that wraps over several lines to check the card` : `Task ${i + 1}`,
+    status: STATUS_NAMES[i % (emptyColumn ? 3 : 4)] as string,
+    owner: OWNER_NAMES[i % 3] as string,
+    due: `2026-11-${String((i % 28) + 1).padStart(2, "0")}`,
+  }));
+  const byField = (names: readonly string[], key: "status" | "owner"): BoardColumn<ReactNode>[] =>
+    names.map((name) => boardColumn(`v:${name}`, name, rows.filter((r) => r[key] === name).map((r) => boardCard(r.n, r.title, `Owner: ${r.owner}`, `Due: ${r.due}`))));
+  const columns: BoardColumn<ReactNode>[] = many
+    ? [...byField(field === "owner" ? OWNER_NAMES : STATUS_NAMES, field === "owner" ? "owner" : "status"),
+       ...Array.from({ length: 8 }, (_, i) => boardColumn(`v:extra${i}`, `Extra column ${i + 1}`, []))]
+    : byField(field === "owner" ? OWNER_NAMES : STATUS_NAMES, field === "owner" ? "owner" : "status");
+  return (
+    <>
+      <Board
+        label={id}
+        groupChoices={[
+          { field: "status", label: "Status" },
+          { field: "owner", label: "Owner" },
+        ]}
+        groupField={field}
+        columns={columns}
+        loading={false}
+        {...(notice !== undefined ? { notice } : {})}
+        {...(announcement ? { announcement } : {})}
+        onGroupBy={(f) => {
+          setField(f);
+          seq.current += 1;
+          setAnnouncement({ seq: seq.current, text: `Grouped by ${f === "owner" ? "Owner" : "Status"}, ${f === "owner" ? 3 : 4} columns` });
+        }}
+        {...(openable ? { onOpenCard: setOpened } : {})}
+      />
+      {opened ? <p className="note">Opened card: {opened}</p> : null}
+    </>
+  );
+}
+
 const LAYOUT_ANCHORS = [
   "field-frame-errors",
   "field-frame-clean",
@@ -430,6 +515,13 @@ const LAYOUT_ANCHORS = [
   "calendar-one-mode",
   "calendar-phone-agenda",
   "calendar-movable",
+  "board-columns",
+  "board-empty-column",
+  "board-many-cards",
+  "board-many-columns",
+  "board-group-by",
+  "board-one-grouping",
+  "board-loading",
 ] as const;
 
 const FIELD_STATES = ["empty", "filled", "required", "invalid", "display-value", "display-empty"] as const;
@@ -671,6 +763,49 @@ export default function App(): ReactNode {
               entries={calendarFixtureEntries}
               movable
               openable
+            />,
+          )}
+        </section>
+        <section id="group-board">
+          <h2>board</h2>
+          {state("board-columns", "columns with cards, openable (Enter or click)", <BoardHarness id="Tasks" openable />)}
+          {state("board-empty-column", "an empty column", <BoardHarness id="Tasks (empty column)" emptyColumn />)}
+          {state("board-many-cards", "many cards: each column scrolls on its own", <BoardHarness id="Tasks (many cards)" many openable notice={<p>Showing the first 1,000 of 1,412 cards. Narrow the filter.</p>} />)}
+          {state(
+            "board-many-columns",
+            "many columns: the board scrolls sideways",
+            <Board
+              label="Tasks (many columns)"
+              groupChoices={[{ field: "assignee", label: "Assignee" }]}
+              groupField="assignee"
+              columns={Array.from({ length: 12 }, (_, i) => boardColumn(`v:u${i}`, `Person ${i + 1}`, i % 3 === 0 ? [] : [boardCard(i, `Task ${i}`, "Due: 2026-11-02")]))}
+              loading={false}
+              onGroupBy={() => undefined}
+            />,
+          )}
+          {state("board-group-by", "group-by switch (Status / Owner), regroups and announces", <BoardHarness id="Tasks (group by)" columnsBy="owner" openable />)}
+          {state(
+            "board-one-grouping",
+            "one grouping: no picker",
+            <Board
+              label="Tasks (one grouping)"
+              groupChoices={[{ field: "status", label: "Status" }]}
+              groupField="status"
+              columns={[boardColumn("v:To do", "To do", [boardCard(1, "Task 1")]), boardColumn("empty", "No Status", [])]}
+              loading={false}
+              onGroupBy={() => undefined}
+            />,
+          )}
+          {state(
+            "board-loading",
+            "loading: columns without cards",
+            <Board
+              label="Tasks (loading)"
+              groupChoices={[{ field: "status", label: "Status" }]}
+              groupField="status"
+              columns={STATUS_NAMES.map((n) => boardColumn(`v:${n}`, n, []))}
+              loading
+              onGroupBy={() => undefined}
             />,
           )}
         </section>

@@ -1,0 +1,193 @@
+/* board/v1. Override any --yadad-board-* variable or the underlying tokens.
+   Columns sit side by side and scroll horizontally on overflow; each column's
+   card list scrolls on its own. The group-by picker is the select
+   component's own styling (data-yadad="select"). "Move to…" is the keyboard and touch move path;
+   drag and the phone layout are added by the next card. */
+@layer yadad.components {
+  :where([data-yadad="board"][data-part="root"]) {
+    display: block;
+    font-family: var(--yadad-board-font-family, var(--yadad-font-family));
+    font-size: var(--yadad-board-font-size, var(--yadad-font-size-sm));
+    color: var(--yadad-board-color, var(--yadad-color-text));
+    container-type: inline-size;
+  }
+
+  :where([data-yadad="board"]) :where([data-part="header"]) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--yadad-space-3);
+    margin-block-end: var(--yadad-space-3);
+  }
+
+  :where([data-yadad="board"]) :where([data-part="title"]) {
+    margin: 0;
+    font-size: var(--yadad-board-title-size, var(--yadad-font-size-md));
+    font-weight: 600;
+  }
+
+  :where([data-yadad="board"]) :where([data-part="group-by"]) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--yadad-space-2);
+  }
+
+  :where([data-yadad="board"]) :where([data-part="group-by"]) :where([data-yadad="select"][data-part="input"]) {
+    inline-size: auto;
+  }
+
+  :where([data-yadad="board"]) :where([data-part="notice"]) {
+    margin-block-end: var(--yadad-space-2);
+    padding: var(--yadad-space-2) var(--yadad-space-3);
+    border: 1px solid var(--yadad-board-notice-border, var(--yadad-color-border));
+    border-radius: var(--yadad-board-radius, var(--yadad-radius-md));
+    background: var(--yadad-board-notice-background, var(--yadad-color-surface));
+  }
+
+  /* The live region is kept visible, as on the calendar: sighted users see what a screen reader hears. */
+  :where([data-yadad="board"]) :where([data-part="status"]) {
+    min-block-size: calc(var(--yadad-font-size-sm) * 1.4);
+    margin-block-end: var(--yadad-space-2);
+    font-weight: 600;
+    color: var(--yadad-board-status-color, var(--yadad-color-text));
+  }
+
+  :where([data-yadad="board"]) :where([data-part="status"]):not(:empty) {
+    padding: var(--yadad-space-1) var(--yadad-space-3);
+    border-inline-start: calc(var(--yadad-space-1) / 2) solid var(--yadad-board-status-accent, var(--yadad-color-accent));
+    background: var(--yadad-board-status-background, var(--yadad-color-surface));
+  }
+
+  :where([data-yadad="board"]) :where([data-part="columns"]) {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--yadad-board-gap, var(--yadad-space-3));
+    overflow-x: auto;
+    /* Room for the focus ring of a card in the first and last column. */
+    padding: var(--yadad-space-2);
+  }
+
+  :where([data-yadad="board"]) :where([data-part="column"]) {
+    flex: 0 0 var(--yadad-board-column-width, calc(var(--yadad-space-4) * 18));
+    min-inline-size: 0;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--yadad-board-border, var(--yadad-color-border));
+    border-radius: var(--yadad-board-radius, var(--yadad-radius-md));
+    background: var(--yadad-board-column-background, var(--yadad-color-surface));
+  }
+
+  :where([data-yadad="board"]) :where([data-part="column-heading"]) {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--yadad-space-2);
+    margin: 0;
+    padding: var(--yadad-space-2) var(--yadad-space-3);
+    font-size: var(--yadad-font-size-sm);
+    font-weight: 600;
+    border-block-end: 1px solid var(--yadad-board-border, var(--yadad-color-border));
+  }
+
+  :where([data-yadad="board"]) :where([data-part="column-label"]) {
+    overflow-wrap: anywhere;
+  }
+
+  :where([data-yadad="board"]) :where([data-part="column-count"]) {
+    flex: 0 0 auto;
+    padding-inline: var(--yadad-space-2);
+    border-radius: var(--yadad-board-radius-full, var(--yadad-radius-md));
+    background: var(--yadad-board-count-background, var(--yadad-color-background));
+    color: var(--yadad-board-count-color, var(--yadad-color-text-muted));
+    font-weight: 400;
+  }
+
+  :where([data-yadad="board"]) :where([data-part="cards"]) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--yadad-space-2);
+    margin: 0;
+    padding: var(--yadad-space-2);
+    list-style: none;
+    overflow-y: auto;
+    max-block-size: var(--yadad-board-column-max-height, calc(var(--yadad-space-4) * 30));
+  }
+
+  :where([data-yadad="board"]) :where([data-part="column-empty"]) {
+    padding: var(--yadad-space-3);
+    text-align: center;
+    color: var(--yadad-board-count-color, var(--yadad-color-text-muted));
+  }
+
+  :where([data-yadad="board"]) :where([data-part="card"]) {
+    border: 1px solid var(--yadad-board-border, var(--yadad-color-border));
+    border-radius: var(--yadad-board-radius, var(--yadad-radius-md));
+    background: var(--yadad-board-card-background, var(--yadad-color-background));
+  }
+
+  :where([data-yadad="board"]) :where([data-part="card"][data-pending="true"]) {
+    opacity: 0.6;
+  }
+
+  :where([data-yadad="board"]) :where([data-part="card-open"]) {
+    all: unset;
+    box-sizing: border-box;
+    display: block;
+    inline-size: 100%;
+    padding: var(--yadad-space-2) var(--yadad-space-3);
+    border-radius: var(--yadad-board-radius, var(--yadad-radius-md));
+    cursor: pointer;
+  }
+
+  :where([data-yadad="board"]) :where([data-part="card-static"]) {
+    display: block;
+    padding: var(--yadad-space-2) var(--yadad-space-3);
+  }
+
+  :where([data-yadad="board"]) :where([data-part="card-content"]) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--yadad-space-1);
+    overflow-wrap: anywhere;
+  }
+
+  :where([data-yadad="board"]) :where([data-part="card-open"]):hover {
+    background: var(--yadad-board-card-hover, var(--yadad-color-surface));
+  }
+
+  :where([data-yadad="board"]) :where([data-part="card-open"], [data-part="cards"][tabindex]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-board-focus, var(--yadad-color-accent));
+    outline-offset: var(--yadad-focus-ring-width);
+  }
+  :where([data-yadad="board"]) :where([data-part="move-trigger"], [data-part="move-confirm"], [data-part="move-cancel"]) {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 var(--yadad-space-2) var(--yadad-space-2);
+    padding-inline: var(--yadad-space-3);
+    min-block-size: var(--yadad-board-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    border: 1px solid var(--yadad-board-border, var(--yadad-color-border));
+    border-radius: var(--yadad-board-radius, var(--yadad-radius-md));
+    color: var(--yadad-board-link, var(--yadad-color-accent));
+    cursor: pointer;
+  }
+
+  :where([data-yadad="board"]) :where([data-part="move-panel"]) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--yadad-space-2);
+    padding: var(--yadad-space-2);
+    border-block-start: 1px solid var(--yadad-board-border, var(--yadad-color-border));
+  }
+
+  :where([data-yadad="board"]) :where([data-part="move-panel"]) :where([data-part="move-confirm"], [data-part="move-cancel"]) {
+    margin: 0;
+  }
+
+  :where([data-yadad="board"]) :where([data-part="move-trigger"], [data-part="move-confirm"], [data-part="move-cancel"]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-board-focus, var(--yadad-color-accent));
+    outline-offset: var(--yadad-focus-ring-width);
+  }
+}
