@@ -29,7 +29,7 @@
  * Not published with the package. Run it against the gallery (see README
  * "Real-browser checks"):
  *
- *   GALLERY_URL=http://localhost:5199/ node gallery/check/phone-touch.mjs
+ *   GALLERY_URL=http://localhost:5199/ node gallery/check/phone-touch.ts
  *
  * Exits non-zero if any check fails. If the machine's Chromium differs from
  * the one `playwright-core` ships, point at it with
@@ -37,13 +37,30 @@
  */
 import { chromium } from "playwright-core";
 
+interface Result {
+  run: string;
+  name: string;
+  ok: boolean;
+  detail: string;
+}
+
 const url = process.env.GALLERY_URL || "http://localhost:5199/";
-const launch = process.env.PLAYWRIGHT_EXECUTABLE_PATH
+const launch: { executablePath?: string } = process.env.PLAYWRIGHT_EXECUTABLE_PATH
   ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH }
   : {};
 
-const results = [];
-const check = (run, name, ok, detail) => results.push({ run, name, ok, detail });
+declare global {
+  interface Window {
+    __sorts?: number;
+    __sortHook?: boolean;
+    __taps?: number;
+  }
+}
+
+const results: Result[] = [];
+const check = (run: string, name: string, ok: boolean, detail: string): void => {
+  results.push({ run, name, ok, detail });
+};
 
 // Viewports from the card: 390×844 with touch, and 320 wide.
 const VIEWPORTS = [
@@ -54,7 +71,7 @@ const VIEWPORTS = [
 // The thumb targets and the selector that is actually tapped. The checkbox's
 // real target is its label (tapping the label toggles the box), not the small
 // visual box; the sort target is the whole header button.
-const TAP_TARGETS = [
+const TAP_TARGETS: Array<[string, string]> = [
   ["button", "#button-primary-enabled button"],
   ["checkbox label", "#boolean-filled [data-part=label]"],
   ["sort header", "#table-few-rows [data-part=sort]"],
@@ -99,23 +116,25 @@ for (const vp of VIEWPORTS) {
         const over = d.scrollWidth > d.clientWidth + 1;
         if (!over) return { over: false, scrollW: d.scrollWidth, clientW: d.clientWidth, culprits: [] };
         const vw = d.clientWidth;
-        const inHScroll = (el) => {
+        const inHScroll = (el: Element): boolean => {
           for (let n = el.parentElement; n; n = n.parentElement) {
             const c = getComputedStyle(n);
             if ((c.overflowX === "auto" || c.overflowX === "scroll") && n.scrollWidth > n.clientWidth + 1) return true;
           }
           return false;
         };
-        const culprits = [];
-        const seen = new Set();
+        const culprits: Array<{ tag: string; type: string; state: string; right: number }> = [];
+        const seen = new Set<string>();
         for (const e of document.querySelectorAll("body *")) {
           const r = e.getBoundingClientRect();
           if (r.right <= vw + 1 || r.width <= 5) continue;
           if (getComputedStyle(e).overflow !== "visible" || inHScroll(e)) continue;
-          const k = e.tagName + (e.type || "") + ((e.closest(".state") || {}).id || "chrome");
+          const type = (e as HTMLInputElement).type || "";
+          const stateId = e.closest(".state")?.id || "chrome";
+          const k = e.tagName + type + stateId;
           if (seen.has(k)) continue;
           seen.add(k);
-          culprits.push({ tag: e.tagName, type: e.type || "", state: (e.closest(".state") || {}).id || "chrome", right: Math.round(r.right) });
+          culprits.push({ tag: e.tagName, type, state: stateId, right: Math.round(r.right) });
         }
         return { over: true, scrollW: d.scrollWidth, clientW: vw, culprits };
       });
@@ -130,7 +149,7 @@ for (const vp of VIEWPORTS) {
       const tbl = await page.evaluate(() => {
         const table = document.querySelector("#table-few-rows table");
         if (!table) return { present: false };
-        const scope = table.closest("[data-part=wrap],[data-part=scroll]") || table.parentElement;
+        const scope = (table.closest("[data-part=wrap],[data-part=scroll]") || table.parentElement)!;
         const scs = getComputedStyle(scope);
         const trect = table.getBoundingClientRect();
         const srect = scope.getBoundingClientRect();
@@ -143,14 +162,14 @@ for (const vp of VIEWPORTS) {
         };
       });
       if (tbl.present) {
-        check(run, "table scrolls in its own container", tbl.scrollX === "auto" || tbl.scrollX === "scroll" || tbl.contained,
+        check(run, "table scrolls in its own container", tbl.scrollX === "auto" || tbl.scrollX === "scroll" || tbl.contained === true,
           `overflow-x=${tbl.scrollX} table=${tbl.tableW} container=${tbl.containerW} contained=${tbl.contained}`);
       } else check(run, "table present", false, "not found");
 
       // 4. inputs font >= 16px (no iOS zoom on focus)
       const fonts = await page.evaluate(() => {
-        const out = {};
-        const sels = {
+        const out: Record<string, number | null> = {};
+        const sels: Record<string, string> = {
           text: "#text-filled input",
           number: "#number-filled input",
           date: "#date-filled input",
@@ -163,26 +182,26 @@ for (const vp of VIEWPORTS) {
         return out;
       });
       for (const [k, v] of Object.entries(fonts)) {
-        check(run, `input font >=16px (${k})`, v !== null && v >= 16, v === null ? "missing" : `${v}px`);
+        check(run, `input font >=16px (${k})`, v !== null && v !== undefined && v >= 16, v === null ? "missing" : `${v}px`);
       }
 
       // 7. stacked table: cards, labels, wrapping, sort strip
       for (const id of ["table-few-rows", "table-many-rows-long-text"]) {
-        const t = await page.evaluate((id) => {
-          const root = document.querySelector(`#${id} [data-yadad=table]`);
-          const display = (el) => getComputedStyle(el).display;
+        const t = await page.evaluate((id: string) => {
+          const root = document.querySelector(`#${id} [data-yadad=table]`)!;
+          const display = (el: Element): string => getComputedStyle(el).display;
           const rows = [...root.querySelectorAll("tbody tr[data-part=row]")];
-          const cells = [...root.querySelectorAll("tbody td[data-part=cell]")];
+          const cells = [...root.querySelectorAll<HTMLElement>("tbody td[data-part=cell]")];
           const unlabeled = cells.filter((c) => {
             const content = getComputedStyle(c, "::before").content;
             return content !== `"${c.dataset.label}"` || !c.dataset.label;
           }).length;
           const unwrapped = cells.filter((c) => c.scrollWidth > c.clientWidth + 1).length;
-          const first = cells[0];
+          const first = cells[0]!;
           const lineH = parseFloat(getComputedStyle(first).lineHeight) || parseFloat(getComputedStyle(first).fontSize) * 1.2;
           const longCells = cells.filter((c) => c.textContent.length > 60);
           return {
-            tableDisplay: display(root.querySelector("table")),
+            tableDisplay: display(root.querySelector("table")!),
             nonBlockRows: rows.filter((r) => display(r) !== "block").length,
             nonFlexCells: cells.filter((c) => display(c) !== "flex").length,
             rows: rows.length,
@@ -216,7 +235,7 @@ for (const vp of VIEWPORTS) {
           window.__sorts = 0;
           if (!window.__sortHook) {
             window.__sortHook = true;
-            document.querySelector("#table-few-rows").addEventListener("click", (e) => { if (e.target.closest("[data-part=sort]")) window.__sorts++; });
+            document.querySelector("#table-few-rows")!.addEventListener("click", (e) => { if ((e.target as Element).closest("[data-part=sort]")) window.__sorts = (window.__sorts ?? 0) + 1; });
           }
         });
         await sortBtn.tap();
@@ -233,8 +252,8 @@ for (const vp of VIEWPORTS) {
 
       // 9. labels/errors attached, nothing overlaps or overflows the page
       const attach = await page.evaluate(() => {
-        const issues = [];
-        const inHScroll = (el) => {
+        const issues: string[] = [];
+        const inHScroll = (el: Element): boolean => {
           for (let n = el.parentElement; n; n = n.parentElement) {
             const c = getComputedStyle(n);
             if ((c.overflowX === "auto" || c.overflowX === "scroll") && n.scrollWidth > n.clientWidth + 1) return true;
@@ -242,8 +261,8 @@ for (const vp of VIEWPORTS) {
           return false;
         };
         for (const st of document.querySelectorAll(".state")) {
-          const inputs = [...st.querySelectorAll("input,select")].filter((e) => e.type !== "hidden");
-          const labels = [...st.querySelectorAll("label,[data-part=label]")];
+          const inputs = [...st.querySelectorAll<HTMLInputElement | HTMLSelectElement>("input,select")].filter((e) => e.type !== "hidden");
+          const labels = [...st.querySelectorAll<HTMLLabelElement>("label,[data-part=label]")];
           const errors = [...st.querySelectorAll("[data-part=error],[role=alert]")];
           for (const inp of inputs) {
             const ir = inp.getBoundingClientRect();
@@ -277,9 +296,9 @@ for (const vp of VIEWPORTS) {
   await page.locator(".controls button", { hasText: "200%" }).click({ force: true });
   await page.waitForTimeout(350);
   const many = await page.evaluate(() => {
-    const list = document.querySelector("#tabs-many [data-part=list]");
+    const list = document.querySelector("#tabs-many [data-part=list]")!;
     const tabs = [...document.querySelectorAll("#tabs-many [role=tab]")];
-    const sel = tabs.find((t) => t.getAttribute("aria-selected") === "true");
+    const sel = tabs.find((t) => t.getAttribute("aria-selected") === "true")!;
     const sr = sel.getBoundingClientRect();
     const lr = list.getBoundingClientRect();
     return {
@@ -295,7 +314,7 @@ for (const vp of VIEWPORTS) {
   await btn.scrollIntoViewIfNeeded();
   await page.evaluate(() => {
     window.__taps = 0;
-    document.querySelector("#button-primary-enabled button").addEventListener("click", () => { window.__taps++; });
+    document.querySelector("#button-primary-enabled button")!.addEventListener("click", () => { window.__taps = (window.__taps ?? 0) + 1; });
   });
   await btn.tap();
   await page.waitForTimeout(150);
@@ -311,23 +330,23 @@ for (const vp of VIEWPORTS) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await ctx.newPage();
   await page.goto(url, { waitUntil: "networkidle" });
-  for (const [theme, expectShadow] of [["light", true], ["dark", true], ["stress", true], ["brand", true]]) {
+  for (const [theme, expectShadow] of [["light", true], ["dark", true], ["stress", true], ["brand", true]] as Array<[string, boolean]>) {
     const run = `desktop ${theme} 100%`;
     await page.locator(".controls button", { hasText: theme }).click();
     await page.waitForTimeout(250);
     const t = await page.evaluate(() => {
-      const root = document.querySelector("#table-few-rows [data-yadad=table]");
-      const d = (el, pseudo) => getComputedStyle(el, pseudo);
-      const cell = root.querySelector("td[data-part=cell]");
+      const root = document.querySelector("#table-few-rows [data-yadad=table]")!;
+      const d = (el: Element, pseudo?: string): CSSStyleDeclaration => getComputedStyle(el, pseudo ?? null);
+      const cell = root.querySelector("td[data-part=cell]")!;
       const status = document.querySelector("#table-sort-asc [data-part=sort-status]");
-      const h = document.querySelector("#table-few-rows thead [data-part=header]");
+      const h = document.querySelector("#table-few-rows thead [data-part=header]")!;
       const rects = [...root.querySelectorAll("thead th")].map((e) => e.getBoundingClientRect());
       return {
-        table: d(root.querySelector("table")).display,
-        row: d(root.querySelector("tbody tr")).display,
+        table: d(root.querySelector("table")!).display,
+        row: d(root.querySelector("tbody tr")!).display,
         cell: d(cell).display,
         label: d(cell, "::before").content,
-        headerSideBySide: rects.every((r, i) => i === 0 || r.left >= rects[i - 1].right - 1),
+        headerSideBySide: rects.every((r, i) => i === 0 || r.left >= rects[i - 1]!.right - 1),
         headerVisible: h.getBoundingClientRect().width > 20,
         statusClipped: status ? status.getBoundingClientRect().width <= 1 : null,
         pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -337,7 +356,7 @@ for (const vp of VIEWPORTS) {
       t.table === "table" && t.row === "table-row" && t.cell === "table-cell" && (t.label === "none" || t.label === "normal") && t.headerSideBySide && t.headerVisible && t.statusClipped === true && t.pageOverflow <= 1,
       JSON.stringify(t));
     const sh = await page.evaluate(() => {
-      const get = (sel) => getComputedStyle(document.querySelector(sel)).boxShadow;
+      const get = (sel: string): string => getComputedStyle(document.querySelector(sel)!).boxShadow;
       return { section: get("#section-titled [data-yadad=section]"), panel: get("#panel-titled [data-yadad=panel]") };
     });
     for (const [k, v] of Object.entries(sh)) {

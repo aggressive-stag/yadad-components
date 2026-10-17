@@ -13,28 +13,36 @@
  * Not published with the package. Run it from a scratch dir with
  * playwright-core installed (see README "Browser keyboard check"):
  *
- *   GALLERY_URL=http://localhost:5199/ node gallery/check/tabs-keyboard.mjs
+ *   GALLERY_URL=http://localhost:5199/ node gallery/check/tabs-keyboard.ts
  *
  * Exits non-zero if any check fails.
  */
 import { chromium } from "playwright-core";
 
+interface Result {
+  name: string;
+  ok: boolean;
+  detail: string;
+}
+
 const url = process.env.GALLERY_URL || "http://localhost:5199/";
 // Point at a specific Chromium build with PLAYWRIGHT_EXECUTABLE_PATH when the
 // installed playwright-core does not match the browser on the machine;
 // otherwise playwright resolves its own.
-const launch = process.env.PLAYWRIGHT_EXECUTABLE_PATH
+const launch: { executablePath?: string } = process.env.PLAYWRIGHT_EXECUTABLE_PATH
   ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH }
   : {};
-const results = [];
-const check = (name, ok, detail) => results.push({ name, ok, detail });
+const results: Result[] = [];
+const check = (name: string, ok: boolean, detail: string): void => {
+  results.push({ name, ok, detail });
+};
 
 const browser = await chromium.launch(launch);
 const page = await browser.newPage({ viewport: { width: 1280, height: 1000 } });
 await page.goto(url, { waitUntil: "networkidle" });
 
-const theme = (name) => page.locator(".controls button", { hasText: name }).click();
-const text = (name) => page.locator(".controls button", { hasText: name }).click();
+const theme = (name: string) => page.locator(".controls button", { hasText: name }).click();
+const text = (name: string) => page.locator(".controls button", { hasText: name }).click();
 
 // --- 1. 200% text: internal scroll, no page overflow, End reaches the last tab ---
 await theme("light");
@@ -42,7 +50,7 @@ await text("200%");
 await page.waitForTimeout(250);
 
 const layout = await page.evaluate(() => {
-  const list = document.querySelector("#tabs-many [data-part=list]");
+  const list = document.querySelector("#tabs-many [data-part=list]")!;
   return {
     pageOverflows: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
     listScrollable: list.scrollWidth > list.clientWidth + 1,
@@ -58,7 +66,7 @@ await page.locator("#tabs-many [data-part=tab]").first().evaluate((el) => el.foc
 await page.keyboard.press("End");
 await page.waitForTimeout(400);
 const last = await page.evaluate(() => {
-  const el = document.activeElement;
+  const el = document.activeElement!;
   const r = el.getBoundingClientRect();
   return { text: el.textContent, selected: el.getAttribute("aria-selected"), withinViewport: r.left >= 0 && r.right <= innerWidth + 1 };
 });
@@ -71,8 +79,8 @@ for (const t of ["light", "dark"]) {
     await text(s);
     await page.waitForTimeout(250);
     const m = await page.evaluate(() => {
-      const list = document.querySelector("#tabs-two [data-part=list]");
-      const tab = list.querySelector("[data-part=tab]");
+      const list = document.querySelector("#tabs-two [data-part=list]")!;
+      const tab = list.querySelector("[data-part=tab]")!;
       const lcs = getComputedStyle(list);
       const tcs = getComputedStyle(tab);
       const clearance = lcs.getPropertyValue("--yadad-tabs-ring-clearance");
