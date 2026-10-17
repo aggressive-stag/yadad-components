@@ -80,7 +80,7 @@ serves a page that renders every component in every state, with light, dark, str
 
 ## Compatibility
 
-Works with the `@yadad/core` versions in the package's `peerDependencies` range, which is widened as the engine releases new minors. React 19 is required. Node 22.12 or newer is needed to build from source.
+Works with the `@yadad/core` versions in the package's `peerDependencies` range, which is widened as the engine releases new minors. React 19 is required. Node 22.18 or newer is needed to build from source.
 
 ## Development
 
