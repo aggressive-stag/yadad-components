@@ -40,8 +40,8 @@
     "test": "vitest run",
     "theming:check": "node scripts/theming.ts check",
     "theming:docs": "node scripts/theming.ts write",
-    "check:engine": "node scripts/check-engine.mjs",
-    "check:engine:install": "node scripts/check-engine.mjs --install",
+    "check:engine": "node scripts/check-engine.ts",
+    "check:engine:install": "node scripts/check-engine.ts --install",
     "build:css": "node scripts/build-css.ts"
   },
   "peerDependencies": {

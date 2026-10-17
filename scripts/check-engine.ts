@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * check:engine — keep @yadad/components' peer range honest.
  *
@@ -46,15 +45,24 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."
  */
 class RegistryError extends Error {}
 
+interface Semver {
+  satisfies(version: string, range: string): boolean;
+}
+
+interface Args {
+  install: boolean;
+  registry: string;
+}
+
 const REGISTRY_DEFAULT = "https://gitlab.base-camp.dev/api/v4/packages/npm/";
 
-function fail(message) {
+function fail(message: string): never {
   console.error(`check:engine: FAIL — ${message}`);
   process.exit(1);
 }
 
 /** semver is a transitive dep of changesets; resolve its index.js from the pnpm store layout. */
-async function loadSemver() {
+async function loadSemver(): Promise<Semver | null> {
   const candidates = [path.join(repoRoot, "node_modules", "semver", "index.js")];
   const pnpmDir = path.join(repoRoot, "node_modules", ".pnpm");
   if (existsSync(pnpmDir)) {
@@ -65,13 +73,13 @@ async function loadSemver() {
   for (const c of candidates) {
     if (!existsSync(c)) continue;
     try {
-      return await import(pathToFileURL(c).href);
+      return (await import(pathToFileURL(c).href)) as Semver;
     } catch {}
   }
   return null;
 }
 
-function npmView(spec, registry) {
+function npmView(spec: string, registry: string): unknown {
   try {
     const out = execFileSync("npm", ["view", ...spec.split(" "), "--json", "--registry", registry], {
       encoding: "utf8",
@@ -83,17 +91,34 @@ function npmView(spec, registry) {
     // result. npm reports both as non-zero exits, but only the network case
     // may skip (the caller decides) — a genuine registry error is still a
     // failure.
-    const stderr = String(err.stderr ?? "");
+    const stderr = String((err as { stderr?: unknown }).stderr ?? "");
     const net = /ENOTFOUND|EAI_AGAIN|ECONNREFUSED|ETIMEDOUT|ECONNRESET|getaddrinfo|network/i.test(stderr);
     throw net ? new RegistryError(`${spec}: unreachable from this network (${stderr.split("\n").find((l) => /\bE[A-Z0-9]{3,}\b|getaddrinfo/.test(l)) ?? "network error"})`) : err;
   }
 }
 
-function parseArgs(argv) {
-  const args = { install: false, registry: process.env.npm_config_registry || REGISTRY_DEFAULT };
+interface PackageManifest {
+  peerDependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+  scripts?: Record<string, string>;
+}
+
+/** Every published version of a package, oldest first. */
+function npmVersions(name: string, registry: string): string[] {
+  return npmView(`${name} versions`, registry) as string[];
+}
+
+function newest(versions: string[], name: string): string {
+  const v = versions.at(-1);
+  if (v === undefined) fail(`no published versions of ${name}`);
+  return v;
+}
+
+function parseArgs(argv: string[]): Args {
+  const args: Args = { install: false, registry: process.env.npm_config_registry || REGISTRY_DEFAULT };
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === "--install") args.install = true;
-    else if (argv[i] === "--registry") args.registry = argv[++i];
+    else if (argv[i] === "--registry") args.registry = argv[++i] ?? args.registry;
     else if (argv[i] === "--help" || argv[i] === "-h") {
       console.log("usage: pnpm check:engine [--install] [--registry <url>]");
       process.exit(0);
@@ -103,15 +128,15 @@ function parseArgs(argv) {
 }
 
 /** Checks 1+2: the declared peer range and the newest testing kit cover the newest published core. */
-async function checkRanges(registry, { satisfies }) {
-  const pkg = JSON.parse(readFileSync(path.join(repoRoot, "package.json"), "utf8"));
+async function checkRanges(registry: string, { satisfies }: Semver): Promise<boolean> {
+  const pkg = JSON.parse(readFileSync(path.join(repoRoot, "package.json"), "utf8")) as PackageManifest;
   const coreRange = pkg.peerDependencies?.["@yadad/core"];
   if (!coreRange) fail("package.json has no peerDependencies['@yadad/core']");
 
-  const coreVersions = npmView("@yadad/core versions", registry);
-  const testingVersions = npmView("@yadad/testing versions", registry);
-  const newestCore = coreVersions.at(-1);
-  const newestTesting = testingVersions.at(-1);
+  const coreVersions = npmVersions("@yadad/core", registry);
+  const testingVersions = npmVersions("@yadad/testing", registry);
+  const newestCore = newest(coreVersions, "@yadad/core");
+  const newestTesting = newest(testingVersions, "@yadad/testing");
 
   console.log(`check:engine: registry ${registry}`);
   console.log(`  @yadad/core published:    ${coreVersions.join(", ")}`);
@@ -129,7 +154,7 @@ async function checkRanges(registry, { satisfies }) {
     console.log(`  ok: peer range covers newest core ${newestCore}`);
   }
 
-  const testingMeta = npmView(`@yadad/testing@${newestTesting}`, registry);
+  const testingMeta = npmView(`@yadad/testing@${newestTesting}`, registry) as { dependencies?: Record<string, string> };
   const testingPins = testingMeta.dependencies?.["@yadad/core"];
   if (!testingPins || !satisfies(newestCore, testingPins)) {
     ok = false;
@@ -142,7 +167,7 @@ async function checkRanges(registry, { satisfies }) {
 }
 
 /** Check 3 (--install): full gate against the newest published engine, in a temp copy. */
-async function installProof(registry, newestCore, newestTesting, newestTheme) {
+async function installProof(registry: string, newestCore: string, newestTesting: string, newestTheme: string): Promise<{ pass: boolean; note: string }> {
   const dir = path.join(tmpdir(), `yadad-engine-check-${Date.now()}`);
   console.log(`check:engine --install: temp copy at ${dir}`);
   cpSync(repoRoot, dir, {
@@ -155,8 +180,8 @@ async function installProof(registry, newestCore, newestTesting, newestTheme) {
     // every manifest of the workspace (root + gallery), so the install
     // resolves from the registry. The root keeps @yadad/theme (a published
     // dep, not part of the gate) — it only gets bumped, not deleted.
-    const rewrite = (manifestPath) => {
-      const pkg = JSON.parse(readFileSync(manifestPath, "utf8"));
+    const rewrite = (manifestPath: string): void => {
+      const pkg = JSON.parse(readFileSync(manifestPath, "utf8")) as PackageManifest;
       const deps = pkg.devDependencies;
       if (!deps) return;
       if (deps["@yadad/core"]) deps["@yadad/core"] = `^${newestCore}`;
@@ -202,7 +227,7 @@ if (!semver) fail("semver not resolvable from node_modules — run `pnpm install
 // check is correct where it can run (homelab, self-hosted runners, dev boxes);
 // skipping must not masquerade as passing, and it must not fail the build on
 // every unrelated push. A reachable-but-stale range still exits 1.
-const skip = (err) => {
+const skip = (err: Error): never => {
   console.error(`check:engine: SKIP — cannot reach the engine registry ${args.registry} from this network.`);
   console.error(`  (${String(err.message).split("\n")[0]})`);
   console.error(`  No staleness verdict was produced. This is NOT a pass: run where the registry is reachable to get one.`);
@@ -210,18 +235,18 @@ const skip = (err) => {
 };
 
 if (args.install) {
-  let coreVersions, testingVersions, themeVersions;
+  let coreVersions: string[], testingVersions: string[], themeVersions: string[];
   try {
-    coreVersions = npmView("@yadad/core versions", args.registry);
-    testingVersions = npmView("@yadad/testing versions", args.registry);
-    themeVersions = npmView("@yadad/theme versions", args.registry);
+    coreVersions = npmVersions("@yadad/core", args.registry);
+    testingVersions = npmVersions("@yadad/testing", args.registry);
+    themeVersions = npmVersions("@yadad/theme", args.registry);
   } catch (err) {
     if (err instanceof RegistryError) skip(err);
     throw err;
   }
-  const newestCore = coreVersions.at(-1);
-  const newestTesting = testingVersions.at(-1);
-  const newestTheme = themeVersions.at(-1);
+  const newestCore = newest(coreVersions, "@yadad/core");
+  const newestTesting = newest(testingVersions, "@yadad/testing");
+  const newestTheme = newest(themeVersions, "@yadad/theme");
   const { pass, note } = await installProof(args.registry, newestCore, newestTesting, newestTheme);
   console.log(
     pass
@@ -231,7 +256,7 @@ if (args.install) {
   process.exit(pass ? 0 : 1);
 }
 
-let ok;
+let ok: boolean;
 try {
   ok = await checkRanges(args.registry, semver);
 } catch (err) {
