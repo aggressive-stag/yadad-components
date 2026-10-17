@@ -1,16 +1,16 @@
 # @yadad/components
 
-The reference component set for [yadad](https://github.com/aggressive-stag/yadad), a schema-driven React engine for forms, tables and dashboards. It is a styled, themeable, accessible implementation of the engine's `Registry` contract: install it, hand it to the renderer, and your entity and view documents render with real inputs, a sortable table, tabs and panels.
+The reference component set for [yadad](https://github.com/aggressive-stag/yadad), a schema-driven React engine for forms, tables, calendars, boards and dashboards. It is a styled, themeable, accessible implementation of the engine's `Registry` contract: install it, hand it to the renderer, and your entity and view documents render with real inputs, a sortable table, a calendar, a board, tabs and panels.
 
 You do not have to use it. The engine only asks for something that satisfies its `Registry` type, so you can swap this set for your own, or replace individual entries.
 
 ## Install
 
-Packages are published to the project's GitLab npm registry. Point the `@yadad` scope at it:
+Packages are published to the project's GitLab npm registry, not to npmjs.com. Point the `@yadad` scope at the registry's instance-level npm endpoint, where `<gitlab-host>` is the GitLab instance that hosts the project. One entry serves `@yadad/components` and every engine package; a project-scoped URL would serve only one repo's packages. Add an auth token for that host if the instance requires one.
 
 ```ini
 # .npmrc
-@yadad:registry=<registry URL>
+@yadad:registry=https://<gitlab-host>/api/v4/packages/npm/
 ```
 
 ```sh
@@ -40,12 +40,12 @@ export function CustomerForm({ entity, view, dataSources }) {
 }
 ```
 
-`baseRegistry` is a `Registry<ReactNode>`. The same registry works with `TableRenderer` and `DashboardRenderer`. The stylesheet is optional: skip it and style the `data-part` hooks yourself.
+`baseRegistry` is a `Registry<ReactNode>`. The same registry works with `TableRenderer`, `CalendarRenderer`, `BoardRenderer` and `DashboardRenderer`. The stylesheet is optional: skip it and style the `data-part` hooks yourself.
 
 ## What is included
 
-- **Field types** (each an `Input` and a read-only `Display`): `text`, `number`, `boolean`, `select`, `date`.
-- **Layout:** `FieldFrame` (label, required marker and errors around any input), `Section`, `Panel`, `Tabs`, `Button`, `ErrorSummary`, `Table`, `Calendar` (month and week grid of entries, with a phone agenda, drag and a "Move to day…" action) and `Board` (cards in columns, one column per value of a field, with a group-by picker, horizontal scroll, a scrolling card list per column and a "Move to…" action; the engine's `layout.Board` registry key).
+- **Field types** (each an `Input` and a read-only `Display`): `text`, `number`, `boolean`, `select`, `date`, `reference`.
+- **Layout:** `FieldFrame` (label, required marker and errors around any input), `Section`, `Panel`, `Tabs`, `Button`, `ErrorSummary`, `Table`, `Calendar` (month and week grid of entries, with a phone agenda, drag and a "Move to day…" action) and `Board` (cards in columns, one column per value of a field, with a group-by picker, drag between columns, a "Move to…" action for keyboard and touch, a scrolling card list per column, and on a phone one column at a time with snap scrolling; the engine's `layout.Board` registry key). `Calendar` fills the engine's `layout.Calendar` key.
 - **Table:** sortable column headers, and on a narrow container it switches to a stacked layout where each row becomes a card with a label on every cell.
 - **Widgets:** `count`.
 
@@ -80,7 +80,7 @@ serves a page that renders every component in every state, with light, dark, str
 
 ## Compatibility
 
-Works with the `@yadad/core` versions in the package's `peerDependencies` range, which is widened as the engine releases new minors. React 19 is required. Node 22.18 or newer is needed to build from source.
+Works with the `@yadad/core` versions in the package's `peerDependencies` range (currently `^0.10.0`), which is widened as the engine releases new minors. React 19 is required. Node 22.18 or newer is needed to build from source (the build scripts are TypeScript that Node runs directly).
 
 ## Development
 
