@@ -1,5 +1,11 @@
 # @yadad/components
 
+## 0.10.1
+
+### Patch Changes
+
+- b822af2: THEMING.md now names `scripts/theming.ts` as its generator (the build scripts moved to TypeScript). No change to components, styles or the registry.
+
 ## 0.10.0
 
 ### Minor Changes
