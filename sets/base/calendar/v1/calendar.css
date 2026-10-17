@@ -38,6 +38,7 @@
 
   :where([data-yadad="calendar"]) :where([data-part="nav"], [data-part="mode-switch"]) {
     display: flex;
+    flex-wrap: wrap;
     gap: var(--yadad-space-1);
   }
 
