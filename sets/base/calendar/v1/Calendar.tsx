@@ -366,7 +366,7 @@ export function Calendar({
           prior announcement (e.g. two refused moves in a row); without a
           key change screen readers won't re-announce unchanged text. */}
       <div role="status" aria-live="polite" data-part="status">
-        <span key={announcement?.seq ?? 0}>{announcement?.text}</span>
+        {announcement ? <span key={announcement.seq}>{announcement.text}</span> : null}
       </div>
 
       {legend.length > 0 ? (
