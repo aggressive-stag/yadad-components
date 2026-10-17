@@ -8,15 +8,11 @@ Rules for any AI coding agent working in the components repository. This repo ho
 components/
   sets/
     base/
-      text/v1/
-      number/v1/
-      date/v1/
-      select/v1/
-      boolean/v1/
-      data-table/v1/
-      grid-widget/v1/
+      <name>/v1/     one folder per component: text, number, boolean, select, date,
+                     reference, field-frame, section, panel, tabs, button, table,
+                     calendar, board, count, error-summary
   registry/
-    base.ts          maps each field type to exactly one component version
+    base.ts          maps each field type, layout piece and widget to exactly one component version
   UPSTREAM.md        source, upstream version and date copied, per component
 ```
 
