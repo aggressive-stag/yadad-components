@@ -85,7 +85,9 @@ body {
    so the narrow layout is visible in the gallery without resizing the
    actual browser viewport. */
 .phone-frame {
-  inline-size: 390px;
+  box-sizing: border-box;
+  /* 390px of content on a wide page; never wider than the page itself. */
+  inline-size: min(100%, calc(390px + var(--yadad-space-2) * 2 + 2px));
   border: 1px dashed var(--yadad-color-border);
   padding: var(--yadad-space-2);
 }
