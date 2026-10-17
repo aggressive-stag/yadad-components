@@ -1,5 +1,11 @@
 # @yadad/components
 
+## 0.10.3
+
+### Patch Changes
+
+- 83a4fd9: Update the README for the calendar and board layouts, the `reference` field, the registry scope setup and the current peer range.
+
 ## 0.10.2
 
 ### Patch Changes
