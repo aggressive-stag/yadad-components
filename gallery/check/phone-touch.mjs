@@ -250,7 +250,7 @@ for (const vp of VIEWPORTS) {
             const forLabel = labels.find((l) => l.htmlFor === inp.id || l.contains(inp));
             if (forLabel) {
               const lr = forLabel.getBoundingClientRect();
-              if (lr.bottom > ir.top + 2 && lr.top < ir.bottom) issues.push(`${st.id}: label overlaps input`);
+              if (lr.bottom > ir.top + 2 && lr.top < ir.bottom && lr.left < ir.right - 2 && lr.right > ir.left + 2) issues.push(`${st.id}: label overlaps input`);
             }
             const err = errors.find((e) => { const r = e.getBoundingClientRect(); return r.top > ir.bottom - 2 && r.width > 10; });
             if (err) {
