@@ -173,12 +173,15 @@ function Field<K extends FieldType>({
   const sample = samples[type];
   const { field } = sample;
   const entry = baseRegistry.fields[type];
+  // The datetime entry is optional until the reference set ships it (RFC 0007); the
+  // gallery only renders types it has wired, so this is an invariant, not a state.
+  if (entry === undefined) return <p>not wired: {type}</p>;
   const inputId = idPrefix;
   const errorId = `${inputId}-errors`;
   return (
     <FieldFrame inputId={inputId} errorId={errorId} label={field.label} required={field.required === true} errors={errors ?? []}>
       <Host
-        component={entry.Input as (props: FieldInputProps<K>) => ReactNode}
+        component={entry.Input as unknown as (props: FieldInputProps<K>) => ReactNode}
         props={Object.assign(
           {},
           {
@@ -208,6 +211,9 @@ function FieldGroup<K extends FieldType>({ type }: { type: K }): ReactNode {
   const sample = samples[type];
   const { field, value } = sample;
   const entry = baseRegistry.fields[type];
+  // The datetime entry is optional until the reference set ships it (RFC 0007); the
+  // gallery only renders types it has wired, so this is an invariant, not a state.
+  if (entry === undefined) return <p>not wired: {type}</p>;
   const errors: readonly DocumentError[] =
     type === "boolean" || type === "number"
       ? [invalidError(`/${field.id}`, type === "number" ? "Weight must be a multiple of 2.5." : "This value is not allowed.")]

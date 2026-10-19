@@ -66,6 +66,7 @@ export const samples: FieldSamples = {
     displayExtras: NONE,
   },
   date: { field: { id: "day", type: "date", label: "Day", min: "2026-01-01", max: "2026-12-31" }, value: "2026-10-04", inputExtras: NONE, displayExtras: NONE },
+  datetime: { field: { id: "moment", type: "datetime", label: "Moment" }, value: "2026-10-04T12:30:00.000Z", inputExtras: NONE, displayExtras: NONE },
   reference: {
     field: { id: "lift", type: "reference", label: "Lift", entity: "exercise" },
     value: "e2",
