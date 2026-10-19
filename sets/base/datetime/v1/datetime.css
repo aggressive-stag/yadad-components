@@ -1,0 +1,31 @@
+/* datetime/v1. Override any --yadad-datetime-* variable (on the element or any
+   ancestor) or the underlying --yadad-* tokens; the fallbacks below are the
+   defaults. */
+@layer yadad.components {
+  :where([data-yadad="datetime"][data-part="input"]) {
+    box-sizing: border-box;
+    inline-size: var(--yadad-datetime-width, 100%);
+    /* A native datetime control has an intrinsic minimum width (its fields
+       must be visible). min-inline-size: 0 stops that minimum from growing a
+       grid or flex track past the available space: at 320px + 200% text the
+       control truncates its own fields instead of forcing the host page to
+       scroll sideways. */
+    min-inline-size: 0;
+    padding: var(--yadad-datetime-padding, var(--yadad-space-2) var(--yadad-space-3));
+    font-family: var(--yadad-datetime-font-family, var(--yadad-font-family));
+    font-size: var(--yadad-datetime-font-size, var(--yadad-font-size-md));
+    color: var(--yadad-datetime-color, var(--yadad-color-text));
+    background: var(--yadad-datetime-background, var(--yadad-color-background));
+    border: var(--yadad-datetime-border-width, 1px) solid var(--yadad-datetime-border, var(--yadad-color-border));
+    border-radius: var(--yadad-datetime-radius, var(--yadad-radius-sm));
+  }
+
+  :where([data-yadad="datetime"][data-part="input"]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-datetime-focus, var(--yadad-color-accent));
+    outline-offset: 1px;
+  }
+
+  :where([data-yadad="datetime"][data-part="input"][aria-invalid="true"]) {
+    border-color: var(--yadad-datetime-border-invalid, var(--yadad-color-danger));
+  }
+}

@@ -13,6 +13,7 @@ import type { BoardCard, BoardColumn, DocumentError, FieldDisplayExtras, FieldDi
 import { useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { baseRegistry } from "../../registry/base.js";
+import { DatetimeDisplay } from "../../sets/base/datetime/v1/index.js";
 import {
   CALENDAR_TODAY,
   calendarDays,
@@ -218,13 +219,18 @@ function FieldGroup<K extends FieldType>({ type }: { type: K }): ReactNode {
     type === "boolean" || type === "number"
       ? [invalidError(`/${field.id}`, type === "number" ? "Weight must be a multiple of 2.5." : "This value is not allowed.")]
       : [requiredError(`/${field.id}`)];
+  // The gallery plays the renderer: the datetime Input receives the local
+  // value instantToLocal would produce (the gallery views in UTC, the engine's
+  // viewStates default), not the stored canonical instant — a native
+  // datetime-local control rejects the "…sssZ" form (RFC 0007).
+  const inputValue = (type === "datetime" && typeof value === "string" ? value.slice(0, 16) : value) as FieldValueTypes[K] | undefined;
   return (
     <section id={`group-${type}`}>
       <h2>{type}</h2>
       {state(`${type}-empty`, "empty", <Field type={type} value={undefined} idPrefix={`g-${type}-empty`} />)}
-      {state(`${type}-filled`, "filled", <Field type={type} value={value} idPrefix={`g-${type}-filled`} />)}
+      {state(`${type}-filled`, "filled", <Field type={type} value={inputValue} idPrefix={`g-${type}-filled`} />)}
       {state(`${type}-required`, "required (no value)", <Field type={type} value={undefined} idPrefix={`g-${type}-required`} />)}
-      {state(`${type}-invalid`, "invalid, with an error message", <Field type={type} value={value} errors={errors} idPrefix={`g-${type}-invalid`} />)}
+      {state(`${type}-invalid`, "invalid, with an error message", <Field type={type} value={inputValue} errors={errors} idPrefix={`g-${type}-invalid`} />)}
       {state(`${type}-display-value`, "display: value", <Host component={entry.Display as (props: FieldDisplayProps<K>) => ReactNode} props={Object.assign({}, { field, value }, sample.displayExtras)} />)}
       {state(`${type}-display-empty`, "display: no value", <Host component={entry.Display as (props: FieldDisplayProps<K>) => ReactNode} props={Object.assign({}, { field, value: undefined }, sample.displayExtras)} />)}
       <p className="note">The contract's InputProps has no disabled state, so none is shown.</p>
@@ -247,6 +253,17 @@ function ReferenceStates(): ReactNode {
       {state("reference-display-loading", "display: label loading (raw id)", <Display field={field} value="e99" label="e99" status="loading" />)}
       {state("reference-display-missing", "display: record deleted", <Display field={field} value="e99" label="Unknown" status="missing" />)}
       {state("reference-display-long", "display: long label", <Display field={field} value="e4" label={referenceOptions[3]?.label ?? ""} status="found" />)}
+    </section>
+  );
+}
+
+/** The state only a datetime has: the Display showing the text the renderer formatted for the viewer's zone (RFC 0007). */
+function DatetimeStates(): ReactNode {
+  const { field, value } = samples.datetime;
+  return (
+    <section id="group-datetime-text">
+      <h2>datetime: formatted display</h2>
+      {state("datetime-display-text", "display: renderer-formatted text (the stored UTC instant stays in dateTime)", <DatetimeDisplay field={field} value={value} text="Oct 4, 2026, 7:30 AM" />)}
     </section>
   );
 }
@@ -671,6 +688,8 @@ export default function App(): ReactNode {
         <FieldGroup type="boolean" />
         <FieldGroup type="select" />
         <FieldGroup type="date" />
+        <FieldGroup type="datetime" />
+        <DatetimeStates />
         <FieldGroup type="reference" />
         <ReferenceStates />
 

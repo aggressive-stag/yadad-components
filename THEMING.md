@@ -293,6 +293,31 @@ A date field, rendered as a native date input.
 
 **Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`
 
+### datetime
+
+A date-and-time field, rendered as a native datetime-local input.
+
+**`data-part` names** (marked parts carry the component marker and take `[data-yadad="<component>"][data-part="<name>"]`; nested parts are inside the component root and take the descendant form `[data-yadad="<component>"] [data-part="<name>"]` — the compound form on a nested part matches nothing):
+
+- `input` — the datetime `<input>` (target with `[data-yadad="datetime"][data-part="input"]`)
+- `display` — read-only value (`<time>`) (target with `[data-yadad="datetime"][data-part="display"]`)
+
+**Per-component variables** (set on the component or an ancestor; the default is shown):
+
+- `--yadad-datetime-width` — inline size; default: `100%`
+- `--yadad-datetime-padding` — inner padding; default: `var(--yadad-space-2) var(--yadad-space-3)` (token-derived: `--yadad-space-2`, `--yadad-space-3`)
+- `--yadad-datetime-font-family` — font stack; default: token `--yadad-font-family` (base font stack)
+- `--yadad-datetime-font-size` — font size; default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
+- `--yadad-datetime-color` — foreground color; default: token `--yadad-color-text` (main text color)
+- `--yadad-datetime-background` — background; default: token `--yadad-color-background` (page and control background)
+- `--yadad-datetime-border-width` — border width; default: `1px`
+- `--yadad-datetime-border` — border color; default: token `--yadad-color-border` (borders and dividers)
+- `--yadad-datetime-radius` — corner radius; default: token `--yadad-radius-sm` (small corner radius (inputs, buttons, chips))
+- `--yadad-datetime-focus` — focus-ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-datetime-border-invalid` — border color when invalid; default: token `--yadad-color-danger` (error / danger text and borders)
+
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`
+
 ### error-summary
 
 An alert that lists the document's errors up front.

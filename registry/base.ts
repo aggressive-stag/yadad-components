@@ -6,6 +6,7 @@ import { Button } from "../sets/base/button/v1/index.js";
 import { Calendar } from "../sets/base/calendar/v1/index.js";
 import { Count } from "../sets/base/count/v1/index.js";
 import { DateDisplay, DateInput } from "../sets/base/date/v1/index.js";
+import { DatetimeDisplay, DatetimeInput } from "../sets/base/datetime/v1/index.js";
 import { ErrorSummary } from "../sets/base/error-summary/v1/index.js";
 import { FieldFrame } from "../sets/base/field-frame/v1/index.js";
 import { NumberDisplay, NumberInput } from "../sets/base/number/v1/index.js";
@@ -28,6 +29,7 @@ export const baseRegistry: Registry<ReactNode> = {
     boolean: { type: "boolean", Input: BooleanInput, Display: BooleanDisplay },
     select: { type: "select", Input: SelectInput, Display: SelectDisplay },
     date: { type: "date", Input: DateInput, Display: DateDisplay },
+    datetime: { type: "datetime", Input: DatetimeInput, Display: DatetimeDisplay },
     reference: { type: "reference", Input: ReferenceInput, Display: ReferenceDisplay },
   },
   layout: { FieldFrame, Section, Button, Table, ErrorSummary, Tabs, Panel, Calendar, Board },
