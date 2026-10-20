@@ -618,6 +618,59 @@ function MovableBoardHarness({ id, readOnly }: { id: string; readOnly?: boolean 
   );
 }
 
+/**
+ * A board whose cards carry record actions (RFC 0007): the first card has one
+ * action, the next has several (last one danger), and pressing "Archive"
+ * puts that card's actions in flight for a moment — buttons disabled and the
+ * "Working..." live region speaking — then drops the card, like a renderer
+ * would. Actions exist whether or not the board is movable.
+ */
+function ActionsBoardHarness({ id }: { id: string }): ReactNode {
+  const [archived, setArchived] = useState<string[]>([]);
+  const [pendingId, setPendingId] = useState<string | undefined>(undefined);
+  const archive = (cardId: string): void => {
+    setPendingId(cardId);
+    setTimeout(() => {
+      setPendingId(undefined);
+      setArchived((a) => [...a, cardId]);
+    }, 1500);
+  };
+  const press = (): void => undefined;
+  const mk = (n: number, title: string): BoardCard<ReactNode> => {
+    const base = boardCard(n, title, `Owner: ${OWNER_NAMES[n % 3]}`);
+    if (archived.includes(base.id)) return { ...base, content: <span>{title} (archived)</span> };
+    const pending = pendingId === base.id;
+    // The first two cards are movable too: the actions cluster sits next to
+    // the "Move to…" path, which is where the RFC puts it.
+    if (n === 1) return { ...base, movable: true, pending, actions: [{ id: "open", label: "Open", tone: "neutral", pending, onPress: press }] };
+    if (n === 2)
+      return {
+        ...base,
+        movable: true,
+        pending,
+        actions: [
+          { id: "open", label: "Open", tone: "neutral", pending, onPress: press },
+          { id: "dup", label: "Duplicate", tone: "neutral", pending, onPress: press },
+          { id: "arch", label: "Archive", tone: "danger", pending, onPress: () => archive(base.id) },
+        ],
+      };
+    return base;
+  };
+  const columns = [boardColumn("v:todo", "To do", [1, 2, 3].map((n) => mk(n, `Task ${n}`))), boardColumn("v:done", "Done", [])];
+  return (
+    <Board
+      label={id}
+      groupChoices={[{ field: "status", label: "Status" }]}
+      groupField="status"
+      columns={columns}
+      loading={false}
+      onGroupBy={() => undefined}
+      onOpenCard={() => undefined}
+      onMove={() => undefined}
+    />
+  );
+}
+
 const LAYOUT_ANCHORS = [
   "field-frame-errors",
   "field-frame-clean",
@@ -660,6 +713,7 @@ const LAYOUT_ANCHORS = [
   "board-one-grouping",
   "board-loading",
   "board-movable",
+  "board-actions",
   "board-phone",
   "board-read-only",
 ] as const;
@@ -1032,6 +1086,11 @@ export default function App(): ReactNode {
             "board-movable",
             "movable cards (drag onto a column, or Move to…); every third card is locked; moves into Done are refused",
             <MovableBoardHarness id="Tasks (movable)" />,
+          )}
+          {state(
+            "board-actions",
+            "record actions on cards: one button; several in a menu (danger Archive puts the card's actions in flight: disabled + Working...); next to Move to…",
+            <ActionsBoardHarness id="Tasks (actions)" />,
           )}
           {state(
             "board-phone",

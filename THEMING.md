@@ -72,6 +72,12 @@ Cards in columns, one column per value of a field, with a group-by picker; colum
 - `move-select` — the move list's `<select>` of columns (shares the select component's styling) (target with `[data-yadad="board"][data-part="move-select"]`)
 - `move-confirm` — the move form's confirm button (target with `[data-yadad="board"] [data-part="move-confirm"]`)
 - `move-cancel` — the move form's cancel button (target with `[data-yadad="board"] [data-part="move-cancel"]`)
+- `action-status` — the card's polite "Working..." live region (target with `[data-yadad="board"] [data-part="action-status"]`)
+- `action` — one record-action button on a card (target with `[data-yadad="board"] [data-part="action"]`)
+- `actions` — a card's record-actions cluster (next to the move path) (target with `[data-yadad="board"] [data-part="actions"]`)
+- `actions-trigger` — the "Actions…" button that opens the card's action menu (two or more actions) (target with `[data-yadad="board"] [data-part="actions-trigger"]`)
+- `actions-panel` — the open card action menu, in flow under the trigger (target with `[data-yadad="board"] [data-part="actions-panel"]`)
+- `actions-cancel` — the action menu's cancel button (target with `[data-yadad="board"] [data-part="actions-cancel"]`)
 - `card` — one card (list item) (target with `[data-yadad="board"] [data-part="card"]`)
 - `card-open` — the button that opens a card (when the view has a row action) (target with `[data-yadad="board"] [data-part="card-open"]`)
 - `card-content` — a card's title and small card fields (target with `[data-yadad="board"] [data-part="card-content"]`)
@@ -117,11 +123,16 @@ Cards in columns, one column per value of a field, with a group-by picker; colum
 - `--yadad-board-focus` — focus-ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-board-tap` — minimum height of the move buttons (the tap target on a phone); default: `calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))` (token-derived: `--yadad-space-3`, `--yadad-space-4`)
 - `--yadad-board-link` — move button text color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-board-actions-border` — record-action button border color (danger actions use the danger color for both); default: token `--yadad-color-border` (borders and dividers)
+- `--yadad-board-actions-link` — record-action button text color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-board-actions-focus` — record-action button keyboard focus-ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-board-actions-danger` — record-action button color for tone=danger (text and border); default: token `--yadad-color-danger` (error / danger text and borders)
+- `--yadad-board-actions-disabled-opacity` — opacity of a record-action button while a record's action is in flight; default: `0.6`
 - `--yadad-board-drop-target` — outline color of the column a dragged card can drop on; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-board-drop-background` — background of the column a dragged card is over; default: token `--yadad-color-background` (page and control background)
 - `--yadad-board-phone-column-max-height` — tallest a column's card list gets before it scrolls on a phone; default: `calc(var(--yadad-space-4) * 24)` (token-derived: `--yadad-space-4`)
 
-**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-md`, `--yadad-space-1`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-md`, `--yadad-space-1`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 
 ### boolean
 

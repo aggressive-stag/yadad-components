@@ -125,6 +125,16 @@
     border: 1px solid var(--yadad-board-border, var(--yadad-color-border));
     border-radius: var(--yadad-board-radius, var(--yadad-radius-md));
     background: var(--yadad-board-card-background, var(--yadad-color-background));
+    /* Flex row so the "Move to…" and actions buttons sit on one aligned
+       line: as inline-flex siblings they baseline-align, and the (often
+       empty) status span in the actions wrapper drags that line down. */
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  :where([data-yadad="board"]) :where([data-part="card"]) > :where([data-part="card-open"], [data-part="card-static"], [data-part="move-panel"], [data-part="actions-panel"]) {
+    flex: 1 1 100%;
   }
 
   :where([data-yadad="board"]) :where([data-part="card"][data-pending="true"]) {
@@ -191,6 +201,77 @@
   :where([data-yadad="board"]) :where([data-part="move-trigger"], [data-part="move-confirm"], [data-part="move-cancel"]):focus-visible {
     outline: var(--yadad-focus-ring-width) solid var(--yadad-board-focus, var(--yadad-color-accent));
     outline-offset: var(--yadad-focus-ring-width);
+  }
+
+  /* Record actions (RFC 0007) sit next to the "Move to…" path and borrow its
+     button look. tone=danger reads through colour AND border. The open menu
+     is in-flow (never absolute): the columns row scrolls sideways and an
+     absolutely positioned panel would clip or scroll with it. */
+  :where([data-yadad="board"]) :where([data-part="actions"]) {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--yadad-space-1) var(--yadad-space-2);
+    margin: 0 var(--yadad-space-2) var(--yadad-space-2);
+  }
+
+  /* Opened, the menu runs the card's full width (the trigger alone hugs its
+     label next to "Move to…"). */
+  :where([data-yadad="board"]) :where([data-part="card"]) > :where([data-part="actions"]:has([data-part="actions-panel"])) {
+    flex: 1 1 100%;
+  }
+
+  :where([data-yadad="board"]) :where([data-part="actions"]) > :where([data-part="actions-panel"]) {
+    flex: 1 1 100%;
+  }
+
+  :where([data-yadad="board"]) :where([data-part="actions"]) :where([data-part="action"], [data-part="actions-trigger"], [data-part="actions-cancel"]) {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding-inline: var(--yadad-space-3);
+    min-block-size: var(--yadad-board-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    border: 1px solid var(--yadad-board-actions-border, var(--yadad-color-border));
+    border-radius: var(--yadad-board-radius, var(--yadad-radius-md));
+    color: var(--yadad-board-actions-link, var(--yadad-color-accent));
+    cursor: pointer;
+  }
+
+  :where([data-yadad="board"]) :where([data-part="action"], [data-part="actions-trigger"], [data-part="actions-cancel"]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-board-actions-focus, var(--yadad-color-accent));
+    outline-offset: var(--yadad-focus-ring-width);
+  }
+
+  :where([data-yadad="board"]) :where([data-part="action"][data-tone="danger"]) {
+    color: var(--yadad-board-actions-danger, var(--yadad-color-danger));
+    border-color: var(--yadad-board-actions-danger, var(--yadad-color-danger));
+  }
+
+  :where([data-yadad="board"]) :where([data-part="action"]):disabled {
+    cursor: not-allowed;
+    opacity: var(--yadad-board-actions-disabled-opacity, 0.6);
+  }
+
+  :where([data-yadad="board"]) :where([data-part="actions-panel"]) {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--yadad-space-1);
+    padding: var(--yadad-space-2);
+    background: var(--yadad-board-column-background, var(--yadad-color-surface));
+    border: 1px solid var(--yadad-board-actions-border, var(--yadad-color-border));
+    border-radius: var(--yadad-board-radius, var(--yadad-radius-md));
+  }
+
+  :where([data-yadad="board"]) :where([data-part="actions-panel"]):focus-visible {
+    outline: none; /* the panel is a group, not a control; its buttons own the ring */
+  }
+
+  :where([data-yadad="board"]) :where([data-part="action-status"]) {
+    color: var(--yadad-board-count-color, var(--yadad-color-text-muted));
+    font-size: var(--yadad-font-size-sm);
   }
 
   /* Drag: the card being dragged is dimmed, the column it can drop on gets a dashed outline (not colour alone). */
