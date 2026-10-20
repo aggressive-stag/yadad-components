@@ -1,5 +1,11 @@
 # @yadad/components
 
+## 0.16.1
+
+### Patch Changes
+
+- bd31401: Dialog: set `aria-modal="true"` on the modal element. The RFC 0007 contract kit requires the explicit attribute — `role="dialog"` does not imply modality for assistive tech, native top-layer blocking notwithstanding. The static (`modal={false}`) demo mode stays unmarked.
+
 ## 0.16.0
 
 ### Minor Changes
