@@ -318,6 +318,48 @@ A date-and-time field, rendered as a native datetime-local input.
 
 **Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`
 
+### dialog
+
+A modal dialog: the renderer builds the content, the component owns the modal behaviour (focus trap, inert background, Escape).
+
+**`data-part` names** (marked parts carry the component marker and take `[data-yadad="<component>"][data-part="<name>"]`; nested parts are inside the component root and take the descendant form `[data-yadad="<component>"] [data-part="<name>"]` — the compound form on a nested part matches nothing):
+
+- `root` — the modal `<dialog>` (target with `[data-yadad="dialog"][data-part="root"]`)
+- `header` — the header row (title + close) (target with `[data-yadad="dialog"] [data-part="header"]`)
+- `title` — the accessible name as a heading (target with `[data-yadad="dialog"] [data-part="title"]`)
+- `close` — the close control (target with `[data-yadad="dialog"] [data-part="close"]`)
+- `body` — the scrollable content the renderer builds (target with `[data-yadad="dialog"] [data-part="body"]`)
+
+**Per-component variables** (set on the component or an ancestor; the default is shown):
+
+- `--yadad-dialog-width` — inline size; default: `min(90%, calc(var(--yadad-space-4) * 24))` (token-derived: `--yadad-space-4`)
+- `--yadad-dialog-max-width` — maximum inline size on wide screens; default: `calc(var(--yadad-space-4) * 40)` (token-derived: `--yadad-space-4`)
+- `--yadad-dialog-max-height` — maximum height before the body scrolls; default: `85%`
+- `--yadad-dialog-border-width` — border width; default: `1px`
+- `--yadad-dialog-border` — border color; default: token `--yadad-color-border` (borders and dividers)
+- `--yadad-dialog-radius` — corner radius; default: token `--yadad-radius-md` (medium corner radius (cards, panels, sections))
+- `--yadad-dialog-background` — background; default: token `--yadad-color-surface` (raised surface (sections, panels, table headers))
+- `--yadad-dialog-color` — foreground color; default: token `--yadad-color-text` (main text color)
+- `--yadad-dialog-font-family` — font stack; default: token `--yadad-font-family` (base font stack)
+- `--yadad-dialog-font-size` — font size; default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
+- `--yadad-dialog-shadow` — drop shadow under the dialog box; default: `var(--yadad-shadow-md, none)` (token-derived: `--yadad-shadow-md`)
+- `--yadad-dialog-backdrop` — backdrop colour (top layer only); default: token `--yadad-color-text` (main text color)
+- `--yadad-dialog-backdrop-opacity` — backdrop opacity (top layer only); default: `0.5`
+- `--yadad-dialog-focus` — focus-ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-dialog-header-gap` — gap between the title and the close control; default: token `--yadad-space-2` (spacing scale, step 2)
+- `--yadad-dialog-header-padding` — header padding; default: `var(--yadad-space-2) var(--yadad-space-3)` (token-derived: `--yadad-space-2`, `--yadad-space-3`)
+- `--yadad-dialog-header-border-width` — header separator width; default: `1px`
+- `--yadad-dialog-header-border` — header separator color; default: token `--yadad-color-border` (borders and dividers)
+- `--yadad-dialog-title-font-size` — title font size; default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
+- `--yadad-dialog-close-tap` — close control tap target (width and height); default: `calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))` (token-derived: `--yadad-space-3`, `--yadad-space-4`)
+- `--yadad-dialog-close-color` — close control colour; default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
+- `--yadad-dialog-close-font-size` — close control glyph size; default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
+- `--yadad-dialog-close-radius` — close control corner radius; default: token `--yadad-radius-sm` (small corner radius (inputs, buttons, chips))
+- `--yadad-dialog-close-focus` — close control focus-ring colour; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-dialog-body-padding` — body padding; default: token `--yadad-space-3` (spacing scale, step 3)
+
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-border`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-md`, `--yadad-radius-sm`, `--yadad-shadow-md`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
+
 ### error-summary
 
 An alert that lists the document's errors up front.

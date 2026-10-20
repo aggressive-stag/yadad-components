@@ -5,6 +5,7 @@ import { Board } from "../sets/base/board/v1/index.js";
 import { Button } from "../sets/base/button/v1/index.js";
 import { Calendar } from "../sets/base/calendar/v1/index.js";
 import { Count } from "../sets/base/count/v1/index.js";
+import { Dialog } from "../sets/base/dialog/v1/index.js";
 import { DateDisplay, DateInput } from "../sets/base/date/v1/index.js";
 import { DatetimeDisplay, DatetimeInput } from "../sets/base/datetime/v1/index.js";
 import { ErrorSummary } from "../sets/base/error-summary/v1/index.js";
@@ -32,6 +33,6 @@ export const baseRegistry: Registry<ReactNode> = {
     datetime: { type: "datetime", Input: DatetimeInput, Display: DatetimeDisplay },
     reference: { type: "reference", Input: ReferenceInput, Display: ReferenceDisplay },
   },
-  layout: { FieldFrame, Section, Button, Table, ErrorSummary, Tabs, Panel, Calendar, Board },
+  layout: { FieldFrame, Section, Button, Table, ErrorSummary, Tabs, Panel, Calendar, Board, Dialog },
   widgets: { count: Count },
 };

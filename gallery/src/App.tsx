@@ -31,12 +31,19 @@ import {
 } from "./fixtures.js";
 import "./gallery.css";
 
-const { FieldFrame, Section, Button, Table, ErrorSummary, Tabs, Panel, Calendar: CalendarMaybe, Board: BoardMaybe } = baseRegistry.layout;
+const { FieldFrame, Section, Button, Table, ErrorSummary, Tabs, Panel, Calendar: CalendarMaybe, Board: BoardMaybe, Dialog: DialogMaybe } = baseRegistry.layout;
 const Count = baseRegistry.widgets.count;
 if (!CalendarMaybe) throw new Error("layout.Calendar missing from baseRegistry");
 const Calendar = CalendarMaybe;
 if (!BoardMaybe) throw new Error("layout.Board missing from baseRegistry");
 const Board = BoardMaybe;
+if (!DialogMaybe) throw new Error("layout.Dialog missing from baseRegistry");
+const Dialog = DialogMaybe;
+// Direct import for the static demo state: modal={false} is a demo/print
+// affordance outside the registry's DialogProps contract (same pattern as
+// the datetime display's text prop).
+import { Dialog as DialogComponent } from "../../sets/base/dialog/v1/index.js";
+const TextEntry = baseRegistry.fields.text;
 
 /**
  * The "stress" theme: a deliberately different dark token set, defined here
@@ -606,6 +613,82 @@ const LAYOUT_ANCHORS = [
 const FIELD_STATES = ["empty", "filled", "required", "invalid", "display-value", "display-empty"] as const;
 const FIELD_TYPES: readonly FieldType[] = ["text", "number", "boolean", "select", "date", "reference"];
 
+/**
+ * Plays the renderer for the confirmation state: message plus the two
+ * Buttons; the component under test supplies only the modal behaviour.
+ */
+function DialogConfirmDemo(): ReactNode {
+  const [open, setOpen] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+  return (
+    <>
+      <button type="button" onClick={() => { setResult(null); setOpen(true); }}>
+        Open confirmation
+      </button>{" "}
+      <span aria-live="polite">{result === null ? "" : `closed via ${result}`}</span>
+      {open ? (
+        <Dialog label="Delete record?" onClose={() => { setResult("dismissed"); setOpen(false); }}>
+          <p>Deleting is permanent. The record and its comments go with it.</p>
+          <p>
+            <Button label="Cancel" type="button" variant="secondary" disabled={false} onPress={() => { setResult("Cancel"); setOpen(false); }} />{" "}
+            <Button label="Confirm" type="button" variant="primary" disabled={false} onPress={() => { setResult("Confirm"); setOpen(false); }} />
+          </p>
+        </Dialog>
+      ) : null}
+    </>
+  );
+}
+
+/**
+ * Plays the renderer for the dialog group: owns the open state, composes the
+ * content (message, an editable input field, ErrorSummary, Cancel + Confirm
+ * Buttons — Cancel secondary, Confirm primary), and records which gesture
+ * closed it. The component under test never builds any of this content.
+ */
+function DialogDemo(): ReactNode {
+  const [open, setOpen] = useState(false);
+  const [lastClose, setLastClose] = useState<string | null>(null);
+  const [name, setName] = useState("");
+  const invalid = name === "";
+  const errors = invalid ? [requiredError("/title")] : [];
+  const close = (reason: string): void => {
+    setOpen(false);
+    setLastClose(reason);
+  };
+  if (TextEntry === undefined) return <p>not wired: text</p>;
+  return (
+    <>
+      <button type="button" onClick={() => { setName(""); setOpen(true); }}>
+        Open dialog
+      </button>{" "}
+      <span aria-live="polite">{lastClose === null ? "" : `closed via ${lastClose}`}</span>
+      {open ? (
+        <Dialog label="Name the new record?" onClose={() => close("Escape or a background press")}>
+          <p>Every close gesture routes through the renderer&apos;s onClose.</p>
+          <FieldFrame inputId="dialog-demo-name" errorId="dialog-demo-name-errors" label="Title" required errors={errors}>
+            <Host
+              component={TextEntry.Input as unknown as (props: FieldInputProps<"text">) => ReactNode}
+              props={{
+                inputId: "dialog-demo-name",
+                field: samples.text.field,
+                value: name || undefined,
+                onChange: (v: string | undefined) => { setName(v ?? ""); },
+                invalid,
+                ...(invalid ? { describedBy: "dialog-demo-name-errors" } : {}),
+              }}
+            />
+          </FieldFrame>
+          {invalid ? <ErrorSummary id="dialog-demo-errors" errors={errors} /> : null}
+          <p>
+            <Button label="Cancel" type="button" variant="secondary" disabled={false} onPress={() => close("Cancel")} />{" "}
+            <Button label="Confirm" type="button" variant="primary" disabled={false} onPress={() => close("Confirm")} />
+          </p>
+        </Dialog>
+      ) : null}
+    </>
+  );
+}
+
 export default function App(): ReactNode {
   const [mode, setMode] = useState<"light" | "dark" | "stress" | "brand">("light");
   const [textScale, setTextScale] = useState<"100" | "200">("100");
@@ -902,6 +985,31 @@ export default function App(): ReactNode {
             </div>,
           )}
           {state("board-read-only", "no onMove (viewer may not edit): no drag, no Move to…", <MovableBoardHarness id="Tasks (read only)" readOnly />)}
+        </section>
+
+        <section id="group-dialog">
+          <h2>dialog</h2>
+          {state(
+            "dialog-confirm",
+            "a confirmation dialog: the renderer composes the message, Cancel (secondary) and Confirm (primary)",
+            <DialogConfirmDemo />,
+          )}
+          {state(
+            "dialog-static",
+            "static (modal={false}): the same shell rendered in-flow, for demos and print",
+            <DialogComponent label="Delete record?" onClose={() => {}} modal={false}>
+              <p>Deleting is permanent.</p>
+              <p>
+                <Button label="Cancel" type="button" variant="secondary" disabled={false} />{" "}
+                <Button label="Delete" type="button" variant="primary" disabled={false} />
+              </p>
+            </DialogComponent>,
+          )}
+          {state(
+            "dialog-open",
+            "open it: the content is renderer-composed (an input field, ErrorSummary, Cancel + Confirm); Escape and the background press route to onClose, focus returns to the opener, and the controls outside the dialog are inert while it is open",
+            <DialogDemo />,
+          )}
         </section>
       </div>
     </>

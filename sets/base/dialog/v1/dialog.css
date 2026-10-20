@@ -1,0 +1,89 @@
+/* dialog/v1. Override any --yadad-dialog-* variable (on the element or any
+   ancestor) or the underlying --yadad-* tokens; the fallbacks below are the
+   defaults. The element is a native <dialog> shown with showModal() (top
+   layer, backdrop, Escape) where the browser supports it; the [open] rules
+   below also work under the attribute fallback, so the modal renders and
+   scrolls without the top layer. */
+@layer yadad.components {
+  :where([data-yadad="dialog"][data-part="root"]) {
+    box-sizing: border-box;
+    inline-size: var(--yadad-dialog-width, min(90%, calc(var(--yadad-space-4) * 24)));
+    max-inline-size: var(--yadad-dialog-max-width, calc(var(--yadad-space-4) * 40));
+    max-block-size: var(--yadad-dialog-max-height, 85%);
+    margin: auto;
+    padding: 0;
+    border: var(--yadad-dialog-border-width, 1px) solid var(--yadad-dialog-border, var(--yadad-color-border));
+    border-radius: var(--yadad-dialog-radius, var(--yadad-radius-md));
+    background: var(--yadad-dialog-background, var(--yadad-color-surface));
+    color: var(--yadad-dialog-color, var(--yadad-color-text));
+    font-family: var(--yadad-dialog-font-family, var(--yadad-font-family));
+    font-size: var(--yadad-dialog-font-size, var(--yadad-font-size-md));
+    box-shadow: var(--yadad-dialog-shadow, var(--yadad-shadow-md, none));
+  }
+
+  /* Under showModal() the dialog sits in the top layer; this scrim sits under
+     it. Opacity keeps it token-only (no hard-coded colors). */
+  :where([data-yadad="dialog"][data-part="root"])::backdrop {
+    background: var(--yadad-dialog-backdrop, var(--yadad-color-text));
+    opacity: var(--yadad-dialog-backdrop-opacity, 0.5);
+  }
+
+  /* The attribute fallback: a fixed overlay centred by the margin: auto
+     above. No backdrop element exists without the top layer; the scrim is
+     the dialog's own outline against the page. Static demos (data-modal
+     set at first render) stay in-flow. */
+  :where([data-yadad="dialog"][data-part="root"][open]:not(:modal):not([data-modal="static"])) {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+  }
+
+  :where([data-yadad="dialog"][data-part="root"]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-dialog-focus, var(--yadad-color-accent));
+    outline-offset: -1px;
+  }
+
+  :where([data-yadad="dialog"]) :where([data-part="header"]) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--yadad-dialog-header-gap, var(--yadad-space-2));
+    padding: var(--yadad-dialog-header-padding, var(--yadad-space-2) var(--yadad-space-3));
+    border-block-end: var(--yadad-dialog-header-border-width, 1px) solid var(--yadad-dialog-header-border, var(--yadad-color-border));
+  }
+
+  :where([data-yadad="dialog"]) :where([data-part="title"]) {
+    margin: 0;
+    font-size: var(--yadad-dialog-title-font-size, var(--yadad-font-size-md));
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  :where([data-yadad="dialog"]) :where([data-part="close"]) {
+    box-sizing: border-box;
+    inline-size: var(--yadad-dialog-close-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    min-inline-size: var(--yadad-dialog-close-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    block-size: var(--yadad-dialog-close-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    min-block-size: var(--yadad-dialog-close-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    flex-shrink: 0;
+    border: 0;
+    background: transparent;
+    color: var(--yadad-dialog-close-color, var(--yadad-color-text-muted));
+    font: inherit;
+    font-size: var(--yadad-dialog-close-font-size, var(--yadad-font-size-md));
+    cursor: pointer;
+    border-radius: var(--yadad-dialog-close-radius, var(--yadad-radius-sm));
+  }
+
+  :where([data-yadad="dialog"]) :where([data-part="close"]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-dialog-close-focus, var(--yadad-color-accent));
+    outline-offset: 1px;
+  }
+
+  /* Scroll at phone width and at 200% text: the body owns the overflow, so
+     the header and the action row never scroll out of reach. */
+  :where([data-yadad="dialog"]) :where([data-part="body"]) {
+    overflow-y: auto;
+    padding: var(--yadad-dialog-body-padding, var(--yadad-space-3));
+  }
+}
