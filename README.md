@@ -44,9 +44,10 @@ export function CustomerForm({ entity, view, dataSources }) {
 
 ## What is included
 
-- **Field types** (each an `Input` and a read-only `Display`): `text`, `number`, `boolean`, `select`, `date`, `reference`.
-- **Layout:** `FieldFrame` (label, required marker and errors around any input), `Section`, `Panel`, `Tabs`, `Button`, `ErrorSummary`, `Table`, `Calendar` (month and week grid of entries, with a phone agenda, drag and a "Move to day…" action) and `Board` (cards in columns, one column per value of a field, with a group-by picker, drag between columns, a "Move to…" action for keyboard and touch, a scrolling card list per column, and on a phone one column at a time with snap scrolling; the engine's `layout.Board` registry key). `Calendar` fills the engine's `layout.Calendar` key.
+- **Field types** (each an `Input` and a read-only `Display`): `text`, `number`, `boolean`, `select`, `date`, `datetime`, `reference`. The `text` Display also draws word-level compare marks (`<ins>` / `<del>` with screen-reader `added:` / `removed:` prefixes) when the renderer passes a `diff`. The `datetime` Display is a `<time>` element carrying the stored instant.
+- **Layout:** `FieldFrame` (label, required marker and errors around any input), `Section`, `Panel`, `Tabs`, `Button`, `ErrorSummary`, `Dialog` (modal: native `showModal` with an `open`-attribute fallback, focus trap, background inert, focus returned to the opener; fills the engine's `layout.Dialog` key), `Table`, `Calendar` (month and week grid of entries, with a phone agenda, drag and a "Move to day…" action) and `Board` (cards in columns, one column per value of a field, with a group-by picker, drag between columns, a "Move to…" action for keyboard and touch, a scrolling card list per column, and on a phone one column at a time with snap scrolling; the engine's `layout.Board` registry key). `Calendar` fills the engine's `layout.Calendar` key.
 - **Table:** sortable column headers, and on a narrow container it switches to a stacked layout where each row becomes a card with a label on every cell.
+- **Record actions (RFC 0007):** tables, board cards and calendar entries render their record's actions as buttons (`tone` neutral/danger, `disabled` with a "Working…" live region while the record has an action in flight); two or more collapse into an "Actions…" menu where the surface has no room for buttons (tables at phone width, boards and calendars always). The renderer owns the confirm/input dialog; it is this set's `Dialog`.
 - **Widgets:** `count`.
 
 Each component lives under `sets/base/<name>/v1/`. Versions sit side by side, so a future breaking change arrives as a new `v2` rather than an in-place edit.
@@ -80,7 +81,7 @@ serves a page that renders every component in every state, with light, dark, str
 
 ## Compatibility
 
-Works with the `@yadad/core` versions in the package's `peerDependencies` range (currently `^0.10.0`), which is widened as the engine releases new minors. React 19 is required. Node 22.18 or newer is needed to build from source (the build scripts are TypeScript that Node runs directly).
+Works with the `@yadad/core` versions in the package's `peerDependencies` range (currently `^0.10.0 || ^0.11.0`), which is widened as the engine releases new minors. React 19 is required. Node 22.18 or newer is needed to build from source (the build scripts are TypeScript that Node runs directly).
 
 ## Development
 
