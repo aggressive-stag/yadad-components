@@ -191,6 +191,12 @@ A month/week grid of entries with navigation, a colour-slot legend, and a keyboa
 - `move-input` — the move panel's date `<input>` (target with `[data-yadad="calendar"] [data-part="move-input"]`)
 - `move-confirm` — the move panel's confirm button (target with `[data-yadad="calendar"] [data-part="move-confirm"]`)
 - `move-cancel` — the move panel's cancel button (target with `[data-yadad="calendar"] [data-part="move-cancel"]`)
+- `action-status` — the "Working..." live-region text while an action is in flight (target with `[data-yadad="calendar"] [data-part="action-status"]`)
+- `action` — one record-action button (`data-tone` = neutral | danger) (target with `[data-yadad="calendar"] [data-part="action"]`)
+- `actions` — the entry's record-actions cluster (RFC 0007), next to the entry (target with `[data-yadad="calendar"] [data-part="actions"]`)
+- `actions-trigger` — the "Actions…" menu trigger (two or more actions) (target with `[data-yadad="calendar"] [data-part="actions-trigger"]`)
+- `actions-panel` — the opened actions menu panel (target with `[data-yadad="calendar"] [data-part="actions-panel"]`)
+- `actions-cancel` — the actions menu's Cancel button (target with `[data-yadad="calendar"] [data-part="actions-cancel"]`)
 - `entry-color` — an entry's colour-slot swatch (target with `[data-yadad="calendar"] [data-part="entry-color"]`)
 - `entry-content` — an entry's title + detail fields (target with `[data-yadad="calendar"] [data-part="entry-content"]`)
 - `entry` — one entry (list item) (target with `[data-yadad="calendar"] [data-part="entry"]`)
@@ -254,6 +260,11 @@ A month/week grid of entries with navigation, a colour-slot legend, and a keyboa
 - `--yadad-calendar-drop-target` — drag drop-target outline color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-calendar-drop-target-background` — drag drop-target background; default: `var(--yadad-calendar-header-background, var(--yadad-color-surface))` (token-derived: `--yadad-color-surface`)
 - `--yadad-calendar-today` — today ring and badge color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-calendar-actions-border` — record-action button and actions-panel border color; default: token `--yadad-color-border` (borders and dividers)
+- `--yadad-calendar-actions-link` — record-action / actions-trigger / Cancel text color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-calendar-actions-focus` — record-action keyboard focus ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-calendar-actions-danger` — danger-tone record-action text and border color; default: token `--yadad-color-danger` (error / danger text and borders)
+- `--yadad-calendar-actions-disabled-opacity` — disabled (action in flight) record-action opacity; default: `0.6`
 - `--yadad-calendar-link` — move-trigger / overflow button text color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 
 **Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-md`, `--yadad-space-1`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`

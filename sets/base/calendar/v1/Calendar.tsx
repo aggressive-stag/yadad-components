@@ -91,6 +91,98 @@ function MoveControl({ entry, day, onMove }: { entry: CalendarEntry<ReactNode>; 
   );
 }
 
+/**
+ * The RFC 0007 record actions of one entry. The calendar has no entry menu,
+ * so the buttons sit next to the entry (the RFC's fallback): one action is a
+ * plain button, two or more collapse into one "Actions…" menu with the same
+ * keyboard contract as the move control. A record with an action in flight —
+ * its own or a move of the entry — has all its buttons disabled.
+ */
+function EntryActions({ entry }: { entry: CalendarEntry<ReactNode> }): ReactNode {
+  const actions = entry.actions ?? [];
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLSpanElement>(null);
+  const refocusTrigger = useRef(false);
+
+  // The trigger unmounts while the menu is open: move focus into the panel
+  // on open and back to the trigger once it is remounted (MoveControl's
+  // contract; an autoFocus attribute loses to the trigger's unmount in the
+  // same commit, so this is done in an effect).
+  useEffect(() => {
+    if (open) {
+      panelRef.current?.focus();
+    } else if (refocusTrigger.current) {
+      refocusTrigger.current = false;
+      triggerRef.current?.focus();
+    }
+  }, [open]);
+
+  if (actions.length === 0) return null;
+  // entry.pending (a move of this entry is in flight) is also "an action in
+  // flight" for the RFC's purposes: while the engine is moving the entry, its
+  // action buttons must not fire either.
+  const pending = entry.pending || actions.some((a) => a.pending);
+  // The live region is always mounted; only its text changes, so screen
+  // readers announce the change (regions inserted at work-start are often ignored).
+  const status = (
+    <span data-part="action-status" role="status">
+      {pending ? "Working..." : ""}
+    </span>
+  );
+  const buttons = actions.map((a) => (
+    // Accessible name is the label verbatim; the entry around it gives context.
+    <button key={a.id} type="button" data-part="action" data-tone={a.tone} disabled={pending} onClick={a.onPress}>
+      {a.label}
+    </button>
+  ));
+
+  if (actions.length === 1) {
+    return (
+      <span data-part="actions">
+        {status}
+        {buttons}
+      </span>
+    );
+  }
+
+  const close = (): void => {
+    refocusTrigger.current = true;
+    setOpen(false);
+  };
+
+  if (!open) {
+    return (
+      <span data-part="actions">
+        {status}
+        <button ref={triggerRef} type="button" data-part="actions-trigger" aria-label={`Actions ${entry.label}`} onClick={() => setOpen(true)}>
+          Actions…
+        </button>
+      </span>
+    );
+  }
+
+  return (
+    <span
+      data-part="actions"
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          e.stopPropagation();
+          close();
+        }
+      }}
+    >
+      {status}
+      <span data-part="actions-panel" role="group" aria-label={`Actions ${entry.label}`} tabIndex={-1} ref={panelRef}>
+        {buttons}
+        <button type="button" data-part="actions-cancel" onClick={close}>
+          Cancel
+        </button>
+      </span>
+    </span>
+  );
+}
+
 function EntryView({
   entry,
   day,
@@ -132,6 +224,7 @@ function EntryView({
         <span data-part="entry-static">{content}</span>
       )}
       {entry.movable && onMove ? <MoveControl entry={entry} day={day} onMove={onMove} /> : null}
+      <EntryActions entry={entry} />
     </li>
   );
 }

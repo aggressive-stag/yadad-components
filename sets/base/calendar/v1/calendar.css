@@ -265,6 +265,73 @@
     opacity: 0.6;
   }
 
+  /* Record actions (RFC 0007): the calendar has no entry menu, so the
+     buttons sit next to the entry, under it — a horizontal cluster, or the
+     "Actions…" trigger with its panel opened in-flow below (the day cell
+     grows; never absolute, the agenda reflow must not clip it). */
+  :where([data-yadad="calendar"]) :where([data-part="actions"]) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--yadad-space-1) var(--yadad-space-2);
+    padding-inline: var(--yadad-space-1);
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="actions"]) > :where([data-part="actions-panel"]) {
+    flex: 1 1 100%;
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="actions"]) :where([data-part="action"], [data-part="actions-trigger"], [data-part="actions-cancel"]) {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding-inline: var(--yadad-space-2);
+    font-size: var(--yadad-font-size-sm);
+    min-block-size: var(--yadad-calendar-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    border: 1px solid var(--yadad-calendar-actions-border, var(--yadad-color-border));
+    border-radius: var(--yadad-calendar-radius, var(--yadad-radius-md));
+    color: var(--yadad-calendar-actions-link, var(--yadad-color-accent));
+    cursor: pointer;
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="action"], [data-part="actions-trigger"], [data-part="actions-cancel"]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-calendar-actions-focus, var(--yadad-color-accent));
+    outline-offset: var(--yadad-focus-ring-width);
+  }
+
+  /* Danger reads by colour AND border (never colour alone). */
+  :where([data-yadad="calendar"]) :where([data-part="action"][data-tone="danger"]) {
+    color: var(--yadad-calendar-actions-danger, var(--yadad-color-danger));
+    border-color: var(--yadad-calendar-actions-danger, var(--yadad-color-danger));
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="action"]):disabled {
+    cursor: not-allowed;
+    opacity: var(--yadad-calendar-actions-disabled-opacity, 0.6);
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="actions-panel"]) {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--yadad-space-1);
+    padding: var(--yadad-space-1);
+    background: var(--yadad-calendar-header-background, var(--yadad-color-surface));
+    border: 1px solid var(--yadad-calendar-actions-border, var(--yadad-color-border));
+    border-radius: var(--yadad-calendar-radius, var(--yadad-radius-md));
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="actions-panel"]):focus-visible {
+    outline: none; /* the panel is a group, not a control; its buttons own the ring */
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="action-status"]) {
+    color: var(--yadad-calendar-status-color, var(--yadad-color-text-muted));
+    font-size: var(--yadad-font-size-sm);
+  }
+
   :where([data-yadad="calendar"]) :where([data-part="move-trigger"], [data-part="overflow"]) {
     all: unset;
     box-sizing: border-box;

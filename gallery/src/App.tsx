@@ -671,6 +671,69 @@ function ActionsBoardHarness({ id }: { id: string }): ReactNode {
   );
 }
 
+/**
+ * A calendar whose entries carry record actions (RFC 0007): the entry on the
+ * 20th with one action shows a plain button, the one with several shows the
+ * "Actions…" menu; Cancel closes it, Escape returns to the trigger. "Delete"
+ * is danger and really removes the entry after a 1500ms pending beat, and the
+ * entries stay movable so the actions cluster sits next to "Move to day…".
+ */
+function ActionsCalendarHarness({ id }: { id: string }): ReactNode {
+  const [removed, setRemoved] = useState<string[]>([]);
+  const [pendingId, setPendingId] = useState<string | undefined>(undefined);
+  const [moves, setMoves] = useState<Record<string, string>>({});
+  const remove = (entryId: string): void => {
+    setPendingId(entryId);
+    setTimeout(() => {
+      setPendingId(undefined);
+      setRemoved((r) => [...r, entryId]);
+    }, 1500);
+  };
+  const press = (): void => undefined;
+  const base = calendarFixtureEntries.filter((e) => !removed.includes(e.id) && e.date === "2026-10-20");
+  const withActions = base.map((e) => {
+    const date = moves[e.id] ?? e.date;
+    const pending = pendingId === e.id;
+    if (e.id === "e3") return { ...e, date, pending, actions: [{ id: "open", label: "Open", tone: "neutral" as const, pending, onPress: press }] };
+    if (e.id === "e4")
+      return {
+        ...e,
+        date,
+        pending,
+        actions: [
+          { id: "open", label: "Open", tone: "neutral" as const, pending, onPress: press },
+          { id: "dup", label: "Duplicate", tone: "neutral" as const, pending, onPress: press },
+          { id: "del", label: "Delete", tone: "danger" as const, pending, onPress: () => remove(e.id) },
+        ],
+      };
+    return { ...e, date, pending, actions: undefined };
+  });
+  const days = calendarDays(monthGridDates(CALENDAR_TODAY), CALENDAR_TODAY, withActions).map((d) => ({
+    ...d,
+    entries: d.entries.map((e) => {
+      const w = withActions.find((x) => x.id === e.id);
+      return { ...e, content: entryContent(e.title, e.detail), ...(w?.actions ? { actions: w.actions } : {}) };
+    }),
+  }));
+  return (
+    <Calendar
+      label={id}
+      title={monthTitle(CALENDAR_TODAY)}
+      mode="month"
+      modes={[{ mode: "month", label: "Month" }, { mode: "week", label: "Week" }]}
+      weekdays={calendarWeekdays}
+      days={days}
+      legend={[...calendarLegend]}
+      loading={false}
+      onModeChange={() => undefined}
+      onPrevious={() => undefined}
+      onNext={() => undefined}
+      onToday={() => undefined}
+      onMove={(entryId, date) => setMoves((m) => ({ ...m, [entryId]: date }))}
+    />
+  );
+}
+
 const LAYOUT_ANCHORS = [
   "field-frame-errors",
   "field-frame-clean",
@@ -705,6 +768,7 @@ const LAYOUT_ANCHORS = [
   "calendar-one-mode",
   "calendar-phone-agenda",
   "calendar-movable",
+  "calendar-actions",
   "board-columns",
   "board-empty-column",
   "board-many-cards",
@@ -1038,6 +1102,11 @@ export default function App(): ReactNode {
               movable
               openable
             />,
+          )}
+          {state(
+            "calendar-actions",
+            "record actions on entries (one action: plain button; several: Actions… menu; danger Delete really deletes)",
+            <ActionsCalendarHarness id="Training (actions)" />,
           )}
         </section>
         <section id="group-board">

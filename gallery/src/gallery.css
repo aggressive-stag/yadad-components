@@ -77,6 +77,14 @@ body {
   margin-block: 0.125rem;
 }
 
+/* State ids are long single tokens (e.g. "calendar-actions"); inside the
+   2-column list at 320px one can start at the second column's left edge and
+   push past the viewport. Nav links may break anywhere — they are links,
+   not content. */
+.toc a {
+  overflow-wrap: anywhere;
+}
+
 .note {
   color: var(--yadad-color-text-muted);
 }
