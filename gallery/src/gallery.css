@@ -103,3 +103,11 @@ body {
 a {
   color: var(--yadad-color-accent);
 }
+
+/* Dialog action rows in gallery demos: Button is display:flex, so two of
+   them in a <p> stack with no gap. A flex row keeps them side by side. */
+.dialog-buttons {
+  display: flex;
+  gap: var(--yadad-space-2);
+  margin-block: var(--yadad-space-3) 0;
+}

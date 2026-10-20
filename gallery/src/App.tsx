@@ -361,7 +361,102 @@ function TableActionsStates(): ReactNode {
       {state("table-actions-one", "actions: one per row", <Table caption="Sets (one action)" columns={columns("g-actions-one")} rows={[...rows.slice(0, 1)]} onSort={() => {}} empty="No sets" />)}
       {state("table-actions-several", "actions: several and a danger tone", <Table caption="Sets (several actions)" columns={columns("g-actions-several")} rows={[...rows.slice(0, 2)]} onSort={() => {}} empty="No sets" />)}
       {state("table-actions-pending", "actions: pending (buttons disabled, Working...)", <Table caption="Sets (pending)" columns={columns("g-actions-pending")} rows={[...rows]} onSort={() => {}} empty="No sets" actionsLabel="Do" />)}
+      {state("actions-dialog-confirm", "action asks for confirmation (dialog: Cancel + Confirm; the row goes pending after)", <ActionsDialogState scenario="confirm" />)}
+      {state("actions-dialog-reason", "action asks for a reason (empty Reason keeps the dialog open with its validation error)", <ActionsDialogState scenario="reason" />)}
+      {state("actions-dialog-refused", "a refused action (after the dialog closes, the view shows the refusal in an ErrorSummary)", <ActionsDialogState scenario="refused" />)}
+      {state("actions-dialog-stale", "a stale action (the record changed; the ErrorSummary says reload after the dialog closes)", <ActionsDialogState scenario="stale" />)}
     </>
+  );
+}
+
+/**
+ * Card 14d: actions and dialogs together, as the RFC 0007 review screens
+ * compose them. One row carries the action; pressing it opens the dialog the
+ * action needs; after the dialog closes the view shows what the renderer
+ * decided (a refusal or a stale-record message in the view's ErrorSummary).
+ * `scenario` picks which; the phone-frame keeps the non-modal chrome at
+ * phone width while the check viewport does the modal.
+ */
+type ActionsDialogScenario = "confirm" | "reason" | "refused" | "stale";
+
+function ActionsDialogState({ scenario }: { scenario: ActionsDialogScenario }): ReactNode {
+  const [open, setOpen] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [note, setNote] = useState("");
+  const invalidNote = note === "";
+  const [viewErrors, setViewErrors] = useState<readonly DocumentError[]>([]);
+  const [done, setDone] = useState<string | null>(null);
+  const columns = [
+    { id: "day", headerId: `g-ad-${scenario}-day`, label: "Day", sortable: false },
+    { id: "weight", headerId: `g-ad-${scenario}-weight`, label: "Weight", sortable: false },
+  ];
+  const actionLabel = scenario === "confirm" ? "Archive" : scenario === "reason" ? "Add note" : scenario === "refused" ? "Export" : "Delete";
+  const rows = [
+    {
+      id: "r1",
+      cells: ["2026-10-04", "100 kg"] as const,
+      actions: [{ id: "a1", label: actionLabel, tone: scenario === "stale" ? ("danger" as const) : ("neutral" as const), pending, onPress: () => { setViewErrors([]); setDone(null); setNote(""); setOpen(true); } }],
+    },
+  ];
+  const closeDialog = (): void => setOpen(false);
+  const finish = (outcome: "done" | "refused" | "stale"): void => {
+    setOpen(false);
+    setPending(true);
+    setTimeout(() => {
+      setPending(false);
+      if (outcome === "done") setDone(scenario === "reason" ? `Note saved: "${note}".` : `${actionLabel} completed.`);
+      if (outcome === "refused") setViewErrors([invalidError("/export", "Export refused: you do not own this record.")]);
+      if (outcome === "stale") setViewErrors([invalidError("/record", "The record changed since the dialog opened. Reload and try again.")]);
+    }, 1200);
+  };
+  const titleId = `g-ad-${scenario}-name`;
+  const titleErrorId = `g-ad-${scenario}-name-errors`;
+  return (
+    <div className="phone-frame">
+      <Table caption={`Sets (${scenario})`} columns={columns} rows={[...rows]} onSort={() => {}} empty="No sets" />
+      {viewErrors.length > 0 ? <ErrorSummary id={`g-ad-${scenario}-view-errors`} errors={viewErrors} /> : null}
+      {done !== null ? <p className="note">{done}</p> : null}
+      {open ? (
+        <Dialog label={scenario === "confirm" ? "Archive this set?" : scenario === "reason" ? "Add a note" : scenario === "refused" ? "Export the log?" : "Delete this set?"} onClose={closeDialog}>
+          {scenario === "confirm" ? <p>Archived sets stay out of the table. You can undo it from History.</p> : null}
+          {scenario === "refused" ? <p>The renderer asks the server; a refusal lands in the view's ErrorSummary when this closes.</p> : null}
+          {scenario === "stale" ? <p>Deleting is permanent. The server rejects it if the record changed since this opened.</p> : null}
+          {scenario === "reason" ? (
+            <>
+              <FieldFrame inputId={titleId} errorId={titleErrorId} label="Reason" required errors={invalidNote ? [requiredError("/note")] : []}>
+                <Host
+                  component={TextEntry?.Input as unknown as (props: FieldInputProps<"text">) => ReactNode}
+                  props={{
+                    inputId: titleId,
+                    field: { ...samples.text.field, required: true },
+                    value: note || undefined,
+                    onChange: (v: string | undefined) => setNote(v ?? ""),
+                    invalid: invalidNote,
+                    ...(invalidNote ? { describedBy: titleErrorId } : {}),
+                  }}
+                />
+              </FieldFrame>
+              {/* FieldFrame renders the field's own role="alert" errors (its
+                  errorId) — a second ErrorSummary here would only repeat it.
+                  ErrorSummary stays reserved for view-level refusals. */}
+            </>
+          ) : null}
+          <p className="dialog-buttons">
+            <Button label="Cancel" type="button" variant="secondary" disabled={false} onPress={closeDialog} />
+            <Button
+              label={scenario === "reason" ? "Save" : "Confirm"}
+              type="button"
+              variant="primary"
+              disabled={false}
+              onPress={() => {
+                if (scenario === "reason" && invalidNote) return; // keep the dialog open; its ErrorSummary explains
+                finish(scenario === "refused" ? "refused" : scenario === "stale" ? "stale" : "done");
+              }}
+            />
+          </p>
+        </Dialog>
+      ) : null}
+    </div>
   );
 }
 
@@ -752,6 +847,10 @@ const LAYOUT_ANCHORS = [
   "table-actions-one",
   "table-actions-several",
   "table-actions-pending",
+  "actions-dialog-confirm",
+  "actions-dialog-reason",
+  "actions-dialog-refused",
+  "actions-dialog-stale",
   "error-summary-one",
   "error-summary-many",
   "tabs-two",
