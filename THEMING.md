@@ -606,6 +606,10 @@ A single-line text field.
 
 - `input` — the text `<input>` (target with `[data-yadad="text"][data-part="input"]`)
 - `display` — read-only value (target with `[data-yadad="text"][data-part="display"]`)
+- `diff-same` — a word-diff run present in both versions (compare column, RFC 0007) (target with `[data-yadad="text"] [data-part="diff-same"]`)
+- `diff-added` — a `<ins>` run only in the new version (target with `[data-yadad="text"] [data-part="diff-added"]`)
+- `diff-label` — visually hidden "added:" / "removed:" text prefixing a diff run (target with `[data-yadad="text"] [data-part="diff-label"]`)
+- `diff-removed` — a `<del>` run only in the old version (target with `[data-yadad="text"] [data-part="diff-removed"]`)
 
 **Per-component variables** (set on the component or an ancestor; the default is shown):
 
@@ -620,6 +624,10 @@ A single-line text field.
 - `--yadad-text-radius` — corner radius; default: token `--yadad-radius-sm` (small corner radius (inputs, buttons, chips))
 - `--yadad-text-focus` — focus-ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-text-border-invalid` — border color when invalid; default: token `--yadad-color-danger` (error / danger text and borders)
+- `--yadad-text-diff-added-color` — underline colour of an added word-diff run (compare column; never the only signal); default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-text-diff-added-background` — background of an added word-diff run; default: `color-mix(in srgb, var(--yadad-color-accent) 18%, transparent)` (token-derived: `--yadad-color-accent`)
+- `--yadad-text-diff-removed-color` — strike-through colour of a removed word-diff run; default: token `--yadad-color-danger` (error / danger text and borders)
+- `--yadad-text-diff-removed-background` — background of a removed word-diff run; default: `color-mix(in srgb, var(--yadad-color-danger) 14%, transparent)` (token-derived: `--yadad-color-danger`)
 
 **Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`
 

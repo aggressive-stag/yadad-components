@@ -264,6 +264,22 @@ function ReferenceStates(): ReactNode {
   );
 }
 
+/** The states only a text field has: the word diff of a compare column (RFC 0007). */
+function TextDiffStates(): ReactNode {
+  const { field } = samples.text;
+  const Display = baseRegistry.fields.text.Display;
+  const longRun = "The longest diff run in the gallery, long enough that the marks must wrap inside the cell instead of pushing the page sideways.";
+  return (
+    <section id="group-text-diff">
+      <h2>text: word diff (compare column)</h2>
+      {state("text-diff-short", "display: short diff (removed + added runs)", <Display field={field} value="Ada Lovelace" diff={[{ kind: "removed", text: "Alice " }, { kind: "same", text: "Ada " }, { kind: "added", text: "Lovelace" }]} />)}
+      {state("text-diff-long", "display: long runs wrap", <Display field={field} value={longRun} diff={[{ kind: "removed", text: `Short. ${longRun.slice(0, 60)} ` }, { kind: "added", text: longRun }]} />)}
+      {state("text-diff-identical", "display: identical texts (all same)", <Display field={field} value="Ada" diff={[{ kind: "same", text: "Ada" }]} />)}
+      {state("text-diff-empty", "display: empty texts", <Display field={field} value={undefined} diff={[{ kind: "removed", text: "" }, { kind: "added", text: "" }]} />)}
+    </section>
+  );
+}
+
 /** The state only a datetime has: the Display showing the text the renderer formatted for the viewer's zone (RFC 0007). */
 function DatetimeStates(): ReactNode {
   const { field, value } = samples.datetime;
@@ -767,6 +783,7 @@ export default function App(): ReactNode {
         </nav>
 
         <FieldGroup type="text" />
+        <TextDiffStates />
         <FieldGroup type="number" />
         <FieldGroup type="boolean" />
         <FieldGroup type="select" />

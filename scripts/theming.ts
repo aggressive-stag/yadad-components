@@ -351,7 +351,7 @@ const PART_DESCRIPTION: Record<string, Record<string, string>> = {
   select: { input: "the `<select>` picker", display: "read-only value" },
   table: { root: "the table wrapper (scroll container)", table: "the `<table>`", caption: "the `<caption>`", header: "a column `<th>`", sort: "a sortable-header button", "sort-indicator": "the sort direction arrow", "sort-status": "visually hidden sort direction text inside the sort button", empty: "the empty-state cell", row: "a data `<tr>`", cell: "a data `<td>`" },
   tabs: { root: "the tab component wrapper", list: "the `<tablist>` (scrolls internally for long lists)", tab: "a tab button", panel: "the selected tab's panel" },
-  text: { input: "the text `<input>`", display: "read-only value" },
+  text: { input: "the text `<input>`", display: "read-only value", "diff-same": "a word-diff run present in both versions (compare column, RFC 0007)", "diff-added": "a `<ins>` run only in the new version", "diff-removed": "a `<del>` run only in the old version", "diff-label": "visually hidden \"added:\" / \"removed:\" text prefixing a diff run" },
 };
 
 const COMPONENT_INTRO: Record<string, string> = {
@@ -493,6 +493,10 @@ const VAR_DESCRIPTION: Record<string, string> = {
   "tabs-tap": "minimum tap-target height (phone)",
   // text
   "text-padding": "inner padding",
+  "text-diff-added-color": "underline colour of an added word-diff run (compare column; never the only signal)",
+  "text-diff-added-background": "background of an added word-diff run",
+  "text-diff-removed-color": "strike-through colour of a removed word-diff run",
+  "text-diff-removed-background": "background of a removed word-diff run",
 };
 
 function tokensIn(value: string): string[] {

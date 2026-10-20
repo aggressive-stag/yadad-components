@@ -21,4 +21,34 @@
   :where([data-yadad="text"][data-part="input"][aria-invalid="true"]) {
     border-color: var(--yadad-text-border-invalid, var(--yadad-color-danger));
   }
+
+  /* Word diff (RFC 0007), a compare column's Display. The marks never rely
+     on colour alone: <ins> is underlined, <del> struck through, and each run
+     is prefixed by visually hidden "added:" / "removed:" text. The colours
+     and backgrounds only reinforce. Long runs wrap (the diff can be the
+     whole value). */
+  :where([data-yadad="text"][data-part="display"][data-diff="words"]) {
+    overflow-wrap: break-word;
+  }
+
+  :where([data-yadad="text"][data-part="display"]) :where([data-part="diff-added"]) {
+    text-decoration: underline;
+    text-decoration-color: var(--yadad-text-diff-added-color, var(--yadad-color-accent));
+    background: var(--yadad-text-diff-added-background, color-mix(in srgb, var(--yadad-color-accent) 18%, transparent));
+  }
+
+  :where([data-yadad="text"][data-part="display"]) :where([data-part="diff-removed"]) {
+    text-decoration: line-through;
+    text-decoration-color: var(--yadad-text-diff-removed-color, var(--yadad-color-danger));
+    background: var(--yadad-text-diff-removed-background, color-mix(in srgb, var(--yadad-color-danger) 14%, transparent));
+  }
+
+  :where([data-yadad="text"][data-part="display"]) :where([data-part="diff-label"]) {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
