@@ -540,6 +540,13 @@ A data table with sortable headers and an empty state.
 
 **`data-part` names** (marked parts carry the component marker and take `[data-yadad="<component>"][data-part="<name>"]`; nested parts are inside the component root and take the descendant form `[data-yadad="<component>"] [data-part="<name>"]` — the compound form on a nested part matches nothing):
 
+- `action` — one record-action button (`data-tone` = neutral | danger) (target with `[data-yadad="table"] [data-part="action"]`)
+- `action-status` — the "Working..." live-region text while an action is in flight (target with `[data-yadad="table"] [data-part="action-status"]`)
+- `actions` — the actions cell wrapper (RFC 0007) (target with `[data-yadad="table"] [data-part="actions"]`)
+- `actions-trigger` — the phone "Actions…" menu trigger (target with `[data-yadad="table"] [data-part="actions-trigger"]`)
+- `actions-list` — the row's action buttons side by side (desktop) (target with `[data-yadad="table"] [data-part="actions-list"]`)
+- `actions-panel` — the opened phone menu panel (target with `[data-yadad="table"] [data-part="actions-panel"]`)
+- `actions-cancel` — the menu's Cancel button (target with `[data-yadad="table"] [data-part="actions-cancel"]`)
 - `root` — the table wrapper (scroll container) (target with `[data-yadad="table"][data-part="root"]`)
 - `table` — the `<table>` (target with `[data-yadad="table"] [data-part="table"]`)
 - `caption` — the `<caption>` (target with `[data-yadad="table"] [data-part="caption"]`)
@@ -564,10 +571,15 @@ A data table with sortable headers and an empty state.
 - `--yadad-table-sort-tap` — minimum tap-target height of a sortable header (phone); default: `calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))` (token-derived: `--yadad-space-3`, `--yadad-space-4`)
 - `--yadad-table-focus` — focus-ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-table-empty-color` — empty-state text color; default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
+- `--yadad-table-actions-link` — record-action button text colour; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-table-actions-border` — record-action button border colour; default: token `--yadad-color-border` (borders and dividers)
+- `--yadad-table-actions-focus` — record-action button focus-ring colour; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-table-actions-danger` — danger-tone action text and border colour; default: token `--yadad-color-danger` (error / danger text and borders)
+- `--yadad-table-disabled-opacity` — opacity of a disabled (pending) action button; default: `0.6`
 - `--yadad-table-card-radius` — corner radius of a stacked row card (phone); default: token `--yadad-radius-md` (medium corner radius (cards, panels, sections))
 - `--yadad-table-label-color` — stacked cell label color (phone); default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
 
-**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-border`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-md`, `--yadad-space-1`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-md`, `--yadad-radius-sm`, `--yadad-space-1`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 
 ### tabs
 

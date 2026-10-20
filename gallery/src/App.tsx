@@ -330,6 +330,41 @@ function TableSortStates(): ReactNode {
   );
 }
 
+/** Record actions in table rows (RFC 0007): one action, several, pending, danger. */
+function TableActionsStates(): ReactNode {
+  const columns = (idPrefix: string) => [
+    { id: "day", headerId: `${idPrefix}-col-day`, label: "Day", sortable: false },
+    { id: "weight", headerId: `${idPrefix}-col-weight`, label: "Weight", sortable: false },
+  ];
+  const rows = [
+    { id: "r1", cells: ["2026-10-04", "100 kg"], actions: [{ id: "a1", label: "Open", tone: "neutral", pending: false, onPress: () => {} }] },
+    {
+      id: "r2",
+      cells: ["2026-10-03", "95 kg"],
+      actions: [
+        { id: "a1", label: "Open", tone: "neutral", pending: false, onPress: () => {} },
+        { id: "a2", label: "Duplicate", tone: "neutral", pending: false, onPress: () => {} },
+        { id: "a3", label: "Delete", tone: "danger", pending: false, onPress: () => {} },
+      ],
+    },
+    {
+      id: "r3",
+      cells: ["2026-10-02", "90 kg"],
+      actions: [
+        { id: "a1", label: "Open", tone: "neutral", pending: true, onPress: () => {} },
+        { id: "a3", label: "Delete", tone: "danger", pending: true, onPress: () => {} },
+      ],
+    },
+  ] as const;
+  return (
+    <>
+      {state("table-actions-one", "actions: one per row", <Table caption="Sets (one action)" columns={columns("g-actions-one")} rows={[...rows.slice(0, 1)]} onSort={() => {}} empty="No sets" />)}
+      {state("table-actions-several", "actions: several and a danger tone", <Table caption="Sets (several actions)" columns={columns("g-actions-several")} rows={[...rows.slice(0, 2)]} onSort={() => {}} empty="No sets" />)}
+      {state("table-actions-pending", "actions: pending (buttons disabled, Working...)", <Table caption="Sets (pending)" columns={columns("g-actions-pending")} rows={[...rows]} onSort={() => {}} empty="No sets" actionsLabel="Do" />)}
+    </>
+  );
+}
+
 function TabsState({ many }: { many?: boolean }): ReactNode {
   const tabs = many
     ? ["Log", "History", "Stats", "Goals", "Equipment", "Diet", "Recovery", "Calendar", "Export", "Settings"].map((title, i) => ({ id: `t${i}`, title }))
@@ -598,6 +633,9 @@ const LAYOUT_ANCHORS = [
   "table-sort-none",
   "table-sort-asc",
   "table-sort-desc",
+  "table-actions-one",
+  "table-actions-several",
+  "table-actions-pending",
   "error-summary-one",
   "error-summary-many",
   "tabs-two",
@@ -844,6 +882,7 @@ export default function App(): ReactNode {
           {state("table-few-rows", "a few rows", <TableState caption="Sets (a few rows)" idPrefix="g-few" />)}
           {state("table-many-rows-long-text", "many rows and long cell text", <TableState caption="Sets (many rows)" many idPrefix="g-many" />)}
           <TableSortStates />
+          <TableActionsStates />
         </section>
 
         <section id="group-error-summary">

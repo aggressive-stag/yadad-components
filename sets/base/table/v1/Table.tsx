@@ -1,17 +1,152 @@
-import type { TableProps } from "@yadad/core";
+import type { RecordActionItem, TableProps } from "@yadad/core";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 const ariaSort = (sort: "asc" | "desc" | undefined) => (sort === "asc" ? "ascending" : sort === "desc" ? "descending" : undefined);
 const arrow = (sort: "asc" | "desc" | undefined) => (sort === "asc" ? "▲" : sort === "desc" ? "▼" : "");
+
+/** A phone-width viewport: the same thumb-first layout the @container rules in table.css pick up. */
+const PHONE_QUERY = "(max-width: 500px)";
+
+function isPhone(): boolean {
+  return typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia(PHONE_QUERY).matches;
+}
+
+function ActionButton({ action, disabled }: { action: RecordActionItem; disabled: boolean }): ReactNode {
+  // The button's accessible name is its label verbatim (the card's wording);
+  // inside a table cell the row and column header already give context.
+  // `disabled` is the whole row's pending state (the contract: a record with
+  // an action in flight disables its buttons), not the item's own flag.
+  return (
+    <button type="button" data-part="action" data-tone={action.tone} disabled={disabled} onClick={action.onPress}>
+      {action.label}
+    </button>
+  );
+}
+
+/**
+ * The actions cell for one row (RFC 0007). Desktop: every action is a button
+ * in the cell. Phone width: two or more actions collapse into an "Actions…"
+ * menu with the board's "Move to…" behaviour — Tab reaches the trigger,
+ * Enter or Space opens the panel, every action is reachable by Tab, Escape
+ * closes and focus returns to the trigger (the trigger unmounts while open,
+ * so the refocus happens through a ref like Board.tsx does). One action
+ * stays a plain button on phones too. While a record has an action in
+ * flight every one of its buttons is disabled and a polite status says
+ * "Working...". There is no disabled-with-a-reason state: the renderer hides
+ * unavailable actions instead.
+ */
+function RowActions({ actions, rowLabel }: { actions: readonly RecordActionItem[]; rowLabel: string }): ReactNode {
+  const [phone, setPhone] = useState(isPhone);
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLSpanElement>(null);
+
+  // Re-evaluate the phone breakpoint; jsdom has no matchMedia (desktop).
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
+    const mq = window.matchMedia(PHONE_QUERY);
+    const onChange = (): void => setPhone(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  // Focus goes into the panel on open and back to the trigger on close — the
+  // board's MoveControl contract. Skipped on mount: first render must not
+  // steal focus.
+  const hasOpened = useRef(false);
+  useEffect(() => {
+    if (open) {
+      hasOpened.current = true;
+      panelRef.current?.focus();
+    } else if (hasOpened.current) {
+      triggerRef.current?.focus();
+    }
+  }, [open]);
+
+  // The live region is always mounted; only its text changes. A region
+  // inserted at the moment work starts is often not announced (screen
+  // readers watch regions that already exist).
+  const pending = actions.some((a) => a.pending);
+  const status = (
+    <span data-part="action-status" role="status">
+      {pending ? "Working..." : ""}
+    </span>
+  );
+
+  const useMenu = phone && actions.length > 1;
+  const close = (): void => setOpen(false);
+
+  return (
+    <span
+      data-part="actions"
+      onKeyDown={(e) => {
+        // Escape closes from anywhere in the cell — trigger, panel, or an
+        // action whose focus drifted — and returns focus to the trigger.
+        if (useMenu && open && e.key === "Escape") {
+          e.stopPropagation();
+          close();
+        }
+      }}
+    >
+      {status}
+      {useMenu ? (
+        <button
+          ref={triggerRef}
+          type="button"
+          data-part="actions-trigger"
+          aria-haspopup="true"
+          aria-expanded={open}
+          aria-label={`Actions (${rowLabel})`}
+          onClick={() => setOpen(true)}
+        >
+          Actions…
+        </button>
+      ) : (
+        <span data-part="actions-list">
+          {actions.map((a) => (
+            <ActionButton key={a.id} action={a} disabled={pending} />
+          ))}
+        </span>
+      )}
+      {useMenu && open ? (
+        <span
+          ref={panelRef}
+          tabIndex={-1}
+          data-part="actions-panel"
+          role="group"
+          aria-label={`Actions (${rowLabel})`}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              e.stopPropagation();
+              close();
+            }
+          }}
+        >
+          {actions.map((a) => (
+            <ActionButton key={a.id} action={a} disabled={pending} />
+          ))}
+          <button type="button" data-part="actions-cancel" onClick={close}>
+            Cancel
+          </button>
+        </span>
+      ) : null}
+    </span>
+  );
+}
 
 /**
  * A semantic table. Sortable headers hold a button; the sorted one carries
  * aria-sort and a visually hidden status so the button names its direction.
  * Under a narrow container (see table.css) rows stack as cards, each cell
  * labelled by its column via data-label; explicit roles keep the table
- * semantics when the CSS display type is no longer table. Plain DOM for now; virtualization arrives with a later version.
+ * semantics when the CSS display type is no longer table. Rows with `actions`
+ * gain a last column headed `actionsLabel` ("Actions") of action buttons
+ * (RFC 0007; see RowActions for the phone menu). Plain DOM for now;
+ * virtualization arrives with a later version.
  */
-export function Table({ caption, columns, rows, onSort, empty }: TableProps<ReactNode>): ReactNode {
+export function Table({ caption, columns, rows, onSort, empty, actionsLabel }: TableProps<ReactNode>): ReactNode {
+  const hasActions = rows.some((row) => row.actions !== undefined && row.actions.length > 0);
   return (
     <div data-yadad="table" data-part="root">
       <table data-part="table" role="table">
@@ -33,12 +168,17 @@ export function Table({ caption, columns, rows, onSort, empty }: TableProps<Reac
                 )}
               </th>
             ))}
+            {hasActions ? (
+              <th scope="col" role="columnheader" data-part="header" data-col="actions">
+                {actionsLabel ?? "Actions"}
+              </th>
+            ) : null}
           </tr>
         </thead>
         <tbody role="rowgroup">
           {rows.length === 0 ? (
             <tr role="row">
-              <td colSpan={columns.length} role="cell" data-part="empty">
+              <td colSpan={columns.length + (hasActions ? 1 : 0)} role="cell" data-part="empty">
                 {empty}
               </td>
             </tr>
@@ -50,6 +190,11 @@ export function Table({ caption, columns, rows, onSort, empty }: TableProps<Reac
                     {cell}
                   </td>
                 ))}
+                {hasActions ? (
+                  <td role="cell" data-label={actionsLabel ?? "Actions"} data-part="cell" data-col="actions">
+                    {row.actions && row.actions.length > 0 ? <RowActions actions={row.actions} rowLabel={caption} /> : null}
+                  </td>
+                ) : null}
               </tr>
             ))
           )}

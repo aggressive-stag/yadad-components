@@ -75,6 +75,68 @@
     white-space: nowrap;
   }
 
+  /* Record actions (RFC 0007). Buttons are compact, thumb-sized links;
+     tone=danger reads as danger through colour AND border. The pending
+     status is plain polite live-region text, kept small and muted. */
+  :where([data-yadad="table"]) :where([data-part="actions"]) {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--yadad-space-1) var(--yadad-space-2);
+  }
+
+  :where([data-yadad="table"]) :where([data-part="actions-list"]) {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: var(--yadad-space-1) var(--yadad-space-2);
+  }
+
+  :where([data-yadad="table"]) :where([data-part="action"], [data-part="actions-trigger"], [data-part="actions-cancel"]) {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--yadad-table-actions-link, var(--yadad-color-accent));
+    border: 1px solid var(--yadad-table-actions-border, var(--yadad-color-border));
+    border-radius: var(--yadad-radius-sm);
+    padding: var(--yadad-space-1) var(--yadad-space-3);
+    /* Thumb-sized, same token derivation as the sort target. */
+    min-block-size: var(--yadad-table-sort-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+  }
+
+  :where([data-yadad="table"]) :where([data-part="action"], [data-part="actions-trigger"], [data-part="actions-cancel"]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-table-actions-focus, var(--yadad-color-accent));
+  }
+
+  :where([data-yadad="table"]) :where([data-part="action"][data-tone="danger"]) {
+    color: var(--yadad-table-actions-danger, var(--yadad-color-danger));
+    border-color: var(--yadad-table-actions-danger, var(--yadad-color-danger));
+  }
+
+  :where([data-yadad="table"]) :where([data-part="action"]):disabled {
+    cursor: not-allowed;
+    opacity: var(--yadad-table-disabled-opacity, 0.6);
+  }
+
+  :where([data-yadad="table"]) :where([data-part="action-status"]) {
+    color: var(--yadad-table-empty-color, var(--yadad-color-text-muted));
+    font-size: var(--yadad-font-size-sm);
+  }
+
+  /* Phone menu: opened in-flow (never absolute) — an absolutely positioned
+     panel inside the root's overflow-x container would clip or scroll. */
+  :where([data-yadad="table"]) :where([data-part="actions-panel"]) {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--yadad-space-1);
+    padding: var(--yadad-space-2);
+    background: var(--yadad-table-header-background, var(--yadad-color-surface));
+    border: 1px solid var(--yadad-table-border, var(--yadad-color-border));
+    border-radius: var(--yadad-table-card-radius, var(--yadad-radius-md));
+  }
+
   /* Phone width: under 50ch of container width each row becomes a card and
      each cell shows its column label (data-label) before its value. Real
      table elements and roles stay in the DOM. The header row stays as a strip
@@ -132,6 +194,22 @@
 
     :where([data-yadad="table"]) :where([data-part="cell"]) > * + * {
       margin-inline-start: 0;
+    }
+
+    /* The actions cell keeps its thumb targets honest: the label takes a
+       line of its own and the buttons (and the opened menu) run the full
+       card width, so labels never break letter-by-letter in a 60% column. */
+    :where([data-yadad="table"]) :where([data-part="cell"][data-col="actions"]) {
+      flex-wrap: wrap;
+      align-items: stretch;
+    }
+
+    :where([data-yadad="table"]) :where([data-part="cell"][data-col="actions"])::before {
+      flex-basis: 100%;
+    }
+
+    :where([data-yadad="table"]) :where([data-part="cell"][data-col="actions"]) > :where([data-part="actions"]) {
+      flex: 1 1 100%;
     }
   }
 }
