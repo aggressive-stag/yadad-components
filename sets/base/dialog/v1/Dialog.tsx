@@ -78,6 +78,7 @@ export function Dialog({ label, onClose, children, modal = true }: DialogCompone
       data-yadad="dialog"
       data-part="root"
       data-modal={modal ? undefined : "static"}
+      aria-modal={modal ? "true" : undefined}
       aria-labelledby={titleId}
       onPointerDown={(e) => {
         // The backdrop area of a dialog box is the element itself; a press

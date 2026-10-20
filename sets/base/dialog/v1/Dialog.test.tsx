@@ -66,6 +66,10 @@ describe("the base dialog", () => {
       const { container } = render(<Dialog label="L" onClose={() => {}}><span /></Dialog>);
       expect(spy).toHaveBeenCalledTimes(1);
       expect(dialogEl(container).getAttribute("data-modal")).toBe("true");
+      // The kit (RFC 0007) requires the explicit attribute: role=dialog does
+      // not imply aria-modal=true for assistive tech, native top-layer
+      // blocking notwithstanding.
+      expect(dialogEl(container).getAttribute("aria-modal")).toBe("true");
     } finally {
       HTMLDialogElement.prototype.showModal = original;
     }
@@ -82,6 +86,7 @@ describe("the base dialog", () => {
       const el = dialogEl(container);
       expect(el.open).toBe(true);
       expect(el.getAttribute("data-modal")).toBe("fallback");
+      expect(el.getAttribute("aria-modal")).toBe("true");
       // Focus management still holds in the fallback.
       expect(document.activeElement).toBe(el.querySelector('[data-part="close"]'));
     } finally {
@@ -218,6 +223,8 @@ describe("the base dialog", () => {
       expect(spy).not.toHaveBeenCalled();
       expect(el.open).toBe(true);
       expect(el.getAttribute("data-modal")).toBe("static");
+      // A static demo dialog must not claim modality to assistive tech.
+      expect(el.getAttribute("aria-modal")).toBeNull();
       expect(document.body.hasAttribute("inert")).toBe(false);
       for (const branch of [...document.body.children]) {
         expect(branch.hasAttribute("inert")).toBe(false);
