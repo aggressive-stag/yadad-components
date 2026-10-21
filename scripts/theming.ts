@@ -324,6 +324,8 @@ const PART_DESCRIPTION: Record<string, Record<string, string>> = {
     "actions-panel": "the open card action menu, in flow under the trigger",
     "actions-cancel": "the action menu's cancel button",
     "action-status": "the card's polite \"Working...\" live region",
+    "skeleton-card": "a card-shaped placeholder shown while a column's cards load (card 15e)",
+    "loading-text": "visually hidden \"Loading cards…\" text — the skeleton bars' alternative",
   },
   boolean: { input: "the checkbox `<input>`", display: "read-only value" },
   calendar: {
@@ -380,10 +382,12 @@ const PART_DESCRIPTION: Record<string, Record<string, string>> = {
   "field-frame": { root: "the field wrapper (label, control, error)", label: "the field `<label>`", required: "the required marker", errors: "the error list region", error: "one error message" },
   number: { root: "the field wrapper (input + unit)", input: "the number `<input>`", unit: "the unit suffix (e.g. kg)", display: "read-only value" },
   panel: { root: "the panel wrapper", title: "the panel title" },
+  pager: { root: "the `<nav>` wrapper", info: "the count text between the buttons (polite live text)" },
+  skeleton: { skeleton: "a grey placeholder bar (`aria-hidden`; the loading announcement stays the host's text)" },
   section: { root: "the `<fieldset>` wrapper", title: "the `<legend>` title" },
   reference: { input: "the picker `<select>`; it carries `data-yadad=\"select\"`, so style it with the select component's variables and selector, not this component's", status: "the status line under the picker (loading, error, empty, cut short)", display: "read-only label of the referenced record" },
   select: { input: "the `<select>` picker", display: "read-only value" },
-  table: { root: "the table wrapper (scroll container)", table: "the `<table>`", caption: "the `<caption>`", header: "a column `<th>`", sort: "a sortable-header button", "sort-indicator": "the sort direction arrow", "sort-status": "visually hidden sort direction text inside the sort button", empty: "the empty-state cell", row: "a data `<tr>`", cell: "a data `<td>`", actions: "the actions cell wrapper (RFC 0007)", "actions-list": "the row's action buttons side by side (desktop)", action: "one record-action button (`data-tone` = neutral | danger)", "actions-trigger": "the phone \"Actions…\" menu trigger", "actions-panel": "the opened phone menu panel", "actions-cancel": "the menu's Cancel button", "action-status": "the \"Working...\" live-region text while an action is in flight" },
+  table: { root: "the table wrapper (scroll container)", table: "the `<table>`", caption: "the `<caption>`", header: "a column `<th>`", sort: "a sortable-header button", "sort-indicator": "the sort direction arrow", "sort-status": "visually hidden sort direction text inside the sort button", empty: "the empty-state cell", row: "a data `<tr>`", cell: "a data `<td>`", "skeleton-row": "a placeholder `<tr>` shown while rows load (card 15e)", actions: "the actions cell wrapper (RFC 0007)", "actions-list": "the row's action buttons side by side (desktop)", action: "one record-action button (`data-tone` = neutral | danger)", "actions-trigger": "the phone \"Actions…\" menu trigger", "actions-panel": "the opened phone menu panel", "actions-cancel": "the menu's Cancel button", "action-status": "the \"Working...\" live-region text while an action is in flight" },
   tabs: { root: "the tab component wrapper", list: "the `<tablist>` (scrolls internally for long lists)", tab: "a tab button", panel: "the selected tab's panel" },
   text: { input: "the text `<input>`", display: "read-only value", "diff-same": "a word-diff run present in both versions (compare column, RFC 0007)", "diff-added": "a `<ins>` run only in the new version", "diff-removed": "a `<del>` run only in the old version", "diff-label": "visually hidden \"added:\" / \"removed:\" text prefixing a diff run" },
 };
@@ -510,6 +514,15 @@ const VAR_DESCRIPTION: Record<string, string> = {
   "unit-size": "unit font size", "unit-color": "unit color",
   // panel
   "panel-padding": "inner padding",
+  // pager (card 15e)
+  "pager-gap": "gap between the paging buttons and the count text",
+  "pager-info-color": "color of the count text between the buttons",
+  "pager-font-family": "font family of the whole control",
+  // skeleton (card 15e)
+  "skeleton-color": "fill of a placeholder bar",
+  "skeleton-sheen-color": "colour of the shimmer sweep across a bar",
+  "skeleton-radius": "corner radius of a placeholder bar",
+  "skeleton-duration": "how long one shimmer sweep takes (removed under reduced motion)",
   // section
   "section-spacing": "space after the section", "section-padding": "inner padding",
   "section-background": "background", "title-size": "title font size",

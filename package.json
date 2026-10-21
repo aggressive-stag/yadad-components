@@ -71,6 +71,11 @@
       "types": "./dist/sets/base/number/v1/index.d.ts",
       "default": "./dist/sets/base/number/v1/index.js"
     },
+    "./pager": {
+      "@yadad/source": "./sets/base/pager/v1/index.ts",
+      "types": "./dist/sets/base/pager/v1/index.d.ts",
+      "default": "./dist/sets/base/pager/v1/index.js"
+    },
     "./panel": {
       "@yadad/source": "./sets/base/panel/v1/index.ts",
       "types": "./dist/sets/base/panel/v1/index.d.ts",
@@ -118,6 +123,7 @@
     "./styles/error-summary.css": "./dist/styles/error-summary.css",
     "./styles/field-frame.css": "./dist/styles/field-frame.css",
     "./styles/number.css": "./dist/styles/number.css",
+    "./styles/pager.css": "./dist/styles/pager.css",
     "./styles/panel.css": "./dist/styles/panel.css",
     "./styles/reference.css": "./dist/styles/reference.css",
     "./styles/section.css": "./dist/styles/section.css",

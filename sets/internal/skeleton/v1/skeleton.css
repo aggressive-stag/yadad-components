@@ -1,0 +1,42 @@
+/* internal/skeleton/v1 — the grey block behind loading table rows and board
+   cards (card 15e). Colors come from tokens only; the shimmer is the file's
+   one animation and the reduced-motion override lives in this same file,
+   which is exactly what scripts/theming.ts (15c) checks for. */
+@layer yadad.components {
+  @keyframes yadad-skeleton-shimmer {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
+
+  :where([data-part="skeleton"]) {
+    background-color: var(--yadad-skeleton-color, var(--yadad-color-border));
+    background-image: linear-gradient(
+      100deg,
+      transparent 30%,
+      var(--yadad-skeleton-sheen-color, var(--yadad-color-background)) 50%,
+      transparent 70%
+    );
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    border-radius: var(--yadad-skeleton-radius, var(--yadad-radius-sm));
+    animation: yadad-skeleton-shimmer var(--yadad-skeleton-duration, 1.4s) ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :where([data-part="skeleton"]) {
+      animation: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    /* The palette strips the grey wash; keep the block's shape legible. */
+    :where([data-part="skeleton"]) {
+      background-image: none;
+      border: 1px solid CanvasText;
+    }
+  }
+}

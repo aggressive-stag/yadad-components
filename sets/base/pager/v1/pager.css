@@ -1,0 +1,21 @@
+/* pager/v1. Cursor paging controls (engine 35e): First | Previous | info | Next.
+   Override any --yadad-pager-* variable or the underlying tokens. */
+@layer yadad.components {
+  :where([data-yadad="pager"][data-part="root"]) {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--yadad-pager-gap, var(--yadad-space-2));
+    font-family: var(--yadad-pager-font-family, var(--yadad-font-family));
+  }
+
+  :where([data-yadad="pager"]) :where([data-part="info"]) {
+    /* The count text sits between Previous and Next; it takes the middle so
+       the buttons stay at the edges on wide rows and wraps under them on
+       narrow ones. */
+    flex: 1 1 auto;
+    text-align: center;
+    color: var(--yadad-pager-info-color, var(--yadad-color-text-muted));
+    overflow-wrap: break-word;
+  }
+}

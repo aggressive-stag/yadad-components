@@ -3,6 +3,7 @@
 import type { RecordActionItem, TableProps } from "@yadad/core";
 import { useEffect, useRef, useState } from "react";
 import { Menu } from "../../../internal/menu/v1/index.js";
+import { Skeleton } from "../../../internal/skeleton/v1/index.js";
 import type { ReactNode } from "react";
 
 const ariaSort = (sort: "asc" | "desc" | undefined) => (sort === "asc" ? "ascending" : sort === "desc" ? "descending" : undefined);
@@ -160,7 +161,7 @@ function RowActions({ actions, rowLabel, strings }: { actions: readonly RecordAc
  * (RFC 0007; see RowActions for the phone menu). Plain DOM for now;
  * virtualization arrives with a later version.
  */
-export function Table({ caption, columns, rows, onSort, empty, actionsLabel, strings = {} }: TableProps<ReactNode> & { strings?: TableStrings }): ReactNode {
+export function Table({ caption, columns, rows, onSort, empty, actionsLabel, strings = {}, loading = false, skeletonRows = 5 }: TableProps<ReactNode> & { strings?: TableStrings; loading?: boolean; skeletonRows?: number }): ReactNode {
   const hasActions = rows.some((row) => row.actions !== undefined && row.actions.length > 0);
   return (
     <div data-yadad="table" data-part="root">
@@ -191,7 +192,21 @@ export function Table({ caption, columns, rows, onSort, empty, actionsLabel, str
           </tr>
         </thead>
         <tbody role="rowgroup">
-          {rows.length === 0 ? (
+          {loading ? (
+            // Loading holds the shape (card 15e): skeleton rows inside the
+            // real table, so column geometry is the real columns' and the
+            // arriving content does not jump. `empty` keeps its meaning of
+            // *loaded with zero rows* — it never doubles as loading.
+            Array.from({ length: Math.max(0, skeletonRows) }, (_, r) => (
+              <tr key={`skeleton-${r}`} role="row" data-part="skeleton-row">
+                {Array.from({ length: columns.length + (hasActions ? 1 : 0) }, (_, c) => (
+                  <td key={columns[c]?.id ?? c} role="cell" data-label={columns[c]?.label} data-part="cell">
+                    <Skeleton width={c === 0 ? "70%" : `${50 + ((r * 13 + c * 29) % 40)}%`} height="1em" />
+                  </td>
+                ))}
+              </tr>
+            ))
+          ) : rows.length === 0 ? (
             <tr role="row">
               <td colSpan={columns.length + (hasActions ? 1 : 0)} role="cell" data-part="empty">
                 {empty}

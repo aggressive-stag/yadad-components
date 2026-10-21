@@ -125,6 +125,37 @@
     color: var(--yadad-board-count-color, var(--yadad-color-text-muted));
   }
 
+  /* Card 15e: loading holds the shape — bars where the cards will land, at
+     card geometry, with a visually-hidden text alternative for the status
+     region (a grey bar is nothing to a screen reader). position:relative is
+     load-bearing: the clip-path'ed loading-text is absolutely positioned,
+     and without a positioned ancestor here it resolves against a far one —
+     which dragged the document scrollWidth sideways and broke touch
+     hit-testing in the phone checks. */
+  :where([data-yadad="board"]) :where([data-part="column-empty"]:has([data-part="skeleton-card"])) {
+    position: relative;
+    display: grid;
+    gap: var(--yadad-space-2);
+    text-align: start;
+  }
+
+  :where([data-yadad="board"]) :where([data-part="skeleton-card"]) {
+    display: grid;
+    gap: var(--yadad-space-1);
+    padding: var(--yadad-space-3);
+    border: 1px solid var(--yadad-board-border, var(--yadad-color-border));
+    border-radius: var(--yadad-board-radius, var(--yadad-radius-md));
+  }
+
+  :where([data-yadad="board"]) :where([data-part="loading-text"]) {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
   :where([data-yadad="board"]) :where([data-part="card"]) {
     border: 1px solid var(--yadad-board-border, var(--yadad-color-border));
     border-radius: var(--yadad-board-radius, var(--yadad-radius-md));

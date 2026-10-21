@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import type { DragEvent } from "react";
 import { useEffect, useId, useRef, useState } from "react";
 import { Menu } from "../../../internal/menu/v1/index.js";
+import { Skeleton } from "../../../internal/skeleton/v1/index.js";
 
 /** Drag payload type: the card id. Also set as text/plain so other drop targets and tests can read it. */
 const DRAG_TYPE = "application/x-yadad-board-card";
@@ -323,8 +324,26 @@ function ColumnView({
         </span>
       </h3>
       <ul data-part="cards" aria-labelledby={headingId} {...(scrollFocusable ? { tabIndex: 0 } : {})}>
-        {column.cards.length === 0 ? (
-          <li data-part="column-empty">{loading ? (strings.loadingLabel ?? "Loading cards…") : (strings.emptyLabel ?? "No cards")}</li>
+        {column.cards.length === 0 && loading ? (
+          // Loading holds the shape (card 15e): bars where the cards will
+          // land, sized like a real card, plus the text alternative the bars
+          // cannot be. NOT another status region — the board keeps exactly
+          // one role="status" (the announcement div), and a second would
+          // make the contract kit's queryByRole("status") ambiguous.
+          <li data-part="column-empty">
+            <span data-part="loading-text">
+              {strings.loadingLabel ?? "Loading cards…"}
+            </span>
+            {Array.from({ length: 2 }, (_, i) => (
+              <span key={i} data-part="skeleton-card">
+                <Skeleton width="60%" height="1em" />
+                <Skeleton width="90%" height="0.75em" />
+                <Skeleton width="75%" height="0.75em" />
+              </span>
+            ))}
+          </li>
+        ) : column.cards.length === 0 ? (
+          <li data-part="column-empty">{strings.emptyLabel ?? "No cards"}</li>
         ) : (
           column.cards.map((card) => (
             <CardView

@@ -44,6 +44,11 @@ const Dialog = DialogMaybe;
 // the datetime display's text prop).
 import { Dialog as DialogComponent } from "../../sets/base/dialog/v1/index.js";
 import { Board as BoardComponent } from "../../sets/base/board/v1/index.js";
+// The 15e loading prop is a set-level extension (no `layout.Table` contract
+// change without an engine card), so the skeleton state imports the real
+// component instead of the registry slot, the way DialogComponent does.
+import { Table as TableComponent } from "../../sets/base/table/v1/index.js";
+import { Pager } from "../../sets/base/pager/v1/index.js";
 const TextEntry = baseRegistry.fields.text;
 
 /**
@@ -292,7 +297,7 @@ function DatetimeStates(): ReactNode {
   );
 }
 
-function TableState({ caption, many, idPrefix }: { caption: string; many?: boolean; idPrefix: string }): ReactNode {
+function TableState({ caption, many, idPrefix, loading = false }: { caption: string; many?: boolean; idPrefix: string; loading?: boolean }): ReactNode {
   const columns = [
     { id: "day", headerId: `${idPrefix}-col-day`, label: "Day", sortable: true },
     { id: "weight", headerId: `${idPrefix}-col-weight`, label: "Weight", sortable: true },
@@ -308,7 +313,7 @@ function TableState({ caption, many, idPrefix }: { caption: string; many?: boole
         { id: "r1", cells: ["2026-10-04", "100 kg", "—"] },
         { id: "r2", cells: ["2026-10-03", "95 kg", "—"] },
       ];
-  return <Table caption={caption} columns={[...columns]} rows={rows} onSort={() => {}} empty="No sets yet" />;
+  return <TableComponent caption={caption} columns={[...columns]} rows={rows} onSort={() => {}} empty="No sets yet" loading={loading} />;
 }
 
 function TableSortStates(): ReactNode {
@@ -900,6 +905,7 @@ const LAYOUT_ANCHORS = [
   "button-secondary-enabled",
   "button-secondary-disabled",
   "table-empty",
+  "table-loading",
   "table-few-rows",
   "table-many-rows-long-text",
   "table-sort-none",
@@ -940,6 +946,10 @@ const LAYOUT_ANCHORS = [
   "board-actions",
   "board-phone",
   "board-read-only",
+  "pager-middle",
+  "pager-first",
+  "pager-last",
+  "pager-info-wrap",
 ] as const;
 
 const FIELD_STATES = ["empty", "filled", "required", "invalid", "display-value", "display-empty"] as const;
@@ -1158,6 +1168,7 @@ export default function App(): ReactNode {
             />,
           )}
           {state("table-few-rows", "a few rows", <TableState caption="Sets (a few rows)" idPrefix="g-few" />)}
+          {state("table-loading", "loading: skeleton rows hold the column geometry (card 15e)", <TableState caption="Sets (loading)" idPrefix="g-load" loading />)}
           {state("table-many-rows-long-text", "many rows and long cell text", <TableState caption="Sets (many rows)" many idPrefix="g-many" />)}
           <TableSortStates />
           <TableActionsStates />
@@ -1209,6 +1220,32 @@ export default function App(): ReactNode {
           {state("count-small", "a small number", <Count label="Working sets" value={4} />)}
           {state("count-large", "a large number", <Count label="Total reps this year" value={1234567} />)}
           {state("count-loading", "loading (no value)", <Count label="Working sets" value={undefined} />)}
+        </section>
+
+        <section id="group-pager">
+          <h2>pager</h2>
+          {state(
+            "pager-middle",
+            "middle page: First, Previous and Next all live, count in the middle",
+            <Pager hasPrev hasNext info="32–63 of 148" onFirst={() => {}} onPrev={() => {}} onNext={() => {}} />,
+          )}
+          {state(
+            "pager-first",
+            "first page: First and Previous disabled",
+            <Pager hasPrev={false} hasNext info="1–31 of 148" onPrev={() => {}} onNext={() => {}} />,
+          )}
+          {state(
+            "pager-last",
+            "last page: Next disabled",
+            <Pager hasPrev hasNext={false} info="124–148 of 148" onFirst={() => {}} onPrev={() => {}} />,
+          )}
+          {state(
+            "pager-info-wrap",
+            "long info text at narrow width wraps under the buttons",
+            <div style={{ inlineSize: "16rem" }}>
+              <Pager hasPrev hasNext info="Zeigt 1.240 bis 1.271 von 14.112 Einträgen (gefiltert nach Bearbeiter)" onFirst={() => {}} onPrev={() => {}} onNext={() => {}} />
+            </div>,
+          )}
         </section>
 
         <section id="group-calendar">

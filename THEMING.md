@@ -88,6 +88,8 @@ Cards in columns, one column per value of a field, with a group-by picker; colum
 - `column-count` — a column's card count (target with `[data-yadad="board"] [data-part="column-count"]`)
 - `cards` — a column's card list; scrolls on its own (target with `[data-yadad="board"] [data-part="cards"]`)
 - `column-empty` — the placeholder in a column with no cards (target with `[data-yadad="board"] [data-part="column-empty"]`)
+- `loading-text` — visually hidden "Loading cards…" text — the skeleton bars' alternative (target with `[data-yadad="board"] [data-part="loading-text"]`)
+- `skeleton-card` — a card-shaped placeholder shown while a column's cards load (card 15e) (target with `[data-yadad="board"] [data-part="skeleton-card"]`)
 - `root` — the `<section>` wrapper (target with `[data-yadad="board"][data-part="root"]`)
 - `header` — the title + group-by row (target with `[data-yadad="board"] [data-part="header"]`)
 - `title` — the board title (`<h2>`) (target with `[data-yadad="board"] [data-part="title"]`)
@@ -466,6 +468,23 @@ A numeric field with an optional unit suffix.
 
 **Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`
 
+### pager
+
+
+
+**`data-part` names** (marked parts carry the component marker and take `[data-yadad="<component>"][data-part="<name>"]`; nested parts are inside the component root and take the descendant form `[data-yadad="<component>"] [data-part="<name>"]` — the compound form on a nested part matches nothing):
+
+- `root` — the `<nav>` wrapper (target with `[data-yadad="pager"][data-part="root"]`)
+- `info` — the count text between the buttons (polite live text) (target with `[data-yadad="pager"] [data-part="info"]`)
+
+**Per-component variables** (set on the component or an ancestor; the default is shown):
+
+- `--yadad-pager-gap` — gap between the paging buttons and the count text; default: token `--yadad-space-2` (spacing scale, step 2)
+- `--yadad-pager-font-family` — font family of the whole control; default: token `--yadad-font-family` (base font stack)
+- `--yadad-pager-info-color` — color of the count text between the buttons; default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
+
+**Theme tokens it reads:** `--yadad-color-text-muted`, `--yadad-font-family`, `--yadad-space-2`
+
 ### panel
 
 A titled or untitled content surface with a scrollable body.
@@ -558,6 +577,22 @@ A single-choice field, rendered as a native picker.
 
 **Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 
+### skeleton
+
+
+
+**`data-part` names** (marked parts carry the component marker and take `[data-yadad="<component>"][data-part="<name>"]`; nested parts are inside the component root and take the descendant form `[data-yadad="<component>"] [data-part="<name>"]` — the compound form on a nested part matches nothing):
+
+
+**Per-component variables** (set on the component or an ancestor; the default is shown):
+
+- `--yadad-skeleton-color` — fill of a placeholder bar; default: token `--yadad-color-border` (borders and dividers)
+- `--yadad-skeleton-sheen-color` — colour of the shimmer sweep across a bar; default: token `--yadad-color-background` (page and control background)
+- `--yadad-skeleton-radius` — corner radius of a placeholder bar; default: token `--yadad-radius-sm` (small corner radius (inputs, buttons, chips))
+- `--yadad-skeleton-duration` — how long one shimmer sweep takes (removed under reduced motion); default: `1.4s`
+
+**Theme tokens it reads:** `--yadad-color-background`, `--yadad-color-border`, `--yadad-radius-sm`
+
 ### table
 
 A data table with sortable headers and an empty state.
@@ -578,9 +613,10 @@ A data table with sortable headers and an empty state.
 - `sort` — a sortable-header button (target with `[data-yadad="table"] [data-part="sort"]`)
 - `sort-status` — visually hidden sort direction text inside the sort button (target with `[data-yadad="table"] [data-part="sort-status"]`)
 - `sort-indicator` — the sort direction arrow (target with `[data-yadad="table"] [data-part="sort-indicator"]`)
+- `skeleton-row` — a placeholder `<tr>` shown while rows load (card 15e) (target with `[data-yadad="table"] [data-part="skeleton-row"]`)
+- `cell` — a data `<td>` (target with `[data-yadad="table"] [data-part="cell"]`)
 - `empty` — the empty-state cell (target with `[data-yadad="table"] [data-part="empty"]`)
 - `row` — a data `<tr>` (target with `[data-yadad="table"] [data-part="row"]`)
-- `cell` — a data `<td>` (target with `[data-yadad="table"] [data-part="cell"]`)
 
 **Per-component variables** (set on the component or an ancestor; the default is shown):
 
