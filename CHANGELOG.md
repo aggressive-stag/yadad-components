@@ -1,5 +1,15 @@
 # @yadad/components
 
+## 0.17.0
+
+### Minor Changes
+
+- 22ab6ee: Every word the components speak is now a prop; English is the default. `Table`, `Board` and `Calendar` take a `strings` object (`TableStrings`, `BoardStrings`, `CalendarStrings` — exported); `Dialog` takes `closeLabel`, `SelectInput` `chooseLabel`, `ReferenceInput` a `strings` object (`ReferenceStrings`). Each default is the literal that was hardcoded before, so existing renders are byte-identical. The gallery board gains a `board-strings-german` state proving the set is not English-locked — which also forced a layout fix: `board [data-part="group-by"]` now wraps its select under the label, because translated labels are longer than English and must not overflow a narrow viewport. Also fixes the theming doc generator dropping `data-part`s written after an arrow function in the same tag (`scanParts` is brace-aware now; THEMING.md regains calendar `day` and `mode-button`).
+
+### Patch Changes
+
+- 8a19c2c: Docs: the README's "What is included" now lists the review-lane components — the `datetime` field, the `text` Display's diff marks, `layout.Dialog`, and record actions on table, board and calendar — and the Compatibility section states the actual peer range (`^0.10.0 || ^0.11.0`).
+
 ## 0.16.1
 
 ### Patch Changes
