@@ -3,6 +3,7 @@
 import type { CalendarDayProps, CalendarEntry, CalendarMode, CalendarProps } from "@yadad/core";
 import type { KeyboardEvent, ReactNode } from "react";
 import { useEffect, useId, useRef, useState } from "react";
+import { Menu } from "../../../internal/menu/v1/index.js";
 
 /** How many entries show before a day collapses the rest behind "+N more" (card 11 issue 3: unbounded growth). */
 const MAX_VISIBLE_ENTRIES = 3;
@@ -72,73 +73,35 @@ function weekRows(days: readonly CalendarDayProps<ReactNode>[]): CalendarDayProp
  * path (RFC 0004); drag (card 9) is an addition on top, never a replacement.
  */
 function MoveControl({ entry, day, onMove, strings }: { entry: CalendarEntry<ReactNode>; day: string; onMove: (id: string, date: string) => void; strings: CalendarStrings }): ReactNode {
-  const [open, setOpen] = useState(false);
   const [value, setValue] = useState(day);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const refocusTrigger = useRef(false);
   const inputId = useId();
 
-  // The trigger unmounts while the panel is open, so a plain ref can't carry
-  // focus across that transition: mark "focus it once it's back" and do the
-  // focus() in an effect that runs after the re-render puts it back in the DOM.
-  useEffect(() => {
-    if (!open && refocusTrigger.current) {
-      refocusTrigger.current = false;
-      triggerRef.current?.focus();
-    }
-  }, [open]);
-
-  if (!open) {
-    return (
-      <button
-        ref={triggerRef}
-        type="button"
-        data-part="move-trigger"
-        onClick={() => {
-          setValue(day);
-          setOpen(true);
-        }}
-      >
-        {strings.moveLabel ?? "Move to day…"}
-      </button>
-    );
-  }
-
-  const confirm = (): void => {
-    onMove(entry.id, value);
-    refocusTrigger.current = true;
-    setOpen(false);
-  };
-  const cancel = (): void => {
-    refocusTrigger.current = true;
-    setOpen(false);
-  };
-
+  // Trigger unmounts while the panel is open; the shared Menu primitive
+  // refocuses it through a ref after the remount (14b's contract) and owns
+  // Escape on the wrapper.
   return (
-    <span data-part="move-panel" role="group" aria-label={(strings.movePanelAriaLabel ?? ((label: string) => `Move ${label} to day`))(entry.label)}>
-      <label htmlFor={inputId} data-part="move-label">
-        {(strings.moveToLabel ?? ((label: string) => `New day for ${label}`))(entry.label)}
-      </label>
-      <input
-        id={inputId}
-        type="date"
-        data-part="move-input"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
-          if (e.key === "Escape") {
-            e.stopPropagation();
-            cancel();
-          }
-        }}
-      />
-      <button type="button" data-part="move-confirm" onClick={confirm}>
-        {strings.moveConfirmLabel ?? "Move"}
-      </button>
-      <button type="button" data-part="move-cancel" onClick={cancel}>
-        {strings.cancelLabel ?? "Cancel"}
-      </button>
-    </span>
+    <Menu focusPanelOnOpen={false} onOpen={() => setValue(day)}>
+      {({ open, openMenu, close, triggerRef, wrapperProps }) =>
+        !open ? (
+          <button ref={triggerRef} type="button" data-part="move-trigger" onClick={openMenu}>
+            {strings.moveLabel ?? "Move to day…"}
+          </button>
+        ) : (
+          <span data-part="move-panel" role="group" aria-label={(strings.movePanelAriaLabel ?? ((label: string) => `Move ${label} to day`))(entry.label)} {...wrapperProps}>
+            <label htmlFor={inputId} data-part="move-label">
+              {(strings.moveToLabel ?? ((label: string) => `New day for ${label}`))(entry.label)}
+            </label>
+            <input id={inputId} type="date" data-part="move-input" value={value} onChange={(e) => setValue(e.target.value)} />
+            <button type="button" data-part="move-confirm" onClick={() => { onMove(entry.id, value); close(); }}>
+              {strings.moveConfirmLabel ?? "Move"}
+            </button>
+            <button type="button" data-part="move-cancel" onClick={close}>
+              {strings.cancelLabel ?? "Cancel"}
+            </button>
+          </span>
+        )
+      }
+    </Menu>
   );
 }
 
@@ -151,23 +114,6 @@ function MoveControl({ entry, day, onMove, strings }: { entry: CalendarEntry<Rea
  */
 function EntryActions({ entry, strings }: { entry: CalendarEntry<ReactNode>; strings: CalendarStrings }): ReactNode {
   const actions = entry.actions ?? [];
-  const [open, setOpen] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const panelRef = useRef<HTMLSpanElement>(null);
-  const refocusTrigger = useRef(false);
-
-  // The trigger unmounts while the menu is open: move focus into the panel
-  // on open and back to the trigger once it is remounted (MoveControl's
-  // contract; an autoFocus attribute loses to the trigger's unmount in the
-  // same commit, so this is done in an effect).
-  useEffect(() => {
-    if (open) {
-      panelRef.current?.focus();
-    } else if (refocusTrigger.current) {
-      refocusTrigger.current = false;
-      triggerRef.current?.focus();
-    }
-  }, [open]);
 
   if (actions.length === 0) return null;
   // entry.pending (a move of this entry is in flight) is also "an action in
@@ -197,40 +143,29 @@ function EntryActions({ entry, strings }: { entry: CalendarEntry<ReactNode>; str
     );
   }
 
-  const close = (): void => {
-    refocusTrigger.current = true;
-    setOpen(false);
-  };
-
-  if (!open) {
-    return (
-      <span data-part="actions">
-        {status}
-        <button ref={triggerRef} type="button" data-part="actions-trigger" aria-label={(strings.menuAriaLabel ?? ((label: string) => `Actions ${label}`))(entry.label)} onClick={() => setOpen(true)}>
-          {strings.menuLabel ?? "Actions…"}
-        </button>
-      </span>
-    );
-  }
-
+  // The trigger unmounts while the menu is open; the primitive's refocus-
+  // through-a-ref effect lands the focus back on its remount (the contract
+  // this view used to hand-roll, shared with the board's CardActions).
   return (
-    <span
-      data-part="actions"
-      onKeyDown={(e) => {
-        if (e.key === "Escape") {
-          e.stopPropagation();
-          close();
-        }
-      }}
-    >
-      {status}
-      <span data-part="actions-panel" role="group" aria-label={(strings.menuPanelAriaLabel ?? ((label: string) => `Actions ${label}`))(entry.label)} tabIndex={-1} ref={panelRef}>
-        {buttons}
-        <button type="button" data-part="actions-cancel" onClick={close}>
-          {strings.cancelLabel ?? "Cancel"}
-        </button>
-      </span>
-    </span>
+    <Menu>
+      {({ open, openMenu, close, triggerRef, panelRef, wrapperProps }) => (
+        <span data-part="actions" {...wrapperProps}>
+          {status}
+          {!open ? (
+            <button ref={triggerRef} type="button" data-part="actions-trigger" aria-label={(strings.menuAriaLabel ?? ((label: string) => `Actions ${label}`))(entry.label)} onClick={openMenu}>
+              {strings.menuLabel ?? "Actions…"}
+            </button>
+          ) : (
+            <span data-part="actions-panel" role="group" aria-label={(strings.menuPanelAriaLabel ?? ((label: string) => `Actions ${label}`))(entry.label)} tabIndex={-1} ref={panelRef}>
+              {buttons}
+              <button type="button" data-part="actions-cancel" onClick={close}>
+                {strings.cancelLabel ?? "Cancel"}
+              </button>
+            </span>
+          )}
+        </span>
+      )}
+    </Menu>
   );
 }
 

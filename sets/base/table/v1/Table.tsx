@@ -2,6 +2,7 @@
 
 import type { RecordActionItem, TableProps } from "@yadad/core";
 import { useEffect, useRef, useState } from "react";
+import { Menu } from "../../../internal/menu/v1/index.js";
 import type { ReactNode } from "react";
 
 const ariaSort = (sort: "asc" | "desc" | undefined) => (sort === "asc" ? "ascending" : sort === "desc" ? "descending" : undefined);
@@ -99,63 +100,53 @@ function RowActions({ actions, rowLabel, strings }: { actions: readonly RecordAc
   );
 
   const useMenu = phone && actions.length > 1;
-  const close = (): void => setOpen(false);
 
   return (
-    <span
-      data-part="actions"
-      onKeyDown={(e) => {
-        // Escape closes from anywhere in the cell — trigger, panel, or an
-        // action whose focus drifted — and returns focus to the trigger.
-        if (useMenu && open && e.key === "Escape") {
-          e.stopPropagation();
-          close();
-        }
-      }}
-    >
-      {status}
-      {useMenu ? (
-        <button
-          ref={triggerRef}
-          type="button"
-          data-part="actions-trigger"
-          aria-haspopup="true"
-          aria-expanded={open}
-          aria-label={(strings.menuAriaLabel ?? ((row: string) => `Actions (${row})`))(rowLabel)}
-          onClick={() => setOpen(true)}
+    <Menu>
+      {({ open, openMenu, close, triggerRef, panelRef, wrapperProps }) => (
+        <span
+          data-part="actions"
+          {...wrapperProps}
         >
-          {strings.menuLabel ?? "Actions…"}
-        </button>
-      ) : (
-        <span data-part="actions-list">
-          {actions.map((a) => (
-            <ActionButton key={a.id} action={a} disabled={pending} />
-          ))}
+          {status}
+          {useMenu ? (
+            <button
+              ref={triggerRef}
+              type="button"
+              data-part="actions-trigger"
+              aria-haspopup="true"
+              aria-expanded={open}
+              aria-label={(strings.menuAriaLabel ?? ((row: string) => `Actions (${row})`))(rowLabel)}
+              onClick={openMenu}
+            >
+              {strings.menuLabel ?? "Actions…"}
+            </button>
+          ) : (
+            <span data-part="actions-list">
+              {actions.map((a) => (
+                <ActionButton key={a.id} action={a} disabled={pending} />
+              ))}
+            </span>
+          )}
+          {useMenu && open ? (
+            <span
+              ref={panelRef}
+              tabIndex={-1}
+              data-part="actions-panel"
+              role="group"
+              aria-label={(strings.menuPanelAriaLabel ?? ((row: string) => `Actions (${row})`))(rowLabel)}
+            >
+              {actions.map((a) => (
+                <ActionButton key={a.id} action={a} disabled={pending} />
+              ))}
+              <button type="button" data-part="actions-cancel" onClick={close}>
+                {strings.cancelLabel ?? "Cancel"}
+              </button>
+            </span>
+          ) : null}
         </span>
       )}
-      {useMenu && open ? (
-        <span
-          ref={panelRef}
-          tabIndex={-1}
-          data-part="actions-panel"
-          role="group"
-          aria-label={(strings.menuPanelAriaLabel ?? ((row: string) => `Actions (${row})`))(rowLabel)}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              e.stopPropagation();
-              close();
-            }
-          }}
-        >
-          {actions.map((a) => (
-            <ActionButton key={a.id} action={a} disabled={pending} />
-          ))}
-          <button type="button" data-part="actions-cancel" onClick={close}>
-            {strings.cancelLabel ?? "Cancel"}
-          </button>
-        </span>
-      ) : null}
-    </span>
+    </Menu>
   );
 }
 

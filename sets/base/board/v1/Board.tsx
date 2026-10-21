@@ -4,6 +4,7 @@ import type { BoardCard, BoardColumn, BoardProps } from "@yadad/core";
 import type { ReactNode } from "react";
 import type { DragEvent } from "react";
 import { useEffect, useId, useRef, useState } from "react";
+import { Menu } from "../../../internal/menu/v1/index.js";
 
 /** Drag payload type: the card id. Also set as text/plain so other drop targets and tests can read it. */
 const DRAG_TYPE = "application/x-yadad-board-card";
@@ -67,82 +68,63 @@ function MoveControl({
   onMoved: (id: string) => void;
   strings: BoardStrings;
 }): ReactNode {
-  const [open, setOpen] = useState(false);
   const [target, setTarget] = useState("");
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const refocusTrigger = useRef(false);
   const selectId = useId();
 
-  // The trigger unmounts while the list is open: focus it again once it is back in the DOM.
-  useEffect(() => {
-    if (!open && refocusTrigger.current) {
-      refocusTrigger.current = false;
-      triggerRef.current?.focus();
-    }
-  }, [open]);
-
-  if (!open) {
-    return (
-      <button
-        ref={triggerRef}
-        type="button"
-        data-part="move-trigger"
-        aria-label={(strings.moveAriaLabel ?? ((label: string) => `Move to… ${label}`))(card.label)}
-        onClick={() => {
-          setTarget("");
-          setOpen(true);
-        }}
-      >
-        {strings.moveLabel ?? "Move to…"}
-      </button>
-    );
-  }
-
-  const close = (): void => {
-    refocusTrigger.current = true;
-    setOpen(false);
-  };
+  // Trigger unmounts while the panel is open; the primitive refocuses it
+  // through a ref after the remount commit (14b's contract, now shared).
   return (
-    <form
-      data-part="move-panel"
-      aria-label={(strings.movePanelAriaLabel ?? ((label: string) => `Move ${label}`))(card.label)}
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (target !== "") {
-          onMove(card.id, target);
-          onMoved(card.id);
-        }
-        close();
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") {
-          e.stopPropagation();
-          close();
-        }
-      }}
-    >
-      <label htmlFor={selectId} data-part="move-label">
-        {(strings.moveToLabel ?? ((label: string) => `Move ${label} to`))(card.label)}
-      </label>
-      <select id={selectId} data-yadad="select" data-part="move-select" autoFocus value={target} onChange={(e) => setTarget(e.target.value)}>
-        <option value="" disabled>
-          {strings.chooseColumnLabel ?? "Choose a column"}
-        </option>
-        {columns
-          .filter((c) => c.droppable && c.id !== columnId)
-          .map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.label}
-            </option>
-          ))}
-      </select>
-      <button type="submit" data-part="move-confirm">
-        {strings.moveConfirmLabel ?? "Move"}
-      </button>
-      <button type="button" data-part="move-cancel" onClick={close}>
-        {strings.cancelLabel ?? "Cancel"}
-      </button>
-    </form>
+    <Menu focusPanelOnOpen={false} onOpen={() => setTarget("")}>
+      {({ open, openMenu, close, triggerRef, wrapperProps }) =>
+        !open ? (
+          <button
+            ref={triggerRef}
+            type="button"
+            data-part="move-trigger"
+            aria-label={(strings.moveAriaLabel ?? ((label: string) => `Move to… ${label}`))(card.label)}
+            onClick={openMenu}
+          >
+            {strings.moveLabel ?? "Move to…"}
+          </button>
+        ) : (
+          <form
+            data-part="move-panel"
+            aria-label={(strings.movePanelAriaLabel ?? ((label: string) => `Move ${label}`))(card.label)}
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (target !== "") {
+                onMove(card.id, target);
+                onMoved(card.id);
+              }
+              close();
+            }}
+            {...wrapperProps}
+          >
+            <label htmlFor={selectId} data-part="move-label">
+              {(strings.moveToLabel ?? ((label: string) => `Move ${label} to`))(card.label)}
+            </label>
+            <select id={selectId} data-yadad="select" data-part="move-select" autoFocus value={target} onChange={(e) => setTarget(e.target.value)}>
+              <option value="" disabled>
+                {strings.chooseColumnLabel ?? "Choose a column"}
+              </option>
+              {columns
+                .filter((c) => c.droppable && c.id !== columnId)
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.label}
+                  </option>
+                ))}
+            </select>
+            <button type="submit" data-part="move-confirm">
+              {strings.moveConfirmLabel ?? "Move"}
+            </button>
+            <button type="button" data-part="move-cancel" onClick={close}>
+              {strings.cancelLabel ?? "Cancel"}
+            </button>
+          </form>
+        )
+      }
+    </Menu>
   );
 }
 
@@ -159,24 +141,6 @@ function MoveControl({
  */
 function CardActions({ card, strings }: { card: BoardCard<ReactNode>; strings: BoardStrings }): ReactNode {
   const actions = card.actions ?? [];
-  const [open, setOpen] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const panelRef = useRef<HTMLSpanElement>(null);
-  const refocusTrigger = useRef(false);
-
-  // The trigger unmounts while the menu is open: move focus into the panel
-  // on open and back to the trigger once it is remounted (MoveControl's
-  // contract; an autoFocus attribute loses to the trigger's unmount in the
-  // same commit, so this is done in an effect).
-  useEffect(() => {
-    if (open) {
-      panelRef.current?.focus();
-    } else if (refocusTrigger.current) {
-      refocusTrigger.current = false;
-      triggerRef.current?.focus();
-    }
-  }, [open]);
-
   if (actions.length === 0) return null;
   // card.pending (a move of this card is in flight) is also "an action in
   // flight" for the RFC's purposes: while the engine is moving the card, its
@@ -205,40 +169,29 @@ function CardActions({ card, strings }: { card: BoardCard<ReactNode>; strings: B
     );
   }
 
-  const close = (): void => {
-    refocusTrigger.current = true;
-    setOpen(false);
-  };
-
-  if (!open) {
-    return (
-      <span data-part="actions">
-        {status}
-        <button ref={triggerRef} type="button" data-part="actions-trigger" aria-label={(strings.menuAriaLabel ?? ((label: string) => `Actions ${label}`))(card.label)} onClick={() => setOpen(true)}>
-          {strings.menuLabel ?? "Actions…"}
-        </button>
-      </span>
-    );
-  }
-
+  // The trigger unmounts while the menu is open; the primitive's refocus-
+  // through-a-ref effect lands the focus back on its remount (the contract
+  // this view used to hand-roll, and MoveControl below reuses from here).
   return (
-    <span
-      data-part="actions"
-      onKeyDown={(e) => {
-        if (e.key === "Escape") {
-          e.stopPropagation();
-          close();
-        }
-      }}
-    >
-      {status}
-      <span data-part="actions-panel" role="group" aria-label={(strings.menuPanelAriaLabel ?? ((label: string) => `Actions ${label}`))(card.label)} tabIndex={-1} ref={panelRef}>
-        {buttons}
-        <button type="button" data-part="actions-cancel" onClick={close}>
-          {strings.cancelLabel ?? "Cancel"}
-        </button>
-      </span>
-    </span>
+    <Menu>
+      {({ open, openMenu, close, triggerRef, panelRef, wrapperProps }) => (
+        <span data-part="actions" {...wrapperProps}>
+          {status}
+          {!open ? (
+            <button ref={triggerRef} type="button" data-part="actions-trigger" aria-label={(strings.menuAriaLabel ?? ((label: string) => `Actions ${label}`))(card.label)} onClick={openMenu}>
+              {strings.menuLabel ?? "Actions…"}
+            </button>
+          ) : (
+            <span data-part="actions-panel" role="group" aria-label={(strings.menuPanelAriaLabel ?? ((label: string) => `Actions ${label}`))(card.label)} tabIndex={-1} ref={panelRef}>
+              {buttons}
+              <button type="button" data-part="actions-cancel" onClick={close}>
+                {strings.cancelLabel ?? "Cancel"}
+              </button>
+            </span>
+          )}
+        </span>
+      )}
+    </Menu>
   );
 }
 
