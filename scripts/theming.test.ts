@@ -10,7 +10,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { describe, expect, test } from "vitest";
-import { checkStyles, generateThemingDoc, scanParts } from "./theming.ts";
+import { checkFile, checkStyles, generateThemingDoc, scanParts } from "./theming.ts";
 
 const THEMING_MD = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "THEMING.md");
 
@@ -37,6 +37,39 @@ describe("THEMING.md freshness", () => {
     for (const comp of components) {
       expect(doc, `section for ${comp}`).toContain(`### ${comp}\n`);
     }
+  });
+});
+
+describe("reduced-motion guard rail (card 15c)", () => {
+  const wrap = (body: string) => `@layer yadad.components {\n${body}\n}\n`;
+
+  test("a transition without a reduced-motion override fails the check", () => {
+    const { violations } = checkFile("fixture.css", wrap('  :where([data-yadad="x"]) { transition: opacity 120ms; }'));
+    expect(violations.map((v) => v.kind)).toContain("motion");
+  });
+
+  test("an animation without a reduced-motion override fails the check", () => {
+    const { violations } = checkFile("fixture.css", wrap('  :where([data-yadad="x"]) { animation: shimmer 1s infinite; }'));
+    expect(violations.map((v) => v.kind)).toContain("motion");
+  });
+
+  test("motion with a reduced-motion media block in the same file passes", () => {
+    const css = wrap(
+      '  :where([data-yadad="x"]) { transition: opacity 120ms; }\n' +
+        "  @media (prefers-reduced-motion: reduce) {\n    :where([data-yadad=\"x\"]) { transition: none; }\n  }",
+    );
+    const { violations } = checkFile("fixture.css", css);
+    expect(violations.filter((v) => v.kind === "motion")).toEqual([]);
+  });
+
+  test("transition: none / animation: none need no guard", () => {
+    const { violations } = checkFile("fixture.css", wrap('  :where([data-yadad="x"]) { transition: none; animation: none; }'));
+    expect(violations.filter((v) => v.kind === "motion")).toEqual([]);
+  });
+
+  test("no stylesheet in sets/ trips the guard (and none animates yet)", () => {
+    const { violations } = checkStyles();
+    expect(violations.filter((v) => v.kind === "motion")).toEqual([]);
   });
 });
 

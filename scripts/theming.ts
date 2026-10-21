@@ -190,7 +190,7 @@ export interface Finding {
   line: number;
 }
 
-function checkFile(file: string, css: string): { file: string; violations: Finding[]; exceptions: Finding[] } {
+export function checkFile(file: string, css: string): { file: string; violations: Finding[]; exceptions: Finding[] } {
   const { code, exempt } = stripComments(css);
   const violations: Finding[] = [];
   const exceptions: Finding[] = [];
@@ -250,6 +250,28 @@ function checkFile(file: string, css: string): { file: string; violations: Findi
       record("length", `hard-coded length ${num}${unit} (use a token or a per-component variable)`, line);
     }
   });
+
+  // 4. reduced motion (card 15c): any file that animates must say what
+  // happens when the user asks not to. One machine-enforced rule so the
+  // promise holds from card 15e onward: a file may not contain a
+  // `transition:`/`animation:` declaration (other than `none`) unless the
+  // same file carries a `@media (prefers-reduced-motion: reduce)` block.
+  const MOTION_DECL = /(?:^|[{;])\s*(transition|animation)(-duration|-property|-name)?\s*:\s*([^;{}]+)/gm;
+  let motion: RegExpExecArray | null;
+  let animates: string | null = null;
+  let motionAt = 0;
+  MOTION_DECL.lastIndex = 0;
+  while ((motion = MOTION_DECL.exec(code)) !== null) {
+    const value = (motion[3] ?? "").trim();
+    if (value === "none" || value === "") continue;
+    animates = `${motion[1]}${motion[2] ?? ""}:`;
+    motionAt = motion.index;
+    break;
+  }
+  if (animates && !code.includes("prefers-reduced-motion")) {
+    const line = code.slice(0, motionAt).split("\n").length;
+    record("motion", `animates (${animates}) without a @media (prefers-reduced-motion: reduce) override in this file`, line);
+  }
 
   return { file, violations, exceptions };
 }

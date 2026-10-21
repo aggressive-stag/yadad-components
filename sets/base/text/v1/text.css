@@ -43,6 +43,23 @@
     background: var(--yadad-text-diff-removed-background, color-mix(in srgb, var(--yadad-color-danger) 14%, transparent));
   }
 
+  /* Forced-colors drops both diff backgrounds and repaints decoration in
+     CanvasText, which would make added and removed look identical — the
+     only surviving distinction is decoration, so set it explicitly:
+     underline for added, line-through for removed (plus the screen-reader
+     added:/removed: prefixes from 13d). */
+  @media (forced-colors: active) {
+    :where([data-yadad="text"][data-part="display"]) :where([data-part="diff-added"]) {
+      text-decoration: underline;
+      background: transparent;
+    }
+
+    :where([data-yadad="text"][data-part="display"]) :where([data-part="diff-removed"]) {
+      text-decoration: line-through;
+      background: transparent;
+    }
+  }
+
   :where([data-yadad="text"][data-part="display"]) :where([data-part="diff-label"]) {
     position: absolute;
     inline-size: 1px;

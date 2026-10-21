@@ -12,6 +12,14 @@
     font-family: var(--yadad-panel-font-family, var(--yadad-font-family));
   }
 
+  /* Forced-colors drops the shadow, so the frame is the only boundary left —
+     give it one in system colors (the only legal colors in the block). */
+  @media (forced-colors: active) {
+    :where([data-yadad="panel"][data-part="root"]) {
+      border: 1px solid CanvasText;
+    }
+  }
+
   :where([data-yadad="panel"]) :where([data-part="title"]) {
     margin: 0 0 var(--yadad-space-3);
     font-size: var(--yadad-panel-title-size, var(--yadad-font-size-md));

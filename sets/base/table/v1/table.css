@@ -137,6 +137,16 @@
     border-radius: var(--yadad-table-card-radius, var(--yadad-radius-md));
   }
 
+  /* Forced-colors: the menu floats over the row and its token border may be
+     repainted to match the surroundings — an outline is the boundary that
+     survives the palette. */
+  @media (forced-colors: active) {
+    :where([data-yadad="table"]) :where([data-part="actions-panel"]) {
+      border: 1px solid CanvasText;
+      outline: 1px solid CanvasText;
+    }
+  }
+
   /* Phone width: under 50ch of container width each row becomes a card and
      each cell shows its column label (data-label) before its value. Real
      table elements and roles stay in the DOM. The header row stays as a strip

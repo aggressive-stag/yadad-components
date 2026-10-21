@@ -86,4 +86,28 @@
     overflow-y: auto;
     padding: var(--yadad-dialog-body-padding, var(--yadad-space-3));
   }
+
+  /* Windows High Contrast: system colors replace every token color, the
+     shadow is dropped, and a translucent backdrop is not a boundary — so
+     the scrim gets a high-alpha Canvas wash, and the panel an explicit
+     CanvasText border + outline that survives the palette. Forced-colors
+     mode keeps outlines and kills shadows; this only speaks in system
+     colors because nothing else is legal inside the block. */
+  @media (forced-colors: active) {
+    :where([data-yadad="dialog"][data-part="root"])::backdrop {
+      background: Canvas;
+      opacity: 0.85;
+    }
+
+    :where([data-yadad="dialog"][data-part="root"]) {
+      border: 1px solid CanvasText;
+      outline: 1px solid CanvasText;
+      outline-offset: 1px;
+    }
+
+    :where([data-yadad="dialog"][data-part="root"]):focus-visible {
+      outline: var(--yadad-focus-ring-width) solid Highlight;
+      outline-offset: 1px;
+    }
+  }
 }

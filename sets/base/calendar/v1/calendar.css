@@ -327,6 +327,16 @@
     outline: none; /* the panel is a group, not a control; its buttons own the ring */
   }
 
+  /* Forced-colors: the menu floats over the day cell and its token border may
+     be repainted to match the surroundings — an outline is the boundary that
+     survives the palette. */
+  @media (forced-colors: active) {
+    :where([data-yadad="calendar"]) :where([data-part="actions-panel"], [data-part="move-panel"]) {
+      border: 1px solid CanvasText;
+      outline: 1px solid CanvasText;
+    }
+  }
+
   :where([data-yadad="calendar"]) :where([data-part="action-status"]) {
     color: var(--yadad-calendar-status-color, var(--yadad-color-text-muted));
     font-size: var(--yadad-font-size-sm);
