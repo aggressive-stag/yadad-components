@@ -29,6 +29,10 @@
 
   :where([data-yadad="board"]) :where([data-part="group-by"]) {
     display: inline-flex;
+    /* Translated labels are longer than English (card 15a): let the picker
+       stack the select under the label instead of overflowing a narrow
+       viewport; the label itself stays on one line (nowrap below). */
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--yadad-space-2);
     white-space: nowrap;

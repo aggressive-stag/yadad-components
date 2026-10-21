@@ -7,6 +7,44 @@ import { useEffect, useId, useRef, useState } from "react";
 const DRAG_TYPE = "application/x-yadad-board-card";
 
 /**
+ * Every word the board says, as a prop; each default is the English literal
+ * that was hardcoded before (card 15a). The `…Label` functions receive the
+ * card/column so the accessible names keep naming the thing they belong to.
+ */
+export interface BoardStrings {
+  /** Live-region text while an action or move is in flight. Default: "Working...". */
+  readonly workingLabel?: string;
+  /** Action menu trigger text. Default: "Actions…". */
+  readonly menuLabel?: string;
+  /** Action menu trigger accessible name. Default: `Actions ${cardLabel}`. */
+  readonly menuAriaLabel?: (cardLabel: string) => string;
+  /** Open menu panel accessible name. Default: `Actions ${cardLabel}`. */
+  readonly menuPanelAriaLabel?: (cardLabel: string) => string;
+  /** Menu and move-panel cancel button. Default: "Cancel". */
+  readonly cancelLabel?: string;
+  /** "Move to…" trigger text. Default: "Move to…". */
+  readonly moveLabel?: string;
+  /** "Move to…" trigger accessible name. Default: `Move to… ${cardLabel}`. */
+  readonly moveAriaLabel?: (cardLabel: string) => string;
+  /** Move panel accessible name. Default: `Move ${cardLabel}`. */
+  readonly movePanelAriaLabel?: (cardLabel: string) => string;
+  /** Move panel label. Default: `Move ${cardLabel} to`. */
+  readonly moveToLabel?: (cardLabel: string) => string;
+  /** Move panel select placeholder option. Default: "Choose a column". */
+  readonly chooseColumnLabel?: string;
+  /** Move panel confirm button. Default: "Move". */
+  readonly moveConfirmLabel?: string;
+  /** Group-by select label. Default: "Group by". */
+  readonly groupByLabel?: string;
+  /** Empty column while loading. Default: "Loading cards…". */
+  readonly loadingLabel?: string;
+  /** Empty column. Default: "No cards". */
+  readonly emptyLabel?: string;
+  /** Column-count accessible name. Default: `${count} ${count === 1 ? "card" : "cards"}`. */
+  readonly columnCountLabel?: (count: number) => string;
+}
+
+/**
  * The "Move to…" control for one movable card: a trigger, always in the DOM
  * and focusable, that opens a labelled list of the droppable columns other
  * than the card's own. This is the keyboard, touch and screen-reader move
@@ -18,12 +56,14 @@ function MoveControl({
   columns,
   onMove,
   onMoved,
+  strings,
 }: {
   card: BoardCard<ReactNode>;
   columnId: string;
   columns: readonly BoardColumn<ReactNode>[];
   onMove: (id: string, columnId: string) => void;
   onMoved: (id: string) => void;
+  strings: BoardStrings;
 }): ReactNode {
   const [open, setOpen] = useState(false);
   const [target, setTarget] = useState("");
@@ -45,13 +85,13 @@ function MoveControl({
         ref={triggerRef}
         type="button"
         data-part="move-trigger"
-        aria-label={`Move to… ${card.label}`}
+        aria-label={(strings.moveAriaLabel ?? ((label: string) => `Move to… ${label}`))(card.label)}
         onClick={() => {
           setTarget("");
           setOpen(true);
         }}
       >
-        Move to…
+        {strings.moveLabel ?? "Move to…"}
       </button>
     );
   }
@@ -63,7 +103,7 @@ function MoveControl({
   return (
     <form
       data-part="move-panel"
-      aria-label={`Move ${card.label}`}
+      aria-label={(strings.movePanelAriaLabel ?? ((label: string) => `Move ${label}`))(card.label)}
       onSubmit={(e) => {
         e.preventDefault();
         if (target !== "") {
@@ -80,11 +120,11 @@ function MoveControl({
       }}
     >
       <label htmlFor={selectId} data-part="move-label">
-        Move {card.label} to
+        {(strings.moveToLabel ?? ((label: string) => `Move ${label} to`))(card.label)}
       </label>
       <select id={selectId} data-yadad="select" data-part="move-select" autoFocus value={target} onChange={(e) => setTarget(e.target.value)}>
         <option value="" disabled>
-          Choose a column
+          {strings.chooseColumnLabel ?? "Choose a column"}
         </option>
         {columns
           .filter((c) => c.droppable && c.id !== columnId)
@@ -95,10 +135,10 @@ function MoveControl({
           ))}
       </select>
       <button type="submit" data-part="move-confirm">
-        Move
+        {strings.moveConfirmLabel ?? "Move"}
       </button>
       <button type="button" data-part="move-cancel" onClick={close}>
-        Cancel
+        {strings.cancelLabel ?? "Cancel"}
       </button>
     </form>
   );
@@ -115,7 +155,7 @@ function MoveControl({
  * disabled-with-a-reason state: the renderer hides unavailable actions.
  * Actions exist on the card whether or not the board is movable.
  */
-function CardActions({ card }: { card: BoardCard<ReactNode> }): ReactNode {
+function CardActions({ card, strings }: { card: BoardCard<ReactNode>; strings: BoardStrings }): ReactNode {
   const actions = card.actions ?? [];
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -144,7 +184,7 @@ function CardActions({ card }: { card: BoardCard<ReactNode> }): ReactNode {
   // readers announce the change (regions inserted at work-start are often ignored).
   const status = (
     <span data-part="action-status" role="status">
-      {pending ? "Working..." : ""}
+      {pending ? (strings.workingLabel ?? "Working...") : ""}
     </span>
   );
   const buttons = actions.map((a) => (
@@ -172,8 +212,8 @@ function CardActions({ card }: { card: BoardCard<ReactNode> }): ReactNode {
     return (
       <span data-part="actions">
         {status}
-        <button ref={triggerRef} type="button" data-part="actions-trigger" aria-label={`Actions ${card.label}`} onClick={() => setOpen(true)}>
-          Actions…
+        <button ref={triggerRef} type="button" data-part="actions-trigger" aria-label={(strings.menuAriaLabel ?? ((label: string) => `Actions ${label}`))(card.label)} onClick={() => setOpen(true)}>
+          {strings.menuLabel ?? "Actions…"}
         </button>
       </span>
     );
@@ -190,10 +230,10 @@ function CardActions({ card }: { card: BoardCard<ReactNode> }): ReactNode {
       }}
     >
       {status}
-      <span data-part="actions-panel" role="group" aria-label={`Actions ${card.label}`} tabIndex={-1} ref={panelRef}>
+      <span data-part="actions-panel" role="group" aria-label={(strings.menuPanelAriaLabel ?? ((label: string) => `Actions ${label}`))(card.label)} tabIndex={-1} ref={panelRef}>
         {buttons}
         <button type="button" data-part="actions-cancel" onClick={close}>
-          Cancel
+          {strings.cancelLabel ?? "Cancel"}
         </button>
       </span>
     </span>
@@ -212,6 +252,7 @@ function CardView({
   onOpenCard,
   onMove,
   onMoved,
+  strings,
 }: {
   card: BoardCard<ReactNode>;
   columnId: string;
@@ -219,6 +260,7 @@ function CardView({
   onOpenCard?: (id: string) => void;
   onMove?: (id: string, columnId: string) => void;
   onMoved: (id: string) => void;
+  strings: BoardStrings;
 }): ReactNode {
   const [dragging, setDragging] = useState(false);
   // Only a card the renderer lets move is a drag source: no `onMove` or `movable: false` means no drag at all.
@@ -252,8 +294,8 @@ function CardView({
           <span data-part="card-content">{card.content}</span>
         </span>
       )}
-      {canMove ? <MoveControl card={card} columnId={columnId} columns={columns} onMove={onMove} onMoved={onMoved} /> : null}
-      <CardActions card={card} />
+      {canMove ? <MoveControl card={card} columnId={columnId} columns={columns} onMove={onMove} onMoved={onMoved} strings={strings} /> : null}
+      <CardActions card={card} strings={strings} />
     </li>
   );
 }
@@ -271,6 +313,7 @@ function ColumnView({
   onOpenCard,
   onMove,
   onMoved,
+  strings,
 }: {
   column: BoardColumn<ReactNode>;
   loading: boolean;
@@ -279,6 +322,7 @@ function ColumnView({
   onOpenCard?: (id: string) => void;
   onMove?: (id: string, columnId: string) => void;
   onMoved: (id: string) => void;
+  strings: BoardStrings;
 }): ReactNode {
   const headingId = useId();
   const [over, setOver] = useState(false);
@@ -291,7 +335,7 @@ function ColumnView({
       data-column-id={column.id}
       data-droppable={column.droppable}
       data-drag-over={over ? "true" : undefined}
-      aria-label={`${column.label}, ${column.count} ${column.count === 1 ? "card" : "cards"}`}
+      aria-label={`${column.label}, ${(strings.columnCountLabel ?? ((count: number) => `${count} ${count === 1 ? "card" : "cards"}`))(column.count)}`}
       {...(dropTarget
         ? {
             onDragOver: (e: DragEvent<HTMLElement>) => {
@@ -319,13 +363,13 @@ function ColumnView({
     >
       <h3 id={headingId} data-part="column-heading">
         <span data-part="column-label">{column.label}</span>
-        <span data-part="column-count" aria-label={`${column.count} ${column.count === 1 ? "card" : "cards"}`}>
+        <span data-part="column-count" aria-label={(strings.columnCountLabel ?? ((count: number) => `${count} ${count === 1 ? "card" : "cards"}`))(column.count)}>
           {column.count}
         </span>
       </h3>
       <ul data-part="cards" aria-labelledby={headingId} {...(scrollFocusable ? { tabIndex: 0 } : {})}>
         {column.cards.length === 0 ? (
-          <li data-part="column-empty">{loading ? "Loading cards…" : "No cards"}</li>
+          <li data-part="column-empty">{loading ? (strings.loadingLabel ?? "Loading cards…") : (strings.emptyLabel ?? "No cards")}</li>
         ) : (
           column.cards.map((card) => (
             <CardView
@@ -334,6 +378,7 @@ function ColumnView({
               columnId={column.id}
               columns={columns}
               onMoved={onMoved}
+              strings={strings}
               {...(onOpenCard ? { onOpenCard } : {})}
               {...(onMove ? { onMove } : {})}
             />
@@ -353,7 +398,7 @@ function ColumnView({
  * call `onMove` and nothing else: the engine moves it and reverts refusals.
  * At phone widths the board shows one column at a time, with scroll snap.
  */
-export function Board({ label, groupChoices, groupField, columns, loading, notice, announcement, onGroupBy, onOpenCard, onMove }: BoardProps<ReactNode>): ReactNode {
+export function Board({ label, groupChoices, groupField, columns, loading, notice, announcement, onGroupBy, onOpenCard, onMove, strings = {} }: BoardProps<ReactNode> & { strings?: BoardStrings }): ReactNode {
   const groupId = useId();
   // A scroll container must be reachable by keyboard. Open-card buttons already are; without them the lists take the tab stop.
   const scrollFocusable = onOpenCard === undefined && onMove === undefined;
@@ -380,7 +425,7 @@ export function Board({ label, groupChoices, groupField, columns, loading, notic
         {groupChoices.length > 1 ? (
           <div data-part="group-by">
             <label htmlFor={groupId} data-part="group-by-label">
-              Group by
+              {strings.groupByLabel ?? "Group by"}
             </label>
             <select
               id={groupId}
@@ -411,6 +456,7 @@ export function Board({ label, groupChoices, groupField, columns, loading, notic
             columns={columns}
             scrollFocusable={scrollFocusable}
             onMoved={(id) => (movedCard.current = id)}
+            strings={strings}
             {...(onOpenCard ? { onOpenCard } : {})}
             {...(onMove ? { onMove } : {})}
           />

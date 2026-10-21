@@ -581,17 +581,10 @@ export function loadSources(): ComponentDoc[] {
     const parts: string[] = [];
     const marked = new Set<string>();
     if (tsx) {
-      const seen = new Set<string>();
-      const tagRe = /<([a-zA-Z][a-zA-Z0-9.]*)\b[^>]*>/g;
-      let mt: RegExpExecArray | null;
-      while ((mt = tagRe.exec(tsx)) !== null) {
-        const tag = mt[0];
-        const partM = tag.match(/data-part="([a-z0-9-]+)"/);
-        if (!partM || partM[1] === undefined) continue;
-        const part = partM[1];
-        if (!seen.has(part)) { seen.add(part); parts.push(part); }
-        if (/data-yadad="[^"]+"/.test(tag)) marked.add(part);
-      }
+      scanParts(tsx).forEach((isMarked, part) => {
+        parts.push(part);
+        if (isMarked) marked.add(part);
+      });
     }
 
     // Per-component variables: custom-property definitions inside the layer
@@ -625,6 +618,55 @@ export function loadSources(): ComponentDoc[] {
 }
 function toPascal(s: string): string { return s.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(""); }
 function existsSafe(p: string): string | null { try { return readFileSync(p, "utf8"); } catch { return null; } }
+
+/**
+ * data-parts in first-seen order, with whether the part's own tag carries the
+ * data-yadad marker (true = compound selector, false = descendant form).
+ *
+ * A tag ends at `>` OUTSIDE braces and quotes: `{...}` attribute expressions
+ * legitimately contain `>` (arrow functions: `aria-label={(x) => ...}`), and
+ * a naive `[^>]*` scan truncates the tag there, silently dropping any
+ * data-part written after an arrow in the same opening tag.
+ */
+export function scanParts(tsx: string): Map<string, boolean> {
+  const found = new Map<string, boolean>();
+  const tagStart = /<([a-zA-Z][a-zA-Z0-9.]*)\b/g;
+  let mt: RegExpExecArray | null;
+  while ((mt = tagStart.exec(tsx)) !== null) {
+    const end = findTagEnd(tsx, mt.index + 1);
+    if (end === -1) break;
+    const tag = tsx.slice(mt.index, end + 1);
+    tagStart.lastIndex = end + 1;
+    const partM = tag.match(/data-part="([a-z0-9-]+)"/);
+    if (!partM || partM[1] === undefined) continue;
+    const part = partM[1];
+    const isMarked = /data-yadad="[^"]+"/.test(tag);
+    if (!found.has(part)) found.set(part, isMarked);
+    else if (isMarked) found.set(part, true);
+  }
+  return found;
+}
+
+/** Index of the `>` that closes the tag starting at the `<` before `from`, or -1. */
+function findTagEnd(tsx: string, from: number): number {
+  let brace = 0;
+  let quote: string | undefined;
+  for (let i = from; i < tsx.length; i++) {
+    const c = tsx[i];
+    if (quote !== undefined) {
+      if (c === quote) quote = undefined;
+    } else if (c === '"' || c === "'" || c === "`") {
+      quote = c;
+    } else if (c === "{") {
+      brace++;
+    } else if (c === "}") {
+      if (brace > 0) brace--;
+    } else if (c === ">" && brace === 0) {
+      return i;
+    }
+  }
+  return -1;
+}
 
 // Balanced scanner for a `var(...)` reference starting at the "v" of `var`.
 // Returns { name, fallback, close } — fallback is the full default expression

@@ -7,6 +7,55 @@ const MAX_VISIBLE_ENTRIES = 3;
 
 const nounFor = (mode: CalendarMode): string => (mode === "month" ? "month" : "week");
 
+/**
+ * Every word the calendar says, as a prop; each default is the English
+ * literal that was hardcoded before (card 15a). The `…Label` functions
+ * receive the entry/day label or the period noun ("month"/"week") so the
+ * accessible names keep naming the thing they belong to.
+ */
+export interface CalendarStrings {
+  /** Live-region text while an action or move is in flight. Default: "Working...". */
+  readonly workingLabel?: string;
+  /** Action menu trigger text. Default: "Actions…". */
+  readonly menuLabel?: string;
+  /** Action menu trigger accessible name. Default: `Actions ${entryLabel}`. */
+  readonly menuAriaLabel?: (entryLabel: string) => string;
+  /** Open menu panel accessible name. Default: `Actions ${entryLabel}`. */
+  readonly menuPanelAriaLabel?: (entryLabel: string) => string;
+  /** Menu and move-panel cancel button. Default: "Cancel". */
+  readonly cancelLabel?: string;
+  /** "Move to day…" trigger text. Default: "Move to day…". */
+  readonly moveLabel?: string;
+  /** Move panel accessible name. Default: `Move ${entryLabel} to day`. */
+  readonly movePanelAriaLabel?: (entryLabel: string) => string;
+  /** Move panel field label. Default: `New day for ${entryLabel}`. */
+  readonly moveToLabel?: (entryLabel: string) => string;
+  /** Move panel confirm button. Default: "Move". */
+  readonly moveConfirmLabel?: string;
+  /** Today badge in the phone agenda. Default: "Today". */
+  readonly todayLabel?: string;
+  /** Day entries list accessible name. Default: `Entries for ${dayLabel}`. */
+  readonly entriesAriaLabel?: (dayLabel: string) => string;
+  /** Day overflow button (more entries than the grid shows). Default: `+${hidden} more`. */
+  readonly overflowLabel?: (hidden: number) => string;
+  /** Nav button group accessible name. Default: `${calendarLabel} navigation`. */
+  readonly navGroupAriaLabel?: (calendarLabel: string) => string;
+  /** Previous nav button text. Default: "Previous". */
+  readonly previousLabel?: string;
+  /** Previous nav button accessible name. Default: `Previous ${noun}`. */
+  readonly previousAriaLabel?: (noun: string) => string;
+  /** Next nav button text. Default: "Next". */
+  readonly nextLabel?: string;
+  /** Next nav button accessible name. Default: `Next ${noun}`. */
+  readonly nextAriaLabel?: (noun: string) => string;
+  /** Today nav button. Default: "Today". */
+  readonly navTodayLabel?: string;
+  /** Mode switcher group accessible name. Default: "Calendar mode". */
+  readonly modeSwitchAriaLabel?: string;
+  /** Colour legend accessible name. Default: "Colours". */
+  readonly legendAriaLabel?: string;
+}
+
 /** Splits the flat day list into rows of 7, for role="row" grouping under role="grid". */
 function weekRows(days: readonly CalendarDayProps<ReactNode>[]): CalendarDayProps<ReactNode>[][] {
   const rows: CalendarDayProps<ReactNode>[][] = [];
@@ -20,7 +69,7 @@ function weekRows(days: readonly CalendarDayProps<ReactNode>[]): CalendarDayProp
  * entry's current day. This is the keyboard, touch and screen-reader move
  * path (RFC 0004); drag (card 9) is an addition on top, never a replacement.
  */
-function MoveControl({ entry, day, onMove }: { entry: CalendarEntry<ReactNode>; day: string; onMove: (id: string, date: string) => void }): ReactNode {
+function MoveControl({ entry, day, onMove, strings }: { entry: CalendarEntry<ReactNode>; day: string; onMove: (id: string, date: string) => void; strings: CalendarStrings }): ReactNode {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(day);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -48,7 +97,7 @@ function MoveControl({ entry, day, onMove }: { entry: CalendarEntry<ReactNode>; 
           setOpen(true);
         }}
       >
-        Move to day…
+        {strings.moveLabel ?? "Move to day…"}
       </button>
     );
   }
@@ -64,9 +113,9 @@ function MoveControl({ entry, day, onMove }: { entry: CalendarEntry<ReactNode>; 
   };
 
   return (
-    <span data-part="move-panel" role="group" aria-label={`Move ${entry.label} to day`}>
+    <span data-part="move-panel" role="group" aria-label={(strings.movePanelAriaLabel ?? ((label: string) => `Move ${label} to day`))(entry.label)}>
       <label htmlFor={inputId} data-part="move-label">
-        New day for {entry.label}
+        {(strings.moveToLabel ?? ((label: string) => `New day for ${label}`))(entry.label)}
       </label>
       <input
         id={inputId}
@@ -82,10 +131,10 @@ function MoveControl({ entry, day, onMove }: { entry: CalendarEntry<ReactNode>; 
         }}
       />
       <button type="button" data-part="move-confirm" onClick={confirm}>
-        Move
+        {strings.moveConfirmLabel ?? "Move"}
       </button>
       <button type="button" data-part="move-cancel" onClick={cancel}>
-        Cancel
+        {strings.cancelLabel ?? "Cancel"}
       </button>
     </span>
   );
@@ -98,7 +147,7 @@ function MoveControl({ entry, day, onMove }: { entry: CalendarEntry<ReactNode>; 
  * keyboard contract as the move control. A record with an action in flight —
  * its own or a move of the entry — has all its buttons disabled.
  */
-function EntryActions({ entry }: { entry: CalendarEntry<ReactNode> }): ReactNode {
+function EntryActions({ entry, strings }: { entry: CalendarEntry<ReactNode>; strings: CalendarStrings }): ReactNode {
   const actions = entry.actions ?? [];
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -127,7 +176,7 @@ function EntryActions({ entry }: { entry: CalendarEntry<ReactNode> }): ReactNode
   // readers announce the change (regions inserted at work-start are often ignored).
   const status = (
     <span data-part="action-status" role="status">
-      {pending ? "Working..." : ""}
+      {pending ? (strings.workingLabel ?? "Working...") : ""}
     </span>
   );
   const buttons = actions.map((a) => (
@@ -155,8 +204,8 @@ function EntryActions({ entry }: { entry: CalendarEntry<ReactNode> }): ReactNode
     return (
       <span data-part="actions">
         {status}
-        <button ref={triggerRef} type="button" data-part="actions-trigger" aria-label={`Actions ${entry.label}`} onClick={() => setOpen(true)}>
-          Actions…
+        <button ref={triggerRef} type="button" data-part="actions-trigger" aria-label={(strings.menuAriaLabel ?? ((label: string) => `Actions ${label}`))(entry.label)} onClick={() => setOpen(true)}>
+          {strings.menuLabel ?? "Actions…"}
         </button>
       </span>
     );
@@ -173,10 +222,10 @@ function EntryActions({ entry }: { entry: CalendarEntry<ReactNode> }): ReactNode
       }}
     >
       {status}
-      <span data-part="actions-panel" role="group" aria-label={`Actions ${entry.label}`} tabIndex={-1} ref={panelRef}>
+      <span data-part="actions-panel" role="group" aria-label={(strings.menuPanelAriaLabel ?? ((label: string) => `Actions ${label}`))(entry.label)} tabIndex={-1} ref={panelRef}>
         {buttons}
         <button type="button" data-part="actions-cancel" onClick={close}>
-          Cancel
+          {strings.cancelLabel ?? "Cancel"}
         </button>
       </span>
     </span>
@@ -188,11 +237,13 @@ function EntryView({
   day,
   onOpenEntry,
   onMove,
+  strings,
 }: {
   entry: CalendarEntry<ReactNode>;
   day: string;
   onOpenEntry?: (id: string) => void;
   onMove?: (id: string, date: string) => void;
+  strings: CalendarStrings;
 }): ReactNode {
   const draggable = entry.movable && !!onMove;
   const content = (
@@ -223,8 +274,8 @@ function EntryView({
       ) : (
         <span data-part="entry-static">{content}</span>
       )}
-      {entry.movable && onMove ? <MoveControl entry={entry} day={day} onMove={onMove} /> : null}
-      <EntryActions entry={entry} />
+      {entry.movable && onMove ? <MoveControl entry={entry} day={day} onMove={onMove} strings={strings} /> : null}
+      <EntryActions entry={entry} strings={strings} />
     </li>
   );
 }
@@ -241,6 +292,7 @@ function DayCell({
   onDragEnter,
   onDragLeave,
   onDrop,
+  strings,
 }: {
   day: CalendarDayProps<ReactNode>;
   focused: boolean;
@@ -253,6 +305,7 @@ function DayCell({
   onDragEnter?: (date: string) => void;
   onDragLeave?: (date: string) => void;
   onDrop?: (date: string, entryId: string) => void;
+  strings: CalendarStrings;
 }): ReactNode {
   const [expanded, setExpanded] = useState(false);
   const visible = expanded ? day.entries : day.entries.slice(0, MAX_VISIBLE_ENTRIES);
@@ -288,16 +341,16 @@ function DayCell({
         <span data-part="day-number">{day.dayOfMonth}</span>
         {/* Visible only in the phone agenda reflow, where the weekday column headers are gone. */}
         <span data-part="day-date">{day.label}</span>
-        {day.isToday ? <span data-part="today-badge">Today</span> : null}
+        {day.isToday ? <span data-part="today-badge">{strings.todayLabel ?? "Today"}</span> : null}
       </div>
-      <ul data-part="entries" aria-label={`Entries for ${day.label}`}>
+      <ul data-part="entries" aria-label={(strings.entriesAriaLabel ?? ((label: string) => `Entries for ${label}`))(day.label)}>
         {visible.map((entry) => (
-          <EntryView key={entry.id} entry={entry} day={day.date} {...(onOpenEntry ? { onOpenEntry } : {})} {...(onMove ? { onMove } : {})} />
+          <EntryView key={entry.id} entry={entry} day={day.date} strings={strings} {...(onOpenEntry ? { onOpenEntry } : {})} {...(onMove ? { onMove } : {})} />
         ))}
       </ul>
       {hidden > 0 ? (
         <button type="button" data-part="overflow" aria-expanded={expanded} onClick={() => setExpanded(true)}>
-          +{hidden} more
+          {(strings.overflowLabel ?? ((count: number) => `+${count} more`))(hidden)}
         </button>
       ) : null}
     </div>
@@ -328,7 +381,8 @@ export function Calendar({
   onToday,
   onOpenEntry,
   onMove,
-}: CalendarProps<ReactNode>): ReactNode {
+  strings = {},
+}: CalendarProps<ReactNode> & { strings?: CalendarStrings }): ReactNode {
   const base = useId();
   const titleId = `${base}-title`;
   const noun = nounFor(mode);
@@ -431,19 +485,19 @@ export function Calendar({
         <h2 id={titleId} data-part="title" aria-live="polite">
           {title}
         </h2>
-        <div role="group" aria-label={`${label} navigation`} data-part="nav">
-          <button type="button" data-part="nav-previous" aria-label={`Previous ${noun}`} onClick={onPrevious}>
-            Previous
+        <div role="group" aria-label={(strings.navGroupAriaLabel ?? ((calendarLabel: string) => `${calendarLabel} navigation`))(label)} data-part="nav">
+          <button type="button" data-part="nav-previous" aria-label={(strings.previousAriaLabel ?? ((n: string) => `Previous ${n}`))(noun)} onClick={onPrevious}>
+            {strings.previousLabel ?? "Previous"}
           </button>
           <button type="button" data-part="nav-today" onClick={onToday}>
-            Today
+            {strings.navTodayLabel ?? "Today"}
           </button>
-          <button type="button" data-part="nav-next" aria-label={`Next ${noun}`} onClick={onNext}>
-            Next
+          <button type="button" data-part="nav-next" aria-label={(strings.nextAriaLabel ?? ((n: string) => `Next ${n}`))(noun)} onClick={onNext}>
+            {strings.nextLabel ?? "Next"}
           </button>
         </div>
         {modes.length > 1 ? (
-          <div role="group" aria-label="Calendar mode" data-part="mode-switch">
+          <div role="group" aria-label={strings.modeSwitchAriaLabel ?? "Calendar mode"} data-part="mode-switch">
             {modes.map((m) => (
               <button key={m.mode} type="button" aria-pressed={m.mode === mode} onClick={() => onModeChange(m.mode)} data-part="mode-button">
                 {m.label}
@@ -463,7 +517,7 @@ export function Calendar({
       </div>
 
       {legend.length > 0 ? (
-        <ul aria-label="Colours" data-part="legend">
+        <ul aria-label={strings.legendAriaLabel ?? "Colours"} data-part="legend">
           {legend.map((l) => (
             <li key={l.label} data-part="legend-item">
               <span data-part="legend-swatch" data-slot={l.slot} aria-hidden="true" />
@@ -495,6 +549,7 @@ export function Calendar({
                 onDragEnter={onDragEnter}
                 onDragLeave={onDragLeave}
                 onDrop={onDrop}
+                strings={strings}
                 {...(onOpenEntry ? { onOpenEntry } : {})}
                 {...(onMove ? { onMove } : {})}
               />

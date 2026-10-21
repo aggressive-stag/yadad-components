@@ -8,6 +8,28 @@ const arrow = (sort: "asc" | "desc" | undefined) => (sort === "asc" ? "▲" : so
 /** A phone-width viewport: the same thumb-first layout the @container rules in table.css pick up. */
 const PHONE_QUERY = "(max-width: 500px)";
 
+/**
+ * Every word the table says, as a prop; each default is the English literal
+ * that was hardcoded before (card 15a). `sortedLabel` receives "ascending" or
+ * "descending" — the `aria-sort` attribute itself is a spec value and stays
+ * untranslated; `menuAriaLabel` receives the row caption so the trigger
+ * keeps naming its row.
+ */
+export interface TableStrings {
+  /** Live-region text while an action is in flight. Default: "Working...". */
+  readonly workingLabel?: string;
+  /** Phone menu trigger text. Default: "Actions…". */
+  readonly menuLabel?: string;
+  /** Phone menu trigger accessible name. Called with the table caption (pre-existing wiring). Default: `Actions (${caption})`. */
+  readonly menuAriaLabel?: (rowLabel: string) => string;
+  /** Open phone menu panel accessible name. Called with the table caption. Default: `Actions (${caption})`. */
+  readonly menuPanelAriaLabel?: (rowLabel: string) => string;
+  /** Phone menu cancel button. Default: "Cancel". */
+  readonly cancelLabel?: string;
+  /** Screen-reader sort status. Default: `, sorted ${direction}`. */
+  readonly sortedLabel?: (direction: "ascending" | "descending") => string;
+}
+
 function isPhone(): boolean {
   return typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia(PHONE_QUERY).matches;
 }
@@ -36,7 +58,7 @@ function ActionButton({ action, disabled }: { action: RecordActionItem; disabled
  * "Working...". There is no disabled-with-a-reason state: the renderer hides
  * unavailable actions instead.
  */
-function RowActions({ actions, rowLabel }: { actions: readonly RecordActionItem[]; rowLabel: string }): ReactNode {
+function RowActions({ actions, rowLabel, strings }: { actions: readonly RecordActionItem[]; rowLabel: string; strings: TableStrings }): ReactNode {
   const [phone, setPhone] = useState(isPhone);
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -70,7 +92,7 @@ function RowActions({ actions, rowLabel }: { actions: readonly RecordActionItem[
   const pending = actions.some((a) => a.pending);
   const status = (
     <span data-part="action-status" role="status">
-      {pending ? "Working..." : ""}
+      {pending ? (strings.workingLabel ?? "Working...") : ""}
     </span>
   );
 
@@ -97,10 +119,10 @@ function RowActions({ actions, rowLabel }: { actions: readonly RecordActionItem[
           data-part="actions-trigger"
           aria-haspopup="true"
           aria-expanded={open}
-          aria-label={`Actions (${rowLabel})`}
+          aria-label={(strings.menuAriaLabel ?? ((row: string) => `Actions (${row})`))(rowLabel)}
           onClick={() => setOpen(true)}
         >
-          Actions…
+          {strings.menuLabel ?? "Actions…"}
         </button>
       ) : (
         <span data-part="actions-list">
@@ -115,7 +137,7 @@ function RowActions({ actions, rowLabel }: { actions: readonly RecordActionItem[
           tabIndex={-1}
           data-part="actions-panel"
           role="group"
-          aria-label={`Actions (${rowLabel})`}
+          aria-label={(strings.menuPanelAriaLabel ?? ((row: string) => `Actions (${row})`))(rowLabel)}
           onKeyDown={(e) => {
             if (e.key === "Escape") {
               e.stopPropagation();
@@ -127,7 +149,7 @@ function RowActions({ actions, rowLabel }: { actions: readonly RecordActionItem[
             <ActionButton key={a.id} action={a} disabled={pending} />
           ))}
           <button type="button" data-part="actions-cancel" onClick={close}>
-            Cancel
+            {strings.cancelLabel ?? "Cancel"}
           </button>
         </span>
       ) : null}
@@ -145,7 +167,7 @@ function RowActions({ actions, rowLabel }: { actions: readonly RecordActionItem[
  * (RFC 0007; see RowActions for the phone menu). Plain DOM for now;
  * virtualization arrives with a later version.
  */
-export function Table({ caption, columns, rows, onSort, empty, actionsLabel }: TableProps<ReactNode>): ReactNode {
+export function Table({ caption, columns, rows, onSort, empty, actionsLabel, strings = {} }: TableProps<ReactNode> & { strings?: TableStrings }): ReactNode {
   const hasActions = rows.some((row) => row.actions !== undefined && row.actions.length > 0);
   return (
     <div data-yadad="table" data-part="root">
@@ -158,7 +180,7 @@ export function Table({ caption, columns, rows, onSort, empty, actionsLabel }: T
                 {c.sortable ? (
                   <button type="button" data-part="sort" onClick={() => onSort(c.id)}>
                     {c.label}
-                    {c.sort ? <span data-part="sort-status">{`, sorted ${ariaSort(c.sort)}`}</span> : null}
+                    {c.sort ? <span data-part="sort-status">{(strings.sortedLabel ?? ((direction: "ascending" | "descending") => `, sorted ${direction}`))(ariaSort(c.sort) ?? "ascending")}</span> : null}
                     <span data-part="sort-indicator" aria-hidden="true">
                       {arrow(c.sort)}
                     </span>
@@ -192,7 +214,7 @@ export function Table({ caption, columns, rows, onSort, empty, actionsLabel }: T
                 ))}
                 {hasActions ? (
                   <td role="cell" data-label={actionsLabel ?? "Actions"} data-part="cell" data-col="actions">
-                    {row.actions && row.actions.length > 0 ? <RowActions actions={row.actions} rowLabel={caption} /> : null}
+                    {row.actions && row.actions.length > 0 ? <RowActions actions={row.actions} rowLabel={caption} strings={strings} /> : null}
                   </td>
                 ) : null}
               </tr>

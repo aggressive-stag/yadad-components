@@ -10,7 +10,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { describe, expect, test } from "vitest";
-import { checkStyles, generateThemingDoc } from "./theming.ts";
+import { checkStyles, generateThemingDoc, scanParts } from "./theming.ts";
 
 const THEMING_MD = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "THEMING.md");
 
@@ -37,5 +37,27 @@ describe("THEMING.md freshness", () => {
     for (const comp of components) {
       expect(doc, `section for ${comp}`).toContain(`### ${comp}\n`);
     }
+  });
+});
+
+describe("scanParts (data-part extraction)", () => {
+  test("a data-part after an arrow function in the same tag is not dropped", () => {
+    // Regression: the old `[^>]*` tag scan stopped at the `>` of `(x) => ...`
+    // inside an attribute expression, silently losing parts that came after.
+    const tsx = `
+      <div role="group" aria-label={(label: string) => \`\${label} navigation\`} data-part="nav">
+        <button data-part="nav-previous">Previous</button>
+      </div>`;
+    expect([...scanParts(tsx).keys()]).toEqual(["nav", "nav-previous"]);
+  });
+
+  test("a `>` inside a quoted attribute cannot end the tag", () => {
+    const tsx = `<span title="a > b" data-part="tip" data-yadad="badge">x</span>`;
+    expect([...scanParts(tsx).entries()]).toEqual([["tip", true]]);
+  });
+
+  test("marker detection stays per-tag (compound vs descendant form)", () => {
+    const tsx = `<section data-yadad="board"><ul data-part="cards"></ul></section>`;
+    expect([...scanParts(tsx).entries()]).toEqual([["cards", false]]);
   });
 });

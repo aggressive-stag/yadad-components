@@ -7,8 +7,9 @@ const FOCUSABLE =
 
 /** Extra to DialogProps: modal={false} renders the dialog in-flow (open, no
  * top layer, no focus capture, no inert) for demos and print. A host renders
- * a Dialog only while it is open, so the default is modal. */
-export type DialogComponentProps = DialogProps<ReactNode> & { modal?: boolean };
+ * a Dialog only while it is open, so the default is modal. `closeLabel` is
+ * the close button's accessible name (card 15a; default: "Close"). */
+export type DialogComponentProps = DialogProps<ReactNode> & { modal?: boolean; closeLabel?: string };
 
 /**
  * A modal dialog (RFC 0007; RFC 0003's dialog mode reuses it). The renderer
@@ -22,7 +23,7 @@ export type DialogComponentProps = DialogProps<ReactNode> & { modal?: boolean };
  * (when the renderer stops rendering the dialog) is what closes the element
  * and restores focus — so onClose fires exactly once per close gesture.
  */
-export function Dialog({ label, onClose, children, modal = true }: DialogComponentProps): ReactNode {
+export function Dialog({ label, onClose, children, modal = true, closeLabel }: DialogComponentProps): ReactNode {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
@@ -119,7 +120,7 @@ export function Dialog({ label, onClose, children, modal = true }: DialogCompone
         <h2 data-part="title" id={titleId}>
           {label}
         </h2>
-        <button type="button" data-part="close" aria-label="Close" onClick={onClose}>
+        <button type="button" data-part="close" aria-label={closeLabel ?? "Close"} onClick={onClose}>
           &#215;
         </button>
       </header>

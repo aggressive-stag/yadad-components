@@ -1,8 +1,8 @@
 import type { DisplayProps, InputProps, SelectField } from "@yadad/core";
 import type { ReactNode } from "react";
 
-/** A native select over the field's static choices. The empty "Choose…" entry emits undefined. */
-export function SelectInput({ inputId, field, value, onChange, invalid, describedBy, labelledBy }: InputProps<SelectField, string>): ReactNode {
+/** A native select over the field's static choices. The empty "Choose…" entry emits undefined. `chooseLabel` overrides that entry's text (card 15a; default: "Choose…"). */
+export function SelectInput({ inputId, field, value, onChange, invalid, describedBy, labelledBy, chooseLabel }: InputProps<SelectField, string> & { chooseLabel?: string }): ReactNode {
   return (
     <select
       id={inputId}
@@ -16,7 +16,7 @@ export function SelectInput({ inputId, field, value, onChange, invalid, describe
       aria-describedby={describedBy}
       aria-labelledby={labelledBy}
     >
-      <option value="">Choose…</option>
+      <option value="">{chooseLabel ?? "Choose…"}</option>
       {field.options.values.map((choice) => (
         <option key={choice} value={choice}>
           {choice}

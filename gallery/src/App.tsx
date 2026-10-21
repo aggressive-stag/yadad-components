@@ -43,6 +43,7 @@ const Dialog = DialogMaybe;
 // affordance outside the registry's DialogProps contract (same pattern as
 // the datetime display's text prop).
 import { Dialog as DialogComponent } from "../../sets/base/dialog/v1/index.js";
+import { Board as BoardComponent } from "../../sets/base/board/v1/index.js";
 const TextEntry = baseRegistry.fields.text;
 
 /**
@@ -767,6 +768,66 @@ function ActionsBoardHarness({ id }: { id: string }): ReactNode {
 }
 
 /**
+ * The same board in German (card 15a): every word the Board speaks — the
+ * pending live region, the menu trigger and its names, Cancel, Move to…,
+ * Group by, the empty column, the card/card count — arrives through the
+ * `strings` prop, so the gallery proves the set is not English-locked.
+ */
+function GermanBoardHarness({ id }: { id: string }): ReactNode {
+  const [pendingId, setPendingId] = useState<string | undefined>(undefined);
+  const archive = (cardId: string): void => {
+    setPendingId(cardId);
+    setTimeout(() => setPendingId(undefined), 1500);
+  };
+  const press = (): void => undefined;
+  const mk = (n: number, title: string): BoardCard<ReactNode> => {
+    const base = boardCard(n, title, `Bearbeiter: ${OWNER_NAMES[n % 3]}`);
+    const pending = pendingId === base.id;
+    if (n === 2)
+      return {
+        ...base,
+        movable: true,
+        pending,
+        actions: [
+          { id: "open", label: "Öffnen", tone: "neutral", pending, onPress: press },
+          { id: "arch", label: "Archivieren", tone: "danger", pending, onPress: () => archive(base.id) },
+        ],
+      };
+    return { ...base, movable: n !== 3, pending };
+  };
+  const columns = [boardColumn("v:todo", "Zu erledigen", [1, 2, 3].map((n) => mk(n, `Aufgabe ${n}`))), boardColumn("v:done", "Fertig", [])];
+  return (
+    <BoardComponent
+      label={id}
+      groupChoices={[{ field: "status", label: "Status" }, { field: "owner", label: "Bearbeiter" }]}
+      groupField="status"
+      columns={columns}
+      loading={false}
+      onGroupBy={() => undefined}
+      onOpenCard={() => undefined}
+      onMove={() => undefined}
+      strings={{
+        workingLabel: "Wird geladen...",
+        menuLabel: "Aktionen…",
+        menuAriaLabel: (card) => `Aktionen ${card}`,
+        menuPanelAriaLabel: (card) => `Aktionen ${card}`,
+        cancelLabel: "Abbrechen",
+        moveLabel: "Verschieben nach…",
+        moveAriaLabel: (card) => `Verschieben nach… ${card}`,
+        movePanelAriaLabel: (card) => `Verschiebe ${card}`,
+        moveToLabel: (card) => `Verschiebe ${card} nach`,
+        chooseColumnLabel: "Spalte wählen",
+        moveConfirmLabel: "Verschieben",
+        groupByLabel: "Gruppieren nach",
+        loadingLabel: "Karten werden geladen…",
+        emptyLabel: "Keine Karten",
+        columnCountLabel: (count) => `${count} ${count === 1 ? "Karte" : "Karten"}`,
+      }}
+    />
+  );
+}
+
+/**
  * A calendar whose entries carry record actions (RFC 0007): the entry on the
  * 20th with one action shows a plain button, the one with several shows the
  * "Actions…" menu; Cancel closes it, Escape returns to the trigger. "Delete"
@@ -1259,6 +1320,11 @@ export default function App(): ReactNode {
             "board-actions",
             "record actions on cards: one button; several in a menu (danger Archive puts the card's actions in flight: disabled + Working...); next to Move to…",
             <ActionsBoardHarness id="Tasks (actions)" />,
+          )}
+          {state(
+            "board-strings-german",
+            "every word via the strings prop (card 15a): Wird geladen..., Aktionen…, Verschieben nach…, Gruppieren nach, Keine Karten",
+            <GermanBoardHarness id="Aufgaben (deutsch)" />,
           )}
           {state(
             "board-phone",
