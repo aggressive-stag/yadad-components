@@ -3,6 +3,12 @@
 // Also writes dist/styles/<name>.css per set (card 15b) so a consumer can
 // import one component's rules without the whole sheet; each fragment carries
 // the same @layer preamble so cascade order survives whichever subset is used.
+//
+// Internal sets (15d Menu, 15e Skeleton) render parts *inside* a view
+// component and ship no public fragment. A consumer importing only
+// dist/styles/board.css would then get skeleton-card geometry with no bars —
+// so an internal stylesheet is appended to every base fragment whose view
+// imports the internal component (see needsInternal below).
 import { globSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
 const files = globSync("sets/**/*.css").sort();
@@ -26,10 +32,21 @@ for (const f of files) {
   const m = f.match(/^sets\/base\/([^/]+)\/[^/]+\/.+\.css$/);
   if (!m) continue;
   const out = `dist/styles/${m[1]}.css`;
+  const extras: string[] = [];
+  const baseDir = `sets/base/${m[1]}/`;
+  const sources = globSync(`${baseDir}**/*.tsx`);
+  for (const internal of ["menu", "skeleton"]) {
+    if (sources.some((s) => readFileSync(s, "utf8").includes(`internal/${internal}/v1`))) {
+      for (const css of globSync(`sets/internal/${internal}/**/*.css`)) {
+        extras.push(`\n/* ${css} (used by ${m[1]}) */\n${readFileSync(css, "utf8").trim()}`);
+      }
+    }
+  }
   const body = [
-    `/* @yadad/components: ${f} only. Layered with @yadad.tokens; unlayered host CSS wins. */`,
+    `/* @yadad/components: ${f}${extras.length ? " + internal sheets it depends on" : ""}. Layered with @yadad.tokens; unlayered host CSS wins. */`,
     "@layer yadad.tokens, yadad.components;",
     readFileSync(f, "utf8").trim(),
+    ...extras,
   ].join("\n");
   writeFileSync(out, body + "\n");
   fragments++;
