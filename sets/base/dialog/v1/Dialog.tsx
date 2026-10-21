@@ -1,3 +1,5 @@
+"use client";
+
 import type { DialogProps } from "@yadad/core";
 import { useEffect, useId, useRef } from "react";
 import type { ReactNode } from "react";

@@ -1,3 +1,5 @@
+"use client";
+
 import type { RecordActionItem, TableProps } from "@yadad/core";
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";

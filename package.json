@@ -16,7 +16,115 @@
       "types": "./dist/registry/base.d.ts",
       "default": "./dist/registry/base.js"
     },
-    "./styles.css": "./dist/yadad-components.css"
+    "./board": {
+      "@yadad/source": "./sets/base/board/v1/index.ts",
+      "types": "./dist/sets/base/board/v1/index.d.ts",
+      "default": "./dist/sets/base/board/v1/index.js"
+    },
+    "./boolean": {
+      "@yadad/source": "./sets/base/boolean/v1/index.ts",
+      "types": "./dist/sets/base/boolean/v1/index.d.ts",
+      "default": "./dist/sets/base/boolean/v1/index.js"
+    },
+    "./button": {
+      "@yadad/source": "./sets/base/button/v1/index.ts",
+      "types": "./dist/sets/base/button/v1/index.d.ts",
+      "default": "./dist/sets/base/button/v1/index.js"
+    },
+    "./calendar": {
+      "@yadad/source": "./sets/base/calendar/v1/index.ts",
+      "types": "./dist/sets/base/calendar/v1/index.d.ts",
+      "default": "./dist/sets/base/calendar/v1/index.js"
+    },
+    "./count": {
+      "@yadad/source": "./sets/base/count/v1/index.ts",
+      "types": "./dist/sets/base/count/v1/index.d.ts",
+      "default": "./dist/sets/base/count/v1/index.js"
+    },
+    "./date": {
+      "@yadad/source": "./sets/base/date/v1/index.ts",
+      "types": "./dist/sets/base/date/v1/index.d.ts",
+      "default": "./dist/sets/base/date/v1/index.js"
+    },
+    "./datetime": {
+      "@yadad/source": "./sets/base/datetime/v1/index.ts",
+      "types": "./dist/sets/base/datetime/v1/index.d.ts",
+      "default": "./dist/sets/base/datetime/v1/index.js"
+    },
+    "./dialog": {
+      "@yadad/source": "./sets/base/dialog/v1/index.ts",
+      "types": "./dist/sets/base/dialog/v1/index.d.ts",
+      "default": "./dist/sets/base/dialog/v1/index.js"
+    },
+    "./error-summary": {
+      "@yadad/source": "./sets/base/error-summary/v1/index.ts",
+      "types": "./dist/sets/base/error-summary/v1/index.d.ts",
+      "default": "./dist/sets/base/error-summary/v1/index.js"
+    },
+    "./field-frame": {
+      "@yadad/source": "./sets/base/field-frame/v1/index.ts",
+      "types": "./dist/sets/base/field-frame/v1/index.d.ts",
+      "default": "./dist/sets/base/field-frame/v1/index.js"
+    },
+    "./number": {
+      "@yadad/source": "./sets/base/number/v1/index.ts",
+      "types": "./dist/sets/base/number/v1/index.d.ts",
+      "default": "./dist/sets/base/number/v1/index.js"
+    },
+    "./panel": {
+      "@yadad/source": "./sets/base/panel/v1/index.ts",
+      "types": "./dist/sets/base/panel/v1/index.d.ts",
+      "default": "./dist/sets/base/panel/v1/index.js"
+    },
+    "./reference": {
+      "@yadad/source": "./sets/base/reference/v1/index.ts",
+      "types": "./dist/sets/base/reference/v1/index.d.ts",
+      "default": "./dist/sets/base/reference/v1/index.js"
+    },
+    "./section": {
+      "@yadad/source": "./sets/base/section/v1/index.ts",
+      "types": "./dist/sets/base/section/v1/index.d.ts",
+      "default": "./dist/sets/base/section/v1/index.js"
+    },
+    "./select": {
+      "@yadad/source": "./sets/base/select/v1/index.ts",
+      "types": "./dist/sets/base/select/v1/index.d.ts",
+      "default": "./dist/sets/base/select/v1/index.js"
+    },
+    "./table": {
+      "@yadad/source": "./sets/base/table/v1/index.ts",
+      "types": "./dist/sets/base/table/v1/index.d.ts",
+      "default": "./dist/sets/base/table/v1/index.js"
+    },
+    "./tabs": {
+      "@yadad/source": "./sets/base/tabs/v1/index.ts",
+      "types": "./dist/sets/base/tabs/v1/index.d.ts",
+      "default": "./dist/sets/base/tabs/v1/index.js"
+    },
+    "./text": {
+      "@yadad/source": "./sets/base/text/v1/index.ts",
+      "types": "./dist/sets/base/text/v1/index.d.ts",
+      "default": "./dist/sets/base/text/v1/index.js"
+    },
+    "./styles.css": "./dist/yadad-components.css",
+    "./styles/board.css": "./dist/styles/board.css",
+    "./styles/boolean.css": "./dist/styles/boolean.css",
+    "./styles/button.css": "./dist/styles/button.css",
+    "./styles/calendar.css": "./dist/styles/calendar.css",
+    "./styles/count.css": "./dist/styles/count.css",
+    "./styles/date.css": "./dist/styles/date.css",
+    "./styles/datetime.css": "./dist/styles/datetime.css",
+    "./styles/dialog.css": "./dist/styles/dialog.css",
+    "./styles/error-summary.css": "./dist/styles/error-summary.css",
+    "./styles/field-frame.css": "./dist/styles/field-frame.css",
+    "./styles/number.css": "./dist/styles/number.css",
+    "./styles/panel.css": "./dist/styles/panel.css",
+    "./styles/reference.css": "./dist/styles/reference.css",
+    "./styles/section.css": "./dist/styles/section.css",
+    "./styles/select.css": "./dist/styles/select.css",
+    "./styles/table.css": "./dist/styles/table.css",
+    "./styles/tabs.css": "./dist/styles/tabs.css",
+    "./styles/text.css": "./dist/styles/text.css"
   },
   "files": [
     "dist",

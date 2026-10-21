@@ -1,3 +1,5 @@
+"use client";
+
 import type { CalendarDayProps, CalendarEntry, CalendarMode, CalendarProps } from "@yadad/core";
 import type { KeyboardEvent, ReactNode } from "react";
 import { useEffect, useId, useRef, useState } from "react";

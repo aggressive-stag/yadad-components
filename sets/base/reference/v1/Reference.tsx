@@ -1,3 +1,5 @@
+"use client";
+
 import type { FieldDisplayProps, FieldInputProps } from "@yadad/core";
 import type { ReactNode } from "react";
 import { useId } from "react";

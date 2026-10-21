@@ -1,3 +1,5 @@
+"use client";
+
 import type { BoardCard, BoardColumn, BoardProps } from "@yadad/core";
 import type { ReactNode } from "react";
 import type { DragEvent } from "react";

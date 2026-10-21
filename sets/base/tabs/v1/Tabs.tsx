@@ -1,3 +1,5 @@
+"use client";
+
 import type { TabsProps } from "@yadad/core";
 import { useId } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
