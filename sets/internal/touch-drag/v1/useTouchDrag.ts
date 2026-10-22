@@ -26,6 +26,12 @@ export interface TouchDragOptions<T> {
   readonly onDrop: (target: T) => void;
   /** The element to auto-scroll sideways near its edges. Evaluated when the drag starts. */
   readonly scroller?: (source: HTMLElement) => HTMLElement | null;
+  /**
+   * Also scroll vertically near the top and bottom edges: the nearest
+   * vertically scrolling ancestor of the source, else the page. Off by default,
+   * so a view that only has a sideways rail (the board) behaves as before.
+   */
+  readonly autoScrollY?: boolean;
   readonly longPressMs?: number;
   readonly slopPx?: number;
   readonly edgePx?: number;
@@ -36,6 +42,31 @@ export interface TouchDrag {
   readonly onPointerDown: (e: ReactPointerEvent<HTMLElement>) => void;
   /** True from the long-press until release or cancel. */
   readonly dragging: boolean;
+}
+
+/** The nearest ancestor that scrolls vertically, else the page. */
+function scrollParentY(source: HTMLElement): HTMLElement | null {
+  for (let el = source.parentElement; el; el = el.parentElement) {
+    const oy = getComputedStyle(el).overflowY;
+    if ((oy === "auto" || oy === "scroll") && el.scrollHeight > el.clientHeight) return el;
+  }
+  return document.scrollingElement as HTMLElement | null;
+}
+
+/**
+ * After a lifted drag the browser can still deliver a `click` to the source,
+ * which would open the card or entry. Eat exactly one, in the capture phase,
+ * and stop listening on the next tick if none came. A plain tap never lifts,
+ * so it never reaches this.
+ */
+function swallowNextClick(): void {
+  const eat = (ev: Event): void => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    document.removeEventListener("click", eat, true);
+  };
+  document.addEventListener("click", eat, true);
+  setTimeout(() => document.removeEventListener("click", eat, true), 0);
 }
 
 /**
@@ -75,6 +106,7 @@ export function useTouchDrag<T>(options: TouchDragOptions<T>): TouchDrag {
     let frame = 0;
     let rail: HTMLElement | null = null;
     let railSnap = "";
+    let scrollerY: HTMLElement | null = null;
 
     const setHover = (t: T | undefined): void => {
       if (t === hover) return;
@@ -89,13 +121,22 @@ export function useTouchDrag<T>(options: TouchDragOptions<T>): TouchDrag {
       setHover(opts.current.findTarget(x, y));
     };
     const tick = (): void => {
+      const step = TOUCH_DRAG_DEFAULTS.scrollStepPx;
       if (rail) {
         const r = rail.getBoundingClientRect();
-        const step = TOUCH_DRAG_DEFAULTS.scrollStepPx;
         if (x < r.left + edge) rail.scrollLeft -= step;
         else if (x > r.right - edge) rail.scrollLeft += step;
-        update();
       }
+      if (scrollerY) {
+        // The visible part of the scroller: the page is the whole viewport, a container is clipped to it.
+        const isPage = scrollerY === document.scrollingElement;
+        const r = isPage ? undefined : scrollerY.getBoundingClientRect();
+        const top = r ? Math.max(r.top, 0) : 0;
+        const bottom = r ? Math.min(r.bottom, window.innerHeight) : window.innerHeight;
+        if (y < top + edge) scrollerY.scrollTop -= step;
+        else if (y > bottom - edge) scrollerY.scrollTop += step;
+      }
+      if (rail || scrollerY) update();
       frame = requestAnimationFrame(tick);
     };
     const blockScroll = (ev: Event): void => {
@@ -125,6 +166,7 @@ export function useTouchDrag<T>(options: TouchDragOptions<T>): TouchDrag {
         railSnap = rail.style.scrollSnapType;
         rail.style.scrollSnapType = "none";
       }
+      if (o.autoScrollY) scrollerY = scrollParentY(source);
       setDragging(true);
       // Haptic tick where supported; never required.
       try {
@@ -151,6 +193,7 @@ export function useTouchDrag<T>(options: TouchDragOptions<T>): TouchDrag {
       setTimeout(() => document.removeEventListener("contextmenu", suppress), 0);
       cleanup.current = undefined;
       if (!lifted) return;
+      swallowNextClick();
       ghost?.remove();
       if (rail) rail.style.scrollSnapType = railSnap;
       setHover(undefined);

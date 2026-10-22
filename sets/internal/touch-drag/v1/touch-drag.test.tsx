@@ -28,16 +28,17 @@ const onDrop = vi.fn();
 const onHover = vi.fn();
 let hit: string | undefined;
 
-function Source({ enabled = true }: { enabled?: boolean }): ReactNode {
+function Source({ enabled = true, autoScrollY = false, onClick }: { enabled?: boolean; autoScrollY?: boolean; onClick?: () => void }): ReactNode {
   const { onPointerDown, dragging } = useTouchDrag<string>({
     enabled,
     findTarget: () => hit,
     onHover,
     onDrop,
+    autoScrollY,
   });
   return (
     <div data-yadad="x">
-      <p data-testid="src" data-dragging={dragging} onPointerDown={onPointerDown}>
+      <p data-testid="src" data-dragging={dragging} onPointerDown={onPointerDown} onClick={onClick}>
         card
       </p>
     </div>
@@ -59,8 +60,8 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const setup = (enabled = true) => {
-  const view = render(<Source enabled={enabled} />);
+const setup = (enabled = true, extra: { autoScrollY?: boolean; onClick?: () => void } = {}) => {
+  const view = render(<Source enabled={enabled} {...extra} />);
   return { ...view, src: view.getByTestId("src") };
 };
 
@@ -158,5 +159,118 @@ describe("useTouchDrag", () => {
     expect(document.querySelector('[data-touch-ghost="true"]')).toBeNull();
     pointer(document, "pointerup");
     expect(onDrop).not.toHaveBeenCalled();
+  });
+
+  describe("vertical auto-scroll", () => {
+    let frames: FrameRequestCallback[] = [];
+    const runFrame = (): void => {
+      const f = frames;
+      frames = [];
+      act(() => f.forEach((cb) => cb(0)));
+    };
+    beforeEach(() => {
+      frames = [];
+      vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => frames.push(cb));
+      vi.stubGlobal("innerHeight", 800);
+      Object.defineProperty(document, "scrollingElement", { configurable: true, value: document.documentElement });
+      document.documentElement.scrollTop = 100;
+    });
+    afterEach(() => {
+      document.documentElement.scrollTop = 0;
+    });
+
+    const lift = (autoScrollY: boolean, y: number) => {
+      const view = setup(true, { autoScrollY });
+      pointer(view.src, "pointerdown", { clientX: 10, clientY: y });
+      act(() => void vi.advanceTimersByTime(350));
+      return view;
+    };
+
+    it("scrolls the page up near the top edge and down near the bottom edge", () => {
+      lift(true, 10);
+      runFrame();
+      expect(document.documentElement.scrollTop).toBe(92);
+      pointer(document, "pointermove", { clientX: 10, clientY: 790 });
+      runFrame();
+      expect(document.documentElement.scrollTop).toBe(100);
+      pointer(document, "pointermove", { clientX: 10, clientY: 400 });
+      runFrame();
+      expect(document.documentElement.scrollTop).toBe(100);
+    });
+
+    it("leaves the page alone unless autoScrollY is set", () => {
+      lift(false, 10);
+      runFrame();
+      expect(document.documentElement.scrollTop).toBe(100);
+    });
+
+    it("scrolls the nearest vertically scrolling container instead of the page", () => {
+      const view = render(
+        <div data-testid="box" style={{ overflowY: "auto" }}>
+          <Source autoScrollY />
+        </div>,
+      );
+      const box = view.getByTestId("box");
+      Object.defineProperty(box, "scrollHeight", { configurable: true, value: 900 });
+      Object.defineProperty(box, "clientHeight", { configurable: true, value: 300 });
+      box.getBoundingClientRect = () => ({ top: 100, bottom: 400, left: 0, right: 300, width: 300, height: 300, x: 0, y: 100, toJSON: () => ({}) });
+      box.scrollTop = 50;
+      const src = view.getAllByTestId("src").at(-1) as HTMLElement;
+      pointer(src, "pointerdown", { clientX: 10, clientY: 390 });
+      act(() => void vi.advanceTimersByTime(350));
+      runFrame();
+      expect(box.scrollTop).toBe(58);
+      expect(document.documentElement.scrollTop).toBe(100);
+    });
+  });
+
+  describe("click after a lifted drag", () => {
+    it("swallows exactly one click after a drop, then lets clicks through", () => {
+      const onClick = vi.fn();
+      const { src } = setup(true, { onClick });
+      pointer(src, "pointerdown", { clientX: 10, clientY: 10 });
+      act(() => void vi.advanceTimersByTime(350));
+      pointer(document, "pointerup", { clientX: 50, clientY: 50 });
+      fireEvent.click(src);
+      expect(onClick).not.toHaveBeenCalled();
+      fireEvent.click(src);
+      expect(onClick).toHaveBeenCalledTimes(1);
+    });
+
+    it("also swallows after a cancel and after a release over no target", () => {
+      const onClick = vi.fn();
+      const { src } = setup(true, { onClick });
+      pointer(src, "pointerdown", { clientX: 10, clientY: 10 });
+      act(() => void vi.advanceTimersByTime(350));
+      pointer(document, "pointercancel");
+      fireEvent.click(src);
+      hit = undefined;
+      pointer(src, "pointerdown", { clientX: 10, clientY: 10 });
+      act(() => void vi.advanceTimersByTime(350));
+      pointer(document, "pointerup", { clientX: 10, clientY: 10 });
+      fireEvent.click(src);
+      expect(onClick).not.toHaveBeenCalled();
+    });
+
+    it("stops listening on the next tick when no click came", () => {
+      const onClick = vi.fn();
+      const { src } = setup(true, { onClick });
+      pointer(src, "pointerdown", { clientX: 10, clientY: 10 });
+      act(() => void vi.advanceTimersByTime(350));
+      pointer(document, "pointerup", { clientX: 50, clientY: 50 });
+      act(() => void vi.advanceTimersByTime(1));
+      fireEvent.click(src);
+      expect(onClick).toHaveBeenCalledTimes(1);
+    });
+
+    it("never swallows the click of a plain tap that did not lift", () => {
+      const onClick = vi.fn();
+      const { src } = setup(true, { onClick });
+      pointer(src, "pointerdown", { clientX: 10, clientY: 10 });
+      act(() => void vi.advanceTimersByTime(100));
+      pointer(document, "pointerup", { clientX: 10, clientY: 10 });
+      fireEvent.click(src);
+      expect(onClick).toHaveBeenCalledTimes(1);
+    });
   });
 });
