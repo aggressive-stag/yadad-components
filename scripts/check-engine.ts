@@ -187,6 +187,15 @@ async function installProof(registry: string, newestCore: string, newestTesting:
       if (deps["@yadad/core"]) deps["@yadad/core"] = `^${newestCore}`;
       if (deps["@yadad/testing"]) deps["@yadad/testing"] = `^${newestTesting}`;
       if (deps["@yadad/theme"]) deps["@yadad/theme"] = `^${newestTheme}`;
+      // Any other linked engine package (e.g. @yadad/renderer, which the
+      // action-scenario tests render with) must come from the registry too,
+      // or the temp copy cannot resolve it and the gate fails for a reason
+      // that says nothing about compatibility.
+      for (const [name, spec] of Object.entries(deps)) {
+        if (name.startsWith("@yadad/") && spec.startsWith("link:")) {
+          deps[name] = `^${newest(npmVersions(name, registry), name)}`;
+        }
+      }
       // The `prepare` script runs `git config core.hooksPath .githooks`. In a
       // throwaway temp copy that is not a git repo, git config would target the
       // GLOBAL config and hijack hooks for every other repo, so neutralize it.
@@ -203,7 +212,7 @@ async function installProof(registry: string, newestCore: string, newestTesting:
       path.join(dir, ".npmrc"),
       `@yadad:registry=${registry.replace(/\/$/, "")}\n`,
     );
-    console.log(`  devDependencies now: @yadad/core@^${newestCore}, @yadad/testing@^${newestTesting} (published, not link:)`);
+    console.log(`  devDependencies now: @yadad/core@^${newestCore}, @yadad/testing@^${newestTesting} and every other @yadad/* at its newest (published, not link:)`);
 
     const install = spawnSync("pnpm", ["install", "--no-frozen-lockfile"], { cwd: dir, stdio: "inherit" });
     if (install.status !== 0) return { pass: false, note: "pnpm install failed against the published engine" };
