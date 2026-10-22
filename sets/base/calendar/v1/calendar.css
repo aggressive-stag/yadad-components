@@ -192,6 +192,26 @@
     cursor: grab;
   }
 
+  :where([data-yadad="calendar"]) :where([data-part="entry"][data-dragging="true"]) {
+    opacity: 0.5;
+  }
+
+  /* Touch: a finger drag starts after a long-press, so a movable entry must not select text or pop the OS callout
+     meanwhile. Scrolling stays native (touch-action is left alone). */
+  :where([data-yadad="calendar"]) :where([data-part="entry"][draggable="true"]) {
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+
+  /* The lifted copy that follows the finger (aria-hidden, no pointer events, positioned by the drag helper). No animation: nothing to reduce. */
+  :where([data-yadad="calendar"]) :where([data-part="entry"][data-touch-ghost="true"]) {
+    box-shadow: var(--yadad-shadow-md, var(--yadad-shadow-sm, none));
+    background: var(--yadad-color-surface);
+    opacity: 0.95;
+    cursor: grabbing;
+    list-style: none;
+  }
+
   /* Today: colour alone is too subtle (card 11 issue 6) — a ring plus a
      visible "Today" word badge, not colour alone. */
   :where([data-yadad="calendar"]) :where([data-part="day"][data-today="true"]) {

@@ -4,6 +4,7 @@ import type { CalendarDayProps, CalendarEntry, CalendarMode, CalendarProps } fro
 import type { KeyboardEvent, ReactNode } from "react";
 import { useEffect, useId, useRef, useState } from "react";
 import { Menu } from "../../../internal/menu/v1/index.js";
+import { useTouchDrag } from "../../../internal/touch-drag/v1/index.js";
 
 /** How many entries show before a day collapses the rest behind "+N more" (card 11 issue 3: unbounded growth). */
 const MAX_VISIBLE_ENTRIES = 3;
@@ -169,20 +170,39 @@ function EntryActions({ entry, strings }: { entry: CalendarEntry<ReactNode>; str
   );
 }
 
+/** The date of the day cell under a point, other than the entry's own; undefined elsewhere. */
+function dayUnder(x: number, y: number, ownDay: string): string | undefined {
+  const date = document.elementFromPoint(x, y)?.closest('[data-part="day"]')?.getAttribute("data-date");
+  return date && date !== ownDay ? date : undefined;
+}
+
 function EntryView({
   entry,
   day,
   onOpenEntry,
   onMove,
+  onTouchOver,
   strings,
 }: {
   entry: CalendarEntry<ReactNode>;
   day: string;
   onOpenEntry?: (id: string) => void;
   onMove?: (id: string, date: string) => void;
+  onTouchOver: (date: string | undefined) => void;
   strings: CalendarStrings;
 }): ReactNode {
   const draggable = entry.movable && !!onMove;
+  // Touch pointers can't start an HTML5 drag, so a long-press lifts the entry and a finger drag moves it (card 16d).
+  // The drop calls the same `onMove` as the mouse drop; the entry's own day is not a target. The agenda layout
+  // stacks days vertically, so the page scrolls near the top and bottom edges.
+  const touchPointer = useRef(false);
+  const touch = useTouchDrag<string>({
+    enabled: draggable,
+    findTarget: (x, y) => dayUnder(x, y, day),
+    onHover: onTouchOver,
+    onDrop: (date) => onMove?.(entry.id, date),
+    autoScrollY: true,
+  });
   const content = (
     <>
       {entry.color ? <span data-part="entry-color" data-slot={entry.color.slot} aria-hidden="true" /> : null}
@@ -194,10 +214,24 @@ function EntryView({
       data-part="entry"
       data-pending={entry.pending}
       data-movable={entry.movable}
+      data-dragging={touch.dragging ? "true" : undefined}
       draggable={draggable}
+      onPointerDown={
+        draggable
+          ? (e) => {
+              touchPointer.current = e.pointerType === "touch";
+              touch.onPointerDown(e);
+            }
+          : undefined
+      }
       onDragStart={
         draggable
           ? (e) => {
+              // A touch long-press must not also begin the native drag; the pointer drag owns it.
+              if (touchPointer.current) {
+                e.preventDefault();
+                return;
+              }
               e.dataTransfer.setData("text/plain", entry.id);
               e.dataTransfer.effectAllowed = "move";
             }
@@ -229,6 +263,7 @@ function DayCell({
   onDragEnter,
   onDragLeave,
   onDrop,
+  onTouchOver,
   strings,
 }: {
   day: CalendarDayProps<ReactNode>;
@@ -242,6 +277,7 @@ function DayCell({
   onDragEnter?: (date: string) => void;
   onDragLeave?: (date: string) => void;
   onDrop?: (date: string, entryId: string) => void;
+  onTouchOver: (date: string | undefined) => void;
   strings: CalendarStrings;
 }): ReactNode {
   const [expanded, setExpanded] = useState(false);
@@ -258,6 +294,7 @@ function DayCell({
       onKeyDown={(e) => onCellKeyDown(day.date, e)}
       onFocus={() => onCellFocus(day.date)}
       data-part="day"
+      data-date={day.date}
       data-in-month={day.inMonth}
       data-today={day.isToday}
       data-drag-over={canDrop && dragOver ? "true" : undefined}
@@ -282,7 +319,7 @@ function DayCell({
       </div>
       <ul data-part="entries" aria-label={(strings.entriesAriaLabel ?? ((label: string) => `Entries for ${label}`))(day.label)}>
         {visible.map((entry) => (
-          <EntryView key={entry.id} entry={entry} day={day.date} strings={strings} {...(onOpenEntry ? { onOpenEntry } : {})} {...(onMove ? { onMove } : {})} />
+          <EntryView key={entry.id} entry={entry} day={day.date} strings={strings} onTouchOver={onTouchOver} {...(onOpenEntry ? { onOpenEntry } : {})} {...(onMove ? { onMove } : {})} />
         ))}
       </ul>
       {hidden > 0 ? (
@@ -360,6 +397,7 @@ export function Calendar({
   const [dragOverDate, setDragOverDate] = useState<string | null>(null);
   const onDragEnter = (date: string): void => setDragOverDate(date);
   const onDragLeave = (date: string): void => setDragOverDate((cur) => (cur === date ? null : cur));
+  const onTouchOver = (date: string | undefined): void => setDragOverDate(date ?? null);
   const onDrop = (date: string, entryId: string): void => {
     setDragOverDate(null);
     onMove?.(entryId, date);
@@ -486,6 +524,7 @@ export function Calendar({
                 onDragEnter={onDragEnter}
                 onDragLeave={onDragLeave}
                 onDrop={onDrop}
+                onTouchOver={onTouchOver}
                 strings={strings}
                 {...(onOpenEntry ? { onOpenEntry } : {})}
                 {...(onMove ? { onMove } : {})}

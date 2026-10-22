@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
-import type { CalendarEntry, RecordActionItem } from "@yadad/core";
-import { cleanup, fireEvent, render } from "@testing-library/react";
+import type { CalendarDayProps, CalendarEntry, RecordActionItem } from "@yadad/core";
+import { act, cleanup, createEvent, fireEvent, render } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CALENDAR_TODAY, calendarWeekdays } from "../gallery/src/fixtures.js";
 import { Calendar } from "../sets/base/calendar/v1/Calendar.js";
 
@@ -135,5 +135,160 @@ describe("record actions on calendar entries (RFC 0007)", () => {
     const { q } = entryWithActions([action()], { movable: false });
     expect(q('[data-part="action"]')).not.toBeNull();
     expect(q('[data-part="move-trigger"]')).toBeNull();
+  });
+});
+
+describe("calendar touch drag", () => {
+  class FakePointerEvent extends MouseEvent {
+    pointerType: string;
+    pointerId = 1;
+    isPrimary = true;
+    constructor(type: string, init: PointerEventInit = {}) {
+      super(type, { bubbles: true, cancelable: true, ...init });
+      this.pointerType = init.pointerType ?? "mouse";
+    }
+  }
+  const fire = (target: Element | Document, type: string, pointerType = "touch", init: PointerEventInit = {}): void => {
+    act(() => void target.dispatchEvent(new FakePointerEvent(type, { pointerType, ...init })));
+  };
+  let under: Element | null = null;
+  let frames: FrameRequestCallback[] = [];
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    frames = [];
+    vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => frames.push(cb));
+    vi.stubGlobal("cancelAnimationFrame", () => {});
+    vi.stubGlobal("innerHeight", 800);
+    Object.defineProperty(document, "scrollingElement", { configurable: true, value: document.documentElement });
+    document.elementFromPoint = () => under;
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    document.documentElement.scrollTop = 0;
+    under = null;
+  });
+
+  const days = (movable: boolean): CalendarDayProps<ReactNode>[] =>
+    ["2026-10-16", "2026-10-17", "2026-10-18", "2026-10-19"].map((date, i) => ({
+      date,
+      dayOfMonth: 16 + i,
+      weekday: 5 + i,
+      label: `Day ${date}`,
+      inMonth: true,
+      isToday: i === 0,
+      entries: i === 0 ? [{ id: "e1", label: "Bench press", content: <span>Bench press</span>, movable, pending: false }] : [],
+    }));
+  function setup(onMove: ((id: string, date: string) => void) | undefined, movable = true, onOpenEntry?: (id: string) => void) {
+    const view = render(
+      <Calendar
+        label="Training"
+        title="October 2026"
+        mode="week"
+        modes={[{ mode: "week", label: "Week" }]}
+        weekdays={calendarWeekdays}
+        days={days(movable)}
+        legend={[]}
+        loading={false}
+        onModeChange={() => {}}
+        onPrevious={() => {}}
+        onNext={() => {}}
+        onToday={() => {}}
+        {...(onMove ? { onMove } : {})}
+        {...(onOpenEntry ? { onOpenEntry } : {})}
+      />,
+    );
+    const q = (sel: string): HTMLElement => view.container.querySelector(sel) as HTMLElement;
+    return { ...view, q, day: (d: string) => q(`[data-part="day"][data-date="${d}"]`) };
+  }
+
+  it("long-press, move and release over another day calls onMove once", () => {
+    const onMove = vi.fn();
+    const { q, day } = setup(onMove);
+    under = day("2026-10-19");
+    fire(q('[data-part="entry"]'), "pointerdown", "touch", { clientX: 5, clientY: 5 });
+    act(() => void vi.advanceTimersByTime(350));
+    expect(q('[data-part="entry"]').getAttribute("data-dragging")).toBe("true");
+    fire(document, "pointermove", "touch", { clientX: 200, clientY: 5 });
+    expect(day("2026-10-19").getAttribute("data-drag-over")).toBe("true");
+    fire(document, "pointerup", "touch", { clientX: 200, clientY: 5 });
+    expect(onMove).toHaveBeenCalledTimes(1);
+    expect(onMove).toHaveBeenCalledWith("e1", "2026-10-19");
+    expect(day("2026-10-19").getAttribute("data-drag-over")).toBeNull();
+  });
+
+  it("scrolls the page near the bottom edge so a day off-screen can be reached (agenda layout)", () => {
+    const onMove = vi.fn();
+    const { q, day } = setup(onMove);
+    under = day("2026-10-18");
+    fire(q('[data-part="entry"]'), "pointerdown", "touch", { clientX: 5, clientY: 790 });
+    act(() => void vi.advanceTimersByTime(350));
+    const before = document.documentElement.scrollTop;
+    act(() => frames.splice(0).forEach((cb) => cb(0)));
+    expect(document.documentElement.scrollTop).toBeGreaterThan(before);
+    fire(document, "pointerup", "touch", { clientX: 5, clientY: 790 });
+    expect(onMove).toHaveBeenCalledWith("e1", "2026-10-18");
+  });
+
+  it("never calls onMove for a swipe, a cancel, the own day, a mouse, a locked entry or no onMove", () => {
+    const onMove = vi.fn();
+    const { q, day } = setup(onMove);
+    const src = q('[data-part="entry"]');
+    under = day("2026-10-19");
+    fire(src, "pointerdown", "touch", { clientX: 5, clientY: 5 });
+    fire(document, "pointermove", "touch", { clientX: 60, clientY: 5 });
+    act(() => void vi.advanceTimersByTime(500));
+    fire(document, "pointerup");
+    fire(src, "pointerdown");
+    act(() => void vi.advanceTimersByTime(350));
+    fire(document, "pointercancel");
+    under = day("2026-10-16");
+    fire(src, "pointerdown");
+    act(() => void vi.advanceTimersByTime(350));
+    fire(document, "pointerup");
+    under = day("2026-10-19");
+    fire(src, "pointerdown", "mouse");
+    act(() => void vi.advanceTimersByTime(1000));
+    fire(document, "pointerup", "mouse");
+    cleanup();
+    const locked = setup(onMove, false);
+    under = locked.day("2026-10-19");
+    fire(locked.q('[data-part="entry"]'), "pointerdown");
+    act(() => void vi.advanceTimersByTime(1000));
+    fire(document, "pointerup");
+    cleanup();
+    const noMove = setup(undefined);
+    under = noMove.day("2026-10-19");
+    fire(noMove.q('[data-part="entry"]'), "pointerdown");
+    act(() => void vi.advanceTimersByTime(1000));
+    fire(document, "pointerup");
+    expect(onMove).not.toHaveBeenCalled();
+  });
+
+  it("does not open the entry from the click that follows a drag, but opens it on a plain tap", () => {
+    const onOpen = vi.fn();
+    const { q, day } = setup(vi.fn(), true, onOpen);
+    const open = q('[data-part="entry-open"]');
+    under = day("2026-10-19");
+    fire(q('[data-part="entry"]'), "pointerdown", "touch", { clientX: 5, clientY: 5 });
+    act(() => void vi.advanceTimersByTime(350));
+    fire(document, "pointerup", "touch", { clientX: 5, clientY: 5 });
+    fireEvent.click(open);
+    expect(onOpen).not.toHaveBeenCalled();
+    act(() => void vi.advanceTimersByTime(1));
+    fire(q('[data-part="entry"]'), "pointerdown", "touch", { clientX: 5, clientY: 5 });
+    act(() => void vi.advanceTimersByTime(100));
+    fire(document, "pointerup", "touch", { clientX: 5, clientY: 5 });
+    fireEvent.click(open);
+    expect(onOpen).toHaveBeenCalledTimes(1);
+  });
+
+  it("stops the browser's own drag after a touch press", () => {
+    const { q } = setup(vi.fn());
+    fire(q('[data-part="entry"]'), "pointerdown");
+    const e = createEvent.dragStart(q('[data-part="entry"]'), { dataTransfer: { setData() {}, getData: () => "", effectAllowed: "" } });
+    fireEvent(q('[data-part="entry"]'), e);
+    expect(e.defaultPrevented).toBe(true);
   });
 });
