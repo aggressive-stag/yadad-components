@@ -328,6 +328,21 @@
     opacity: 0.5;
   }
 
+  /* Touch: a finger drag starts after a long-press, so the card must not select text or pop the OS callout meanwhile.
+     Scrolling and swiping stay native (touch-action is left alone). */
+  :where([data-yadad="board"]) :where([data-part="card"][draggable="true"]) {
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+
+  /* The lifted copy that follows the finger (aria-hidden, no pointer events, positioned by the drag helper). No animation: nothing to reduce. */
+  :where([data-yadad="board"]) :where([data-part="card"][data-touch-ghost="true"]) {
+    box-shadow: var(--yadad-shadow-md, var(--yadad-shadow-sm, none));
+    background: var(--yadad-color-surface);
+    opacity: 0.95;
+    cursor: grabbing;
+  }
+
   :where([data-yadad="board"]) :where([data-part="column"][data-drag-over="true"]) {
     outline: var(--yadad-focus-ring-width) dashed var(--yadad-board-drop-target, var(--yadad-color-accent));
     outline-offset: calc(var(--yadad-focus-ring-width) * -1);

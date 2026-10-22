@@ -134,7 +134,7 @@ Cards in columns, one column per value of a field, with a group-by picker; colum
 - `--yadad-board-drop-background` — background of the column a dragged card is over; default: token `--yadad-color-background` (page and control background)
 - `--yadad-board-phone-column-max-height` — tallest a column's card list gets before it scrolls on a phone; default: `calc(var(--yadad-space-4) * 24)` (token-derived: `--yadad-space-4`)
 
-**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-md`, `--yadad-space-1`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-md`, `--yadad-shadow-md`, `--yadad-shadow-sm`, `--yadad-space-1`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 
 ### boolean
 

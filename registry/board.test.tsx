@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import type { BoardCard, BoardColumn, RecordActionItem } from "@yadad/core";
-import { cleanup, createEvent, fireEvent, render } from "@testing-library/react";
+import { act, cleanup, createEvent, fireEvent, render } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Board } from "../sets/base/board/v1/Board.js";
 
 afterEach(cleanup);
@@ -176,5 +176,92 @@ describe("record actions on cards (RFC 0007)", () => {
     const { container } = cardWithActions([action()]);
     expect(container.querySelector('[data-card-id="r1"] [data-part="action"]')).not.toBeNull();
     expect(container.querySelector('[data-card-id="r1"] [data-part="move-trigger"]')).toBeNull();
+  });
+});
+
+describe("board touch drag", () => {
+  class FakePointerEvent extends MouseEvent {
+    pointerType: string;
+    pointerId = 1;
+    isPrimary = true;
+    constructor(type: string, init: PointerEventInit = {}) {
+      super(type, { bubbles: true, cancelable: true, ...init });
+      this.pointerType = init.pointerType ?? "mouse";
+    }
+  }
+  const fire = (target: Element | Document, type: string, pointerType = "touch", init: PointerEventInit = {}): void => {
+    act(() => void target.dispatchEvent(new FakePointerEvent(type, { pointerType, ...init })));
+  };
+  let under: Element | null = null;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.stubGlobal("requestAnimationFrame", () => 0);
+    vi.stubGlobal("cancelAnimationFrame", () => {});
+    document.elementFromPoint = () => under;
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    under = null;
+  });
+
+  it("long-press, move and release over another column calls onMove once", () => {
+    const onMove = vi.fn();
+    const { q } = setup(onMove);
+    under = q('[data-column-id="b"] [data-part="cards"]');
+    fire(q('[data-card-id="r1"]'), "pointerdown", "touch", { clientX: 5, clientY: 5 });
+    act(() => void vi.advanceTimersByTime(350));
+    expect(q('[data-card-id="r1"]').getAttribute("data-dragging")).toBe("true");
+    fire(document, "pointermove", "touch", { clientX: 200, clientY: 5 });
+    expect(q('[data-column-id="b"]').getAttribute("data-drag-over")).toBe("true");
+    fire(document, "pointerup", "touch", { clientX: 200, clientY: 5 });
+    expect(onMove).toHaveBeenCalledTimes(1);
+    expect(onMove).toHaveBeenCalledWith("r1", "b");
+    expect(q('[data-column-id="b"]').getAttribute("data-drag-over")).toBeNull();
+  });
+
+  it("never calls onMove for a swipe, a cancel, the own column, a locked column or a mouse", () => {
+    const onMove = vi.fn();
+    const { q } = setup(onMove);
+    const src = q('[data-card-id="r1"]');
+    // swipe: moves past the slop before the press matures
+    under = q('[data-column-id="b"]');
+    fire(src, "pointerdown", "touch", { clientX: 5, clientY: 5 });
+    fire(document, "pointermove", "touch", { clientX: 60, clientY: 5 });
+    act(() => void vi.advanceTimersByTime(500));
+    fire(document, "pointerup");
+    // cancel
+    fire(src, "pointerdown");
+    act(() => void vi.advanceTimersByTime(350));
+    fire(document, "pointercancel");
+    // own column
+    under = q('[data-column-id="a"]');
+    fire(src, "pointerdown");
+    act(() => void vi.advanceTimersByTime(350));
+    fire(document, "pointerup");
+    // locked column
+    under = q('[data-column-id="locked"]');
+    fire(src, "pointerdown");
+    act(() => void vi.advanceTimersByTime(350));
+    fire(document, "pointerup");
+    // mouse
+    under = q('[data-column-id="b"]');
+    fire(src, "pointerdown", "mouse");
+    act(() => void vi.advanceTimersByTime(1000));
+    fire(document, "pointerup", "mouse");
+    // a card that cannot move
+    fire(q('[data-card-id="r2"]'), "pointerdown");
+    act(() => void vi.advanceTimersByTime(1000));
+    fire(document, "pointerup");
+    expect(onMove).not.toHaveBeenCalled();
+  });
+
+  it("stops the browser's own drag after a touch press", () => {
+    const { q } = setup(vi.fn());
+    fire(q('[data-card-id="r1"]'), "pointerdown");
+    const e = createEvent.dragStart(q('[data-card-id="r1"]'), { dataTransfer: transfer() });
+    fireEvent(q('[data-card-id="r1"]'), e);
+    expect(e.defaultPrevented).toBe(true);
   });
 });

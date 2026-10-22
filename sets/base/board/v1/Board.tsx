@@ -2,9 +2,10 @@
 
 import type { BoardCard, BoardColumn, BoardProps } from "@yadad/core";
 import type { ReactNode } from "react";
-import type { DragEvent } from "react";
+import type { DragEvent, PointerEvent as ReactPointerEvent } from "react";
 import { useEffect, useId, useRef, useState } from "react";
 import { Menu } from "../../../internal/menu/v1/index.js";
+import { useTouchDrag } from "../../../internal/touch-drag/v1/index.js";
 import { Skeleton } from "../../../internal/skeleton/v1/index.js";
 
 /** Drag payload type: the card id. Also set as text/plain so other drop targets and tests can read it. */
@@ -196,6 +197,19 @@ function CardActions({ card, strings }: { card: BoardCard<ReactNode>; strings: B
   );
 }
 
+/** The id of the droppable column under a point, other than the card's own; undefined elsewhere. */
+function columnUnder(x: number, y: number, ownColumn: string): string | undefined {
+  const el = document.elementFromPoint(x, y)?.closest('[data-part="column"]');
+  const id = el?.getAttribute("data-column-id");
+  if (!el || !id || id === ownColumn || el.getAttribute("data-droppable") !== "true") return undefined;
+  return id;
+}
+
+/** The sideways-scrolling row of columns a card sits in. */
+function columnRail(source: HTMLElement): HTMLElement | null {
+  return source.closest<HTMLElement>('[data-part="columns"]');
+}
+
 /**
  * One card. A card with `onOpenCard` is a button (click or Enter opens it);
  * without it the card is plain content. A movable card is a drag source and
@@ -208,6 +222,7 @@ function CardView({
   onOpenCard,
   onMove,
   onMoved,
+  onTouchOver,
   strings,
 }: {
   card: BoardCard<ReactNode>;
@@ -216,22 +231,42 @@ function CardView({
   onOpenCard?: (id: string) => void;
   onMove?: (id: string, columnId: string) => void;
   onMoved: (id: string) => void;
+  onTouchOver: (columnId: string | undefined) => void;
   strings: BoardStrings;
 }): ReactNode {
   const [dragging, setDragging] = useState(false);
   // Only a card the renderer lets move is a drag source: no `onMove` or `movable: false` means no drag at all.
   const canMove = onMove !== undefined && card.movable;
+  // Touch pointers can't start an HTML5 drag, so a long-press lifts the card and a finger drag moves it (card 16c).
+  // The drop calls the same `onMove` as the mouse drop; the card's own column and locked columns are not targets.
+  const touchPointer = useRef(false);
+  const touch = useTouchDrag<string>({
+    enabled: canMove,
+    findTarget: (x, y) => columnUnder(x, y, columnId),
+    onHover: onTouchOver,
+    onDrop: (target) => onMove?.(card.id, target),
+    scroller: columnRail,
+  });
   return (
     <li
       data-part="card"
       data-card-id={card.id}
       data-pending={card.pending}
       data-movable={card.movable}
-      data-dragging={dragging ? "true" : undefined}
+      data-dragging={dragging || touch.dragging ? "true" : undefined}
       {...(canMove
         ? {
             draggable: true,
+            onPointerDown: (e: ReactPointerEvent<HTMLLIElement>) => {
+              touchPointer.current = e.pointerType === "touch";
+              touch.onPointerDown(e);
+            },
             onDragStart: (e: DragEvent<HTMLLIElement>) => {
+              // A touch long-press must not also begin the native drag; the pointer drag owns it.
+              if (touchPointer.current) {
+                e.preventDefault();
+                return;
+              }
               e.dataTransfer.setData(DRAG_TYPE, card.id);
               e.dataTransfer.setData("text/plain", card.id);
               e.dataTransfer.effectAllowed = "move";
@@ -266,6 +301,8 @@ function ColumnView({
   loading,
   columns,
   scrollFocusable,
+  touchOver,
+  onTouchOver,
   onOpenCard,
   onMove,
   onMoved,
@@ -275,6 +312,8 @@ function ColumnView({
   loading: boolean;
   columns: readonly BoardColumn<ReactNode>[];
   scrollFocusable: boolean;
+  touchOver: boolean;
+  onTouchOver: (columnId: string | undefined) => void;
   onOpenCard?: (id: string) => void;
   onMove?: (id: string, columnId: string) => void;
   onMoved: (id: string) => void;
@@ -290,7 +329,7 @@ function ColumnView({
       data-part="column"
       data-column-id={column.id}
       data-droppable={column.droppable}
-      data-drag-over={over ? "true" : undefined}
+      data-drag-over={over || touchOver ? "true" : undefined}
       aria-label={`${column.label}, ${(strings.columnCountLabel ?? ((count: number) => `${count} ${count === 1 ? "card" : "cards"}`))(column.count)}`}
       {...(dropTarget
         ? {
@@ -352,6 +391,7 @@ function ColumnView({
               columnId={column.id}
               columns={columns}
               onMoved={onMoved}
+              onTouchOver={onTouchOver}
               strings={strings}
               {...(onOpenCard ? { onOpenCard } : {})}
               {...(onMove ? { onMove } : {})}
@@ -374,6 +414,8 @@ function ColumnView({
  */
 export function Board({ label, groupChoices, groupField, columns, loading, notice, announcement, onGroupBy, onOpenCard, onMove, strings = {} }: BoardProps<ReactNode> & { strings?: BoardStrings }): ReactNode {
   const groupId = useId();
+  // The column a finger-drag is currently over; mouse drags keep their own state per column.
+  const [touchOver, setTouchOver] = useState<string | undefined>(undefined);
   // A scroll container must be reachable by keyboard. Open-card buttons already are; without them the lists take the tab stop.
   const scrollFocusable = onOpenCard === undefined && onMove === undefined;
   // A moved card is rebuilt in its new column, so its "Move to…" trigger is focused again when focus was lost.
@@ -429,6 +471,8 @@ export function Board({ label, groupChoices, groupField, columns, loading, notic
             loading={loading}
             columns={columns}
             scrollFocusable={scrollFocusable}
+            touchOver={touchOver === column.id}
+            onTouchOver={setTouchOver}
             onMoved={(id) => (movedCard.current = id)}
             strings={strings}
             {...(onOpenCard ? { onOpenCard } : {})}
