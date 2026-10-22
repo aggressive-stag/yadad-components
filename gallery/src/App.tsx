@@ -23,6 +23,7 @@ import {
   invalidError,
   monthGridDates,
   monthTitle,
+  manyReferenceOptions,
   referenceOptions,
   requiredError,
   samples,
@@ -187,6 +188,8 @@ function Field<K extends FieldType>({
   const sample = samples[type];
   const { field } = sample;
   const entry = baseRegistry.fields[type];
+  // A reference picker keeps its picked value so typing and picking can be tried by hand; every other state is static.
+  const [picked, setPicked] = useState(value);
   // The datetime entry is optional until the reference set ships it (RFC 0007); the
   // gallery only renders types it has wired, so this is an invariant, not a state.
   if (entry === undefined) return <p>not wired: {type}</p>;
@@ -201,8 +204,8 @@ function Field<K extends FieldType>({
           {
             inputId,
             field,
-            value,
-            onChange: () => {},
+            value: type === "reference" ? picked : value,
+            onChange: type === "reference" ? (v: FieldValueTypes[K] | undefined) => setPicked(v) : () => {},
             invalid: errors !== undefined && errors.length > 0,
             ...(errors && errors.length > 0 ? { describedBy: errorId } : {}),
           },
@@ -263,6 +266,8 @@ function ReferenceStates(): ReactNode {
       {state("reference-no-options", "no records to choose from", <Field type="reference" value={undefined} idPrefix="g-reference-none" extras={{ options: { status: "ready", options: [], more: false } }} />)}
       {state("reference-more", "more records than listed", <Field type="reference" value={value} idPrefix="g-reference-more" extras={{ options: { status: "ready", options: referenceOptions, more: true } }} />)}
       {state("reference-outside-options", "value not among the options (shows its label)", <Field type="reference" value="e99" idPrefix="g-reference-outside" extras={{ options: { status: "ready", options: referenceOptions, more: true }, valueLabel: "Zercher squat" }} />)}
+      {state("reference-combobox", "40 records: type to filter, one picked", <Field type="reference" value="e2" idPrefix="g-reference-combobox" extras={{ options: { status: "ready", options: manyReferenceOptions, more: false } }} />)}
+      {state("reference-combobox-more", "40 records, more than listed", <Field type="reference" value="e99" idPrefix="g-reference-combobox-more" extras={{ options: { status: "ready", options: manyReferenceOptions, more: true }, valueLabel: "Zercher squat" }} />)}
       {state("reference-display-loading", "display: label loading (raw id)", <Display field={field} value="e99" label="e99" status="loading" />)}
       {state("reference-display-missing", "display: record deleted", <Display field={field} value="e99" label="Unknown" status="missing" />)}
       {state("reference-display-long", "display: long label", <Display field={field} value="e4" label={referenceOptions[3]?.label ?? ""} status="found" />)}

@@ -28,6 +28,17 @@ export const referenceOptions = [
   { id: "e4", label: "Overhead press, strict, from the rack, with a pause at the bottom of every repetition" },
 ];
 
+/** 40 records (enough for the type-to-filter combobox): lifts with accents and shared words, so filtering shows. */
+export const manyReferenceOptions = [
+  ...referenceOptions,
+  ...[
+    "Front squat", "Hack squat", "Goblet squat", "Split squat", "Incline bench press", "Close-grip bench press", "Dumbbell bench press",
+    "Romanian deadlift", "Sumo deadlift", "Trap bar deadlift", "Barbell row", "Pendlay row", "Seated cable row", "Pull-up", "Chin-up",
+    "Lat pulldown", "Dip", "Push-up", "Dumbbell shoulder press", "Lateral raise", "Face pull", "Biceps curl", "Hammer curl", "Triceps pushdown",
+    "Skull crusher", "Leg press", "Leg curl", "Leg extension", "Calf raise", "Hip thrust", "Plank", "Crème brûlée carry", "Farmer's carry", "Kettlebell swing",
+  ].map((label, i) => ({ id: `m${i + 1}`, label })),
+];
+
 export type FieldSamples = { readonly [K in FieldType]: FieldSample<K> };
 
 /**

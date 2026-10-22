@@ -508,12 +508,15 @@ A titled or untitled content surface with a scrollable body.
 
 ### reference
 
-A link to a record of another entity, rendered as a native picker styled by the select component (its `--yadad-select-*` variables apply).
+A link to a record of another entity, rendered as a native picker with fewer than 8 records and as a type-to-filter combobox from 8 on, both styled by the select component (its `--yadad-select-*` variables apply).
 
 **`data-part` names** (marked parts carry the component marker and take `[data-yadad="<component>"][data-part="<name>"]`; nested parts are inside the component root and take the descendant form `[data-yadad="<component>"] [data-part="<name>"]` — the compound form on a nested part matches nothing):
 
-- `input` — the picker `<select>`; it carries `data-yadad="select"`, so style it with the select component's variables and selector, not this component's (target with `[data-yadad="reference"][data-part="input"]`)
 - `status` — the status line under the picker (loading, error, empty, cut short) (target with `[data-yadad="reference"][data-part="status"]`)
+- `combobox` — wrapper of the type-to-filter input and its popup (8 or more records) (target with `[data-yadad="reference"][data-part="combobox"]`)
+- `input` — the picker `<select>`; it carries `data-yadad="select"`, so style it with the select component's variables and selector, not this component's (target with `[data-yadad="reference"][data-part="input"]`)
+- `listbox` — the combobox popup `<ul role="listbox">` (target with `[data-yadad="reference"][data-part="listbox"]`)
+- `option` — one `<li role="option">` in the popup (`data-active` = the keyboard-highlighted one, `data-state="empty"` = the No matches row) (target with `[data-yadad="reference"][data-part="option"]`)
 - `display` — read-only label of the referenced record (target with `[data-yadad="reference"][data-part="display"]`)
 
 **Per-component variables** (set on the component or an ancestor; the default is shown):
@@ -524,8 +527,22 @@ A link to a record of another entity, rendered as a native picker styled by the 
 - `--yadad-reference-status-color` — status line color; default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
 - `--yadad-reference-status-color-error` — status line color when options failed to load; default: token `--yadad-color-danger` (error / danger text and borders)
 - `--yadad-reference-missing-color` — label color when the record is missing or could not be looked up; default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
+- `--yadad-reference-listbox-z` — stacking order of the combobox popup; default: `1`
+- `--yadad-reference-listbox-gap` — space between the input and the popup; default: token `--yadad-space-1` (spacing scale, step 1 (tightest))
+- `--yadad-reference-listbox-max-height` — tallest the popup grows before it scrolls; default: `calc(var(--yadad-space-4) * 16)` (token-derived: `--yadad-space-4`)
+- `--yadad-reference-option-font-size` — option font size; default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
+- `--yadad-reference-option-color` — option text color; default: token `--yadad-color-text` (main text color)
+- `--yadad-reference-listbox-background` — popup background; default: token `--yadad-color-background` (page and control background)
+- `--yadad-reference-listbox-border-width` — popup border width; default: `1px`
+- `--yadad-reference-listbox-border` — popup border color; default: token `--yadad-color-border` (borders and dividers)
+- `--yadad-reference-listbox-radius` — popup corner radius; default: token `--yadad-radius-sm` (small corner radius (inputs, buttons, chips))
+- `--yadad-reference-option-tap` — minimum option height, the tap target on a phone; default: `calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))` (token-derived: `--yadad-space-3`, `--yadad-space-4`)
+- `--yadad-reference-option-padding` — option padding; default: `var(--yadad-space-2) var(--yadad-space-3)` (token-derived: `--yadad-space-2`, `--yadad-space-3`)
+- `--yadad-reference-option-background-active` — background of the keyboard-highlighted option; default: token `--yadad-color-surface` (raised surface (sections, panels, table headers))
+- `--yadad-reference-option-outline-active` — outline color of the keyboard-highlighted option; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-reference-option-weight-selected` — font weight of the currently selected option; default: `600`
 
-**Theme tokens it reads:** `--yadad-color-danger`, `--yadad-color-text-muted`, `--yadad-font-family`, `--yadad-font-size-sm`, `--yadad-space-1`
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-sm`, `--yadad-space-1`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 
 ### section
 

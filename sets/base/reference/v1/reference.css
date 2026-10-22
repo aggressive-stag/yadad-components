@@ -1,6 +1,9 @@
 /* reference/v1. The picker itself is the select component (data-yadad="select"),
-   so the --yadad-select-* variables style it. This sheet only styles the status
-   line under the picker and the read-only label. Override any
+   so the --yadad-select-* variables style it. This sheet styles the combobox
+   popup (listbox and options, 8 or more records), the status line under the
+   picker and the read-only label. --yadad-reference-option-tap is the minimum
+   height of an option, the tap target on a phone; token-derived, 2x space-4
+   plus space-3 is 44px at the default tokens. Override any
    --yadad-reference-* variable (on the element or any ancestor) or the
    underlying --yadad-* tokens; the fallbacks below are the defaults. */
 @layer yadad.components {
@@ -20,5 +23,70 @@
   :where([data-yadad="reference"][data-part="display"][data-status="error"]) {
     color: var(--yadad-reference-missing-color, var(--yadad-color-text-muted));
     font-style: italic;
+  }
+
+  :where([data-yadad="reference"][data-part="combobox"]) {
+    position: relative;
+  }
+
+  :where([data-yadad="reference"][data-part="listbox"]) {
+    position: absolute;
+    inset-inline: 0;
+    z-index: var(--yadad-reference-listbox-z, 1);
+    box-sizing: border-box;
+    margin: var(--yadad-reference-listbox-gap, var(--yadad-space-1)) 0 0;
+    padding: 0;
+    list-style: none;
+    max-block-size: var(--yadad-reference-listbox-max-height, calc(var(--yadad-space-4) * 16));
+    overflow-y: auto;
+    font-family: var(--yadad-reference-font-family, var(--yadad-font-family));
+    font-size: var(--yadad-reference-option-font-size, var(--yadad-font-size-md));
+    color: var(--yadad-reference-option-color, var(--yadad-color-text));
+    background: var(--yadad-reference-listbox-background, var(--yadad-color-background));
+    border: var(--yadad-reference-listbox-border-width, 1px) solid var(--yadad-reference-listbox-border, var(--yadad-color-border));
+    border-radius: var(--yadad-reference-listbox-radius, var(--yadad-radius-sm));
+  }
+
+  :where([data-yadad="reference"][data-part="option"]) {
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    min-block-size: var(--yadad-reference-option-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    padding: var(--yadad-reference-option-padding, var(--yadad-space-2) var(--yadad-space-3));
+    overflow-wrap: anywhere;
+    cursor: pointer;
+  }
+
+  :where([data-yadad="reference"][data-part="option"][data-active="true"]) {
+    background: var(--yadad-reference-option-background-active, var(--yadad-color-surface));
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-reference-option-outline-active, var(--yadad-color-accent));
+    outline-offset: calc(var(--yadad-focus-ring-width) * -1);
+  }
+
+  :where([data-yadad="reference"][data-part="option"][aria-selected="true"]) {
+    font-weight: var(--yadad-reference-option-weight-selected, 600);
+  }
+
+  :where([data-yadad="reference"][data-part="option"][data-state="empty"]) {
+    color: var(--yadad-reference-status-color, var(--yadad-color-text-muted));
+    cursor: default;
+  }
+
+  /* Forced-colors drops background fills, so the active and selected options
+     lose their highlight; repaint them with system colors. */
+  @media (forced-colors: active) {
+    :where([data-yadad="reference"][data-part="listbox"]) {
+      border-color: CanvasText;
+    }
+
+    :where([data-yadad="reference"][data-part="option"][data-active="true"]) {
+      background: Highlight;
+      color: HighlightText;
+      forced-color-adjust: none;
+    }
+
+    :where([data-yadad="reference"][data-part="option"][aria-selected="true"]) {
+      text-decoration: underline;
+    }
   }
 }
