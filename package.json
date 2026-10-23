@@ -41,6 +41,11 @@
       "types": "./dist/sets/base/count/v1/index.d.ts",
       "default": "./dist/sets/base/count/v1/index.js"
     },
+    "./series": {
+      "@yadad/source": "./sets/base/series/v1/index.ts",
+      "types": "./dist/sets/base/series/v1/index.d.ts",
+      "default": "./dist/sets/base/series/v1/index.js"
+    },
     "./date": {
       "@yadad/source": "./sets/base/date/v1/index.ts",
       "types": "./dist/sets/base/date/v1/index.d.ts",
@@ -128,6 +133,7 @@
     "./styles/reference.css": "./dist/styles/reference.css",
     "./styles/section.css": "./dist/styles/section.css",
     "./styles/select.css": "./dist/styles/select.css",
+    "./styles/series.css": "./dist/styles/series.css",
     "./styles/table.css": "./dist/styles/table.css",
     "./styles/tabs.css": "./dist/styles/tabs.css",
     "./styles/text.css": "./dist/styles/text.css"
@@ -159,7 +165,7 @@
     "build:css": "node scripts/build-css.ts"
   },
   "peerDependencies": {
-    "@yadad/core": "^0.10.0 || ^0.11.0 || ^0.12.0",
+    "@yadad/core": "^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0",
     "react": "^19.3.0"
   },
   "devDependencies": {

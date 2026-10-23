@@ -26,6 +26,7 @@ import {
   manyReferenceOptions,
   referenceOptions,
   requiredError,
+  seriesWeekGroups,
   samples,
   weekGridDates,
   weekTitle,
@@ -34,8 +35,11 @@ import "./gallery.css";
 
 const { FieldFrame, Section, Button, Table, ErrorSummary, Tabs, Panel, Calendar: CalendarMaybe, Board: BoardMaybe, Dialog: DialogMaybe } = baseRegistry.layout;
 const Count = baseRegistry.widgets.count;
+const SeriesMaybe = baseRegistry.widgets.series;
 if (!CalendarMaybe) throw new Error("layout.Calendar missing from baseRegistry");
 const Calendar = CalendarMaybe;
+if (!SeriesMaybe) throw new Error("widgets.series missing from baseRegistry");
+const Series = SeriesMaybe;
 if (!BoardMaybe) throw new Error("layout.Board missing from baseRegistry");
 const Board = BoardMaybe;
 if (!DialogMaybe) throw new Error("layout.Dialog missing from baseRegistry");
@@ -932,6 +936,9 @@ const LAYOUT_ANCHORS = [
   "count-small",
   "count-large",
   "count-loading",
+  "series-table",
+  "series-empty",
+  "series-partial",
   "calendar-month-empty",
   "calendar-month-busy",
   "calendar-month-today",
@@ -1225,6 +1232,25 @@ export default function App(): ReactNode {
           {state("count-small", "a small number", <Count label="Working sets" value={4} />)}
           {state("count-large", "a large number", <Count label="Total reps this year" value={1234567} />)}
           {state("count-loading", "loading (no value)", <Count label="Working sets" value={undefined} />)}
+        </section>
+
+        <section id="group-series">
+          <h2>series</h2>
+          {state(
+            "series-table",
+            "twelve weeks of groups (every fourth a gap bucket)",
+            <Series label="Sets per week" display="table" groups={seriesWeekGroups(12)} skipped={0} loading={false} measureLabel="Sum of sets" />,
+          )}
+          {state(
+            "series-empty",
+            "loaded with no groups",
+            <Series label="Sets per week" display="table" groups={[]} skipped={0} loading={false} measureLabel="Sum of sets" />,
+          )}
+          {state(
+            "series-partial",
+            "the read stopped at the record ceiling (5000 of 9000) with 3 records ungroupable",
+            <Series label="Sets per week" display="table" groups={seriesWeekGroups(6)} skipped={3} partial={{ read: 5000, total: 9000 }} loading={false} measureLabel="Sum of sets" />,
+          )}
         </section>
 
         <section id="group-pager">

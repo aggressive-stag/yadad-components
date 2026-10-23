@@ -1,0 +1,75 @@
+/* series/v1. The table display (17a) — the same structure bar and line keep
+   as their data layer. Override any --yadad-series-* variable or the
+   underlying tokens. Compact by intent: a widget is small. */
+@layer yadad.components {
+  :where([data-yadad="series"][data-part="root"]) {
+    font-family: var(--yadad-font-family, inherit);
+    color: var(--yadad-color-text);
+  }
+
+  :where([data-yadad="series"]) :where([data-part="label"]) {
+    font-size: var(--yadad-series-label-size, var(--yadad-font-size-sm));
+    font-weight: 600;
+    color: var(--yadad-series-label-color, var(--yadad-color-text-muted));
+    margin-bottom: var(--yadad-series-gap, var(--yadad-space-1));
+  }
+
+  :where([data-yadad="series"]) :where([data-part="caption"]) {
+    /* The <caption> carries the accessible name alongside the table's
+       aria-label; the visible label above already shows it. */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  :where([data-yadad="series"]) :where([data-part="table"]) {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--yadad-series-font-size, var(--yadad-font-size-md));
+  }
+
+  :where([data-yadad="series"]) :where([data-part="table"]) th {
+    text-align: left;
+    font-weight: 600;
+    color: var(--yadad-color-text-muted);
+    padding: var(--yadad-space-1) var(--yadad-space-2);
+    border-block-end: 1px solid var(--yadad-series-border, var(--yadad-color-border));
+  }
+
+  :where([data-yadad="series"]) :where([data-part="measure-header"]) {
+    text-align: right;
+  }
+
+  :where([data-yadad="series"]) :where([data-part="table"]) td {
+    padding: var(--yadad-space-1) var(--yadad-space-2);
+    border-block-end: 1px solid var(--yadad-series-border, var(--yadad-color-border));
+  }
+
+  :where([data-yadad="series"]) :where([data-part="group-value"]) {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* `data-gap` on a group row (value === undefined) is a styling hook only:
+     the engine already sends the dash as the group's preformatted `text`,
+     and the component never formats a number itself. */
+
+  :where([data-yadad="series"]) :where([data-part="empty"]) {
+    color: var(--yadad-color-text-muted);
+    text-align: left;
+  }
+
+  :where([data-yadad="series"]) :where([data-part="error"]) {
+    margin: 0;
+    color: var(--yadad-color-danger);
+  }
+
+  :where([data-yadad="series"]) :where([data-part="skipped"]),
+  :where([data-yadad="series"]) :where([data-part="partial"]) {
+    margin: var(--yadad-space-1) 0 0;
+    font-size: var(--yadad-series-note-size, var(--yadad-font-size-sm));
+    color: var(--yadad-color-text-muted);
+  }
+}

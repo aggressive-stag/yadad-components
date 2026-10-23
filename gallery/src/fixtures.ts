@@ -6,7 +6,7 @@
  * wider shapes this gallery adds: a select with many choices and a date with
  * min/max.
  */
-import type { DocumentError, FieldDefinitions, FieldDisplayExtras, FieldInputExtras, FieldValueTypes, FieldType } from "@yadad/core";
+import type { DocumentError, FieldDefinitions, FieldDisplayExtras, FieldInputExtras, FieldValueTypes, FieldType, SeriesGroupProps } from "@yadad/core";
 
 /** A field definition and a value to drive it with, per field type. */
 export interface FieldSample<K extends FieldType> {
@@ -228,5 +228,22 @@ export function calendarDays(
         ...(e.slot !== undefined ? { color: { slot: e.slot, label: calendarLegend.find((l) => l.slot === e.slot)?.label ?? "" } } : {}),
       })),
     };
+  });
+}
+
+/**
+ * Twelve weeks of a series widget's groups (card 17a): the engine's shape —
+ * `value` is the number, `text` the preformatted string a component shows.
+ * Every fourth week is a gap bucket (min/max/avg style: no value, an em dash
+ * as text) so the gallery shows what a hole in the data looks like.
+ */
+export function seriesWeekGroups(count = 12): SeriesGroupProps[] {
+  return Array.from({ length: count }, (_, i) => {
+    const d = new Date(Date.UTC(2026, 6, 6 + i * 7)); // Mondays from 2026-07-06
+    const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+    const label = `Week of ${key}`;
+    if (i % 4 === 3) return { key, label, value: undefined, text: "—" };
+    const value = 8 + ((i * 17) % 23);
+    return { key, label, value, text: String(value) };
   });
 }

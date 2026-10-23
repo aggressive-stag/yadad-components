@@ -594,6 +594,38 @@ A single-choice field, rendered as a native picker.
 
 **Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 
+### series
+
+One measure per group of a table view, drawn as a compact captioned table (the engine computes the groups; bar and line draw over this same table).
+
+**`data-part` names** (marked parts carry the component marker and take `[data-yadad="<component>"][data-part="<name>"]`; nested parts are inside the component root and take the descendant form `[data-yadad="<component>"] [data-part="<name>"]` — the compound form on a nested part matches nothing):
+
+- `root` — the widget wrapper (target with `[data-yadad="series"][data-part="root"]`)
+- `label` — the widget label above the table (target with `[data-yadad="series"] [data-part="label"]`)
+- `error` — the failed-read note (`role=alert`) (target with `[data-yadad="series"] [data-part="error"]`)
+- `table` — the group/value `<table>` (named by the label; `aria-hidden` with skeleton rows while loading) (target with `[data-yadad="series"] [data-part="table"]`)
+- `caption` — the table's `<caption>` (visually hidden; the visible label is the part above) (target with `[data-yadad="series"] [data-part="caption"]`)
+- `group-header` — the group column's `<th>` (target with `[data-yadad="series"] [data-part="group-header"]`)
+- `measure-header` — the value column's `<th>` (shows `measureLabel`) (target with `[data-yadad="series"] [data-part="measure-header"]`)
+- `skeleton-row` — a loading placeholder `<tr>` (one per row, bars inside) (target with `[data-yadad="series"] [data-part="skeleton-row"]`)
+- `empty` — the loaded-but-no-groups cell (target with `[data-yadad="series"] [data-part="empty"]`)
+- `group-row` — one group's `<tr>` (`data-gap` when the group has no value) (target with `[data-yadad="series"] [data-part="group-row"]`)
+- `group-label` — the group's label cell (target with `[data-yadad="series"] [data-part="group-label"]`)
+- `group-value` — the group's preformatted text, right-aligned (target with `[data-yadad="series"] [data-part="group-value"]`)
+- `skipped` — the "N records without a group" note (target with `[data-yadad="series"] [data-part="skipped"]`)
+- `partial` — the "Partial: read of total records read" note (target with `[data-yadad="series"] [data-part="partial"]`)
+
+**Per-component variables** (set on the component or an ancestor; the default is shown):
+
+- `--yadad-series-label-size` — label font size; default: token `--yadad-font-size-sm` (small text (labels, secondary, table cells))
+- `--yadad-series-label-color` — label color; default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
+- `--yadad-series-gap` — gap between parts; default: token `--yadad-space-1` (spacing scale, step 1 (tightest))
+- `--yadad-series-font-size` — font size; default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
+- `--yadad-series-border` — border color; default: token `--yadad-color-border` (borders and dividers)
+- `--yadad-series-note-size` — font size of the note lines; default: token `--yadad-font-size-sm` (small text (labels, secondary, table cells))
+
+**Theme tokens it reads:** `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-space-1`, `--yadad-space-2`
+
 ### skeleton
 
 

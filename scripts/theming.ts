@@ -375,6 +375,7 @@ const PART_DESCRIPTION: Record<string, Record<string, string>> = {
   },
   button: { root: "the `<button>`" },
   count: { root: "the widget wrapper", label: "the count label", value: "the counted value (wraps when long)" },
+  series: { root: "the widget wrapper", label: "the widget label above the table", caption: "the table's `<caption>` (visually hidden; the visible label is the part above)", table: "the group/value `<table>` (named by the label; `aria-hidden` with skeleton rows while loading)", "group-header": "the group column's `<th>`", "measure-header": "the value column's `<th>` (shows `measureLabel`)", "skeleton-row": "a loading placeholder `<tr>` (one per row, bars inside)", "group-row": "one group's `<tr>` (`data-gap` when the group has no value)", "group-label": "the group's label cell", "group-value": "the group's preformatted text, right-aligned", empty: "the loaded-but-no-groups cell", error: "the failed-read note (`role=alert`)", skipped: "the \"N records without a group\" note", partial: "the \"Partial: read of total records read\" note" },
   date: { input: "the date `<input>`", display: "read-only value (`<time>`)" },
   datetime: { input: "the datetime `<input>`", display: "read-only value (`<time>`)" },
   dialog: { root: "the modal `<dialog>`", header: "the header row (title + close)", title: "the accessible name as a heading", close: "the close control", body: "the scrollable content the renderer builds" },
@@ -398,6 +399,7 @@ const COMPONENT_INTRO: Record<string, string> = {
   calendar: "A month/week grid of entries with navigation, a colour-slot legend, and a keyboard/touch move control.",
   button: "A pressable control with primary/secondary variants.",
   count: "A big-number widget with a label (e.g. a total).",
+  series: "One measure per group of a table view, drawn as a compact captioned table (the engine computes the groups; bar and line draw over this same table).",
   date: "A date field, rendered as a native date input.",
   datetime: "A date-and-time field, rendered as a native datetime-local input.",
   dialog: "A modal dialog: the renderer builds the content, the component owns the modal behaviour (focus trap, inert background, Escape).",
@@ -496,6 +498,7 @@ const VAR_DESCRIPTION: Record<string, string> = {
   "disabled-opacity": "opacity when disabled",
   // count
   "count-gap": "gap between label and value",
+  "note-size": "font size of the note lines",
   "value-size": "value font size", "value-color": "value color",
   // date
   "date-padding": "inner padding",
