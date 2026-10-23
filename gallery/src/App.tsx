@@ -1257,8 +1257,8 @@ export default function App(): ReactNode {
           )}
           {state(
             "series-bar",
-            "seven days as bars, one gap bucket (a gap is a dash, not a zero)",
-            <Series label="Sets per day" display="bar" groups={seriesWeekGroups(7)} skipped={0} loading={false} measureLabel="Sum of sets" />,
+            "twelve weeks as bars, every fourth a gap bucket (a gap is a dash, not a zero)",
+            <Series label="Sets per week" display="bar" groups={seriesWeekGroups(12)} skipped={0} loading={false} measureLabel="Sum of sets" />,
           )}
           {state(
             "series-bar-many",
@@ -1272,9 +1272,9 @@ export default function App(): ReactNode {
           )}
           {state(
             "series-bar-phone",
-            "phone frame (390px container): one column of bars, coarser ticks",
+            "phone frame (390px container): twelve weeks of bars, coarser ticks",
             <div className="phone-frame">
-              <Series label="Sets per day" display="bar" groups={seriesWeekGroups(7)} skipped={0} loading={false} measureLabel="Sum of sets" />
+              <Series label="Sets per week" display="bar" groups={seriesWeekGroups(12)} skipped={0} loading={false} measureLabel="Sum of sets" />
             </div>,
           )}
         </section>
