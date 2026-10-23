@@ -56,6 +56,109 @@
      the engine already sends the dash as the group's preformatted `text`,
      and the component never formats a number itself. */
 
+  /* --- chart (17b) --- */
+
+  /* The bar chart draws, the table reads: with display=bar the table is the
+     accessible data layer and stays out of sight (positioned, not display:
+     none, so screen readers keep it). */
+  :where([data-yadad="series"][data-display="bar"]) :where([data-part="table"]) {
+    /* A <table> box ignores width/height/containment (size containment does
+       not apply to tables), so it becomes a block first — the rows inside
+       still lay out as an anonymous table and keep their roles. Then the
+       1px box is real: nothing visible, nothing clickable to swallow. */
+    display: block;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  :where([data-yadad="series"]) :where([data-part="chart"]) {
+    position: relative;
+  }
+
+  :where([data-yadad="series"]) :where([data-part="chart-svg"]) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  :where([data-yadad="series"]) :where([data-part="gridline"]) {
+    stroke: var(--yadad-series-grid, var(--yadad-color-border));
+    stroke-width: 1;
+    opacity: 0.5;
+  }
+
+  :where([data-yadad="series"]) :where([data-part="baseline"]) {
+    stroke: var(--yadad-series-border, var(--yadad-color-border));
+    stroke-width: 1;
+  }
+
+  :where([data-yadad="series"]) :where([data-part="tick-label"]),
+  :where([data-yadad="series"]) :where([data-part="bar-label"]) {
+    fill: var(--yadad-color-text-muted);
+    font-size: var(--yadad-series-note-size, var(--yadad-font-size-sm));
+    font-family: var(--yadad-font-family, inherit);
+  }
+
+  :where([data-yadad="series"]) :where([data-part="bar"]) {
+    fill: var(--yadad-series-bar, var(--yadad-color-accent));
+  }
+
+  :where([data-yadad="series"]) :where([data-part="bar-group"]) {
+    outline: none;
+  }
+
+  :where([data-yadad="series"]) :where([data-part="bar-group"]:focus-visible [data-part="bar"]),
+  :where([data-yadad="series"]) :where([data-part="bar"][data-active]) {
+    fill: var(--yadad-series-bar-active, var(--yadad-color-text));
+  }
+
+  :where([data-yadad="series"]) :where([data-part="gap-dash"]) {
+    fill: var(--yadad-color-text-muted);
+    font-size: var(--yadad-series-note-size, var(--yadad-font-size-sm));
+  }
+
+  :where([data-yadad="series"]) :where([data-part="tooltip"]) {
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-start: 0;
+    padding: var(--yadad-space-1) var(--yadad-space-2);
+    background: var(--yadad-color-surface);
+    border: 1px solid var(--yadad-series-border, var(--yadad-color-border));
+    border-radius: var(--yadad-radius-sm);
+    font-size: var(--yadad-series-note-size, var(--yadad-font-size-sm));
+    color: var(--yadad-color-text);
+  }
+
+  /* Forced colours: the palette owns the bars (fill drops out under
+     forced-colors unless it is a system colour), so the active state has to
+     survive some other way — an outline, the boundary that always survives. */
+  @media (forced-colors: active) {
+    :where([data-yadad="series"]) :where([data-part="bar"]) {
+      fill: CanvasText;
+    }
+    :where([data-yadad="series"]) :where([data-part="bar"][data-active]),
+    :where([data-yadad="series"]) :where([data-part="bar-group"]:focus-visible [data-part="bar"]) {
+      outline: var(--yadad-focus-ring-width) solid Highlight;
+      fill: Highlight;
+    }
+    :where([data-yadad="series"]) :where([data-part="tooltip"]) {
+      border: 1px solid CanvasText;
+    }
+  }
+
+  /* 15c: a fill change on hover/focus is instant today; if a transition is
+     ever added to the bars, reduced motion must be able to kill it. */
+  @media (prefers-reduced-motion: reduce) {
+    :where([data-yadad="series"]) :where([data-part="bar"]),
+    :where([data-yadad="series"]) :where([data-part="tooltip"]) {
+      transition: none;
+      animation: none;
+    }
+  }
+
   :where([data-yadad="series"]) :where([data-part="empty"]) {
     color: var(--yadad-color-text-muted);
     text-align: left;

@@ -939,6 +939,10 @@ const LAYOUT_ANCHORS = [
   "series-table",
   "series-empty",
   "series-partial",
+  "series-bar",
+  "series-bar-many",
+  "series-bar-loading",
+  "series-bar-phone",
   "calendar-month-empty",
   "calendar-month-busy",
   "calendar-month-today",
@@ -1250,6 +1254,28 @@ export default function App(): ReactNode {
             "series-partial",
             "the read stopped at the record ceiling (5000 of 9000) with 3 records ungroupable",
             <Series label="Sets per week" display="table" groups={seriesWeekGroups(6)} skipped={3} partial={{ read: 5000, total: 9000 }} loading={false} measureLabel="Sum of sets" />,
+          )}
+          {state(
+            "series-bar",
+            "seven days as bars, one gap bucket (a gap is a dash, not a zero)",
+            <Series label="Sets per day" display="bar" groups={seriesWeekGroups(7)} skipped={0} loading={false} measureLabel="Sum of sets" />,
+          )}
+          {state(
+            "series-bar-many",
+            "sixty groups: bars crowd and the x labels thin out",
+            <Series label="Sets per week" display="bar" groups={seriesWeekGroups(60)} skipped={0} loading={false} measureLabel="Sum of sets" />,
+          )}
+          {state(
+            "series-bar-loading",
+            "loading holds the chart shape with a skeleton block",
+            <Series label="Sets per day" display="bar" groups={[]} skipped={0} loading measureLabel="Sum of sets" />,
+          )}
+          {state(
+            "series-bar-phone",
+            "phone frame (390px container): one column of bars, coarser ticks",
+            <div className="phone-frame">
+              <Series label="Sets per day" display="bar" groups={seriesWeekGroups(7)} skipped={0} loading={false} measureLabel="Sum of sets" />
+            </div>,
           )}
         </section>
 

@@ -603,7 +603,21 @@ One measure per group of a table view, drawn as a compact captioned table (the e
 - `root` — the widget wrapper (target with `[data-yadad="series"][data-part="root"]`)
 - `label` — the widget label above the table (target with `[data-yadad="series"] [data-part="label"]`)
 - `error` — the failed-read note (`role=alert`) (target with `[data-yadad="series"] [data-part="error"]`)
-- `table` — the group/value `<table>` (named by the label; `aria-hidden` with skeleton rows while loading) (target with `[data-yadad="series"] [data-part="table"]`)
+- `chart` — the chart wrapper (measured for width; holds the skeleton while loading) (target with `[data-yadad="series"] [data-part="chart"]`)
+- `chart-skeleton` — the loading block where the plot will be (target with `[data-yadad="series"] [data-part="chart-skeleton"]`)
+- `chart-svg` — the `<svg>` (`role="img"`, named by the label) (target with `[data-yadad="series"] [data-part="chart-svg"]`)
+- `axis` — the value-axis group (target with `[data-yadad="series"] [data-part="axis"]`)
+- `tick` — one axis tick (gridline + label) (target with `[data-yadad="series"] [data-part="tick"]`)
+- `gridline` — one horizontal gridline (target with `[data-yadad="series"] [data-part="gridline"]`)
+- `tick-label` — one axis tick's number (target with `[data-yadad="series"] [data-part="tick-label"]`)
+- `baseline` — the chart's baseline (target with `[data-yadad="series"] [data-part="baseline"]`)
+- `gap-group` — a no-value group's `<g>` (no bar, just the dash) (target with `[data-yadad="series"] [data-part="gap-group"]`)
+- `gap-dash` — the "–" drawn where a no-value group's bar would be (target with `[data-yadad="series"] [data-part="gap-dash"]`)
+- `bar-label` — one group's label under the bars (thinned when they would collide) (target with `[data-yadad="series"] [data-part="bar-label"]`)
+- `bar-group` — one bar's `<g>` (the focusable unit: roving tabindex, arrows move) (target with `[data-yadad="series"] [data-part="bar-group"]`)
+- `bar` — one bar's `<rect>` (`data-active` on hover/focus) (target with `[data-yadad="series"] [data-part="bar"]`)
+- `tooltip` — the visual label+text echo of the focused/hovered bar (`aria-hidden`; the words live in the bar's name and the table) (target with `[data-yadad="series"] [data-part="tooltip"]`)
+- `table` — the group/value `<table>` (named by the label; `aria-hidden` with skeleton rows while loading; visually hidden when `display="bar"` draws — it is still the data screen readers use) (target with `[data-yadad="series"] [data-part="table"]`)
 - `caption` — the table's `<caption>` (visually hidden; the visible label is the part above) (target with `[data-yadad="series"] [data-part="caption"]`)
 - `group-header` — the group column's `<th>` (target with `[data-yadad="series"] [data-part="group-header"]`)
 - `measure-header` — the value column's `<th>` (shows `measureLabel`) (target with `[data-yadad="series"] [data-part="measure-header"]`)
@@ -622,9 +636,12 @@ One measure per group of a table view, drawn as a compact captioned table (the e
 - `--yadad-series-gap` — gap between parts; default: token `--yadad-space-1` (spacing scale, step 1 (tightest))
 - `--yadad-series-font-size` — font size; default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
 - `--yadad-series-border` — border color; default: token `--yadad-color-border` (borders and dividers)
+- `--yadad-series-grid` — chart gridline color; default: token `--yadad-color-border` (borders and dividers)
 - `--yadad-series-note-size` — font size of the note lines; default: token `--yadad-font-size-sm` (small text (labels, secondary, table cells))
+- `--yadad-series-bar` — bar fill; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-series-bar-active` — bar fill while hovered or focused; default: token `--yadad-color-text` (main text color)
 
-**Theme tokens it reads:** `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-space-1`, `--yadad-space-2`
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-sm`, `--yadad-space-1`, `--yadad-space-2`
 
 ### skeleton
 

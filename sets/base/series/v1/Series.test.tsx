@@ -5,10 +5,14 @@
 // bucket. Tests here cover the drawing rules the contract kit cannot: notes
 // hidden while loading, empty ≠ loading, strings overrides (15a's pattern),
 // and the table display under every engine display value.
+// Card 17b adds the bar chart: geometry (counts, proportional heights, nice
+// ticks), gap semantics (no-value is no bar), roving-tabindex keyboard
+// movement, the hidden data table that must match the chart, and axe.
 import type { SeriesGroupProps } from "@yadad/core";
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, fireEvent, render } from "@testing-library/react";
+import axe from "axe-core";
 import { afterEach, describe, expect, it } from "vitest";
-import { Series } from "./Series.js";
+import { labelEveryFor, niceTicks, Series } from "./Series.js";
 
 afterEach(cleanup);
 
@@ -42,13 +46,22 @@ describe("series table (card 17a)", () => {
     expect(rows[1]?.querySelector('[data-part="group-value"]')?.textContent).toBe("—");
   });
 
-  it("bar and line draw the same table until 17b and 17c land (Decision:)", () => {
-    for (const display of ["bar", "line"] as const) {
-      const { container } = render(<Series {...base} display={display} groups={groups} skipped={0} />);
-      expect(container.querySelector('[data-part="root"]')?.getAttribute("data-display")).toBe(display);
+  it("bar draws an SVG chart over the data table; line still falls back to the table alone (17c replaces it)", () => {
+    // 17a's fallback test, updated by 17b: bar is now a chart, line is the
+    // display still waiting for its card — and both keep the table as data.
+    {
+      const { container } = render(<Series {...base} display="bar" groups={groups} skipped={0} />);
+      expect(container.querySelector('[data-part="root"]')?.getAttribute("data-display")).toBe("bar");
+      expect(container.querySelector('svg[data-part="chart-svg"]')).not.toBeNull();
+      expect(container.querySelectorAll('[data-part="bar-group"]')).toHaveLength(2); // the gap group draws no bar
+      expect(container.querySelectorAll('[data-part="table"] tbody [data-part="group-row"]')).toHaveLength(3);
+      cleanup();
+    }
+    {
+      const { container } = render(<Series {...base} display="line" groups={groups} skipped={0} />);
+      expect(container.querySelector('[data-part="root"]')?.getAttribute("data-display")).toBe("line");
+      expect(container.querySelector("svg")).toBeNull(); // 17c will change this line
       expect(container.querySelectorAll('[data-part="group-row"]')).toHaveLength(3);
-      // no SVG yet — the table display is the data layer the charts draw over
-      expect(container.querySelector("svg")).toBeNull();
       cleanup();
     }
   });
@@ -128,5 +141,122 @@ describe("series table (card 17a)", () => {
       <Series {...base} groups={[]} skipped={0} strings={{ emptyLabel: "Noch nichts" }} />,
     );
     expect(empty.querySelector('[data-part="empty"]')?.textContent).toBe("Noch nichts");
+  });
+});
+
+// ---------------------------------------------------------------- bar (17b)
+
+const manyGroups: SeriesGroupProps[] = Array.from({ length: 60 }, (_, i) => ({
+  key: `k${i}`,
+  label: `G${i}`,
+  value: (i % 7) + 1,
+  text: String((i % 7) + 1),
+}));
+
+describe("series bar chart (card 17b)", () => {
+  it("one bar per value group; a no-value group draws no bar, just the dash", () => {
+    const { container } = render(<Series {...base} display="bar" groups={groups} skipped={0} />);
+    expect(container.querySelectorAll('[data-part="bar"]')).toHaveLength(2); // the gap group has no rect
+    expect(container.querySelectorAll('[data-part="bar-group"]')).toHaveLength(2);
+    expect(container.querySelectorAll('[data-part="gap-group"]')).toHaveLength(1);
+    const dash = container.querySelector('[data-part="gap-dash"]');
+    expect(dash?.textContent).toBe("–");
+    expect(container.querySelector('[data-part="gap-group"] [data-part="bar"]')).toBeNull(); // a gap is not a zero
+  });
+
+  it("bar heights are proportional to the values against a nice-tick axis from zero", () => {
+    const gs: SeriesGroupProps[] = [
+      { key: "a", label: "A", value: 5, text: "5" },
+      { key: "b", label: "B", value: 10, text: "10" },
+      { key: "c", label: "C", value: 15, text: "15" },
+    ];
+    const { container } = render(<Series {...base} display="bar" groups={gs} skipped={0} />);
+    const bars = [...container.querySelectorAll<SVGRectElement>('[data-part="bar"]')];
+    expect(bars).toHaveLength(3);
+    const h = bars.map((b) => parseFloat(b.getAttribute("height") ?? "0"));
+    expect(h[1]).toBeCloseTo((h[0] ?? 0) * 2, 3);
+    expect(h[2]).toBeCloseTo((h[0] ?? 0) * 3, 3);
+    // axis from 0 with nice ticks: 0 at the baseline, top tick a multiple of 1/2/5×10ⁿ
+    const tickLabels = [...container.querySelectorAll('[data-part="tick-label"]')].map((t) => t.textContent);
+    expect(tickLabels[0]).toBe("0");
+    expect(tickLabels.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("the hidden table carries every group's label and text — the chart is never the only reading", () => {
+    const { container } = render(<Series {...base} display="bar" groups={groups} skipped={0} />);
+    const table = container.querySelector('[data-part="table"]');
+    expect(table).not.toBeNull();
+    const rows = [...table!.querySelectorAll("tbody [data-part=\"group-row\"]")];
+    expect(rows).toHaveLength(groups.length);
+    for (const g of groups) {
+      expect(table!.textContent).toContain(g.label);
+      expect(table!.textContent).toContain(g.text);
+    }
+    // the svg is a named img; the table keeps the data role
+    const svg = container.querySelector('svg[data-part="chart-svg"]');
+    expect(svg?.getAttribute("role")).toBe("img");
+    expect(svg?.getAttribute("aria-label")).toBe("Sets per day");
+  });
+
+  it("roving tabindex: one tab stop, arrows move it and announce through the bar name", () => {
+    const { container } = render(<Series {...base} display="bar" groups={groups} skipped={0} />);
+    // `groups` is Mon, Tue, and a gap: only the two drawn bars are focusable,
+    // the gap group has no focusable node at all.
+    const barGroups = [...container.querySelectorAll<SVGGElement>('[data-part="bar-group"]')];
+    expect(barGroups).toHaveLength(2);
+    expect(barGroups.filter((g) => g.getAttribute("tabindex") === "0")).toHaveLength(1);
+    expect(barGroups.every((g) => (g.getAttribute("tabindex") === "0" ? true : g.getAttribute("tabindex") === "-1"))).toBe(true);
+    fireEvent.keyDown(barGroups[0]!, { key: "ArrowRight" });
+    expect(barGroups[1]?.getAttribute("tabindex")).toBe("0");
+    expect(barGroups[0]?.getAttribute("tabindex")).toBe("-1");
+    fireEvent.keyDown(barGroups[1]!, { key: "Home" });
+    expect(barGroups[0]?.getAttribute("tabindex")).toBe("0");
+    fireEvent.keyDown(barGroups[0]!, { key: "End" });
+    const last = barGroups[barGroups.length - 1]!;
+    expect(last.getAttribute("tabindex")).toBe("0");
+    // hover/focus marks the bar active and the tooltip echoes label+text
+    fireEvent.focus(last);
+    expect(last.querySelector('[data-part="bar"]')?.hasAttribute("data-active")).toBe(true);
+    const tip = document.querySelector('[data-part="tooltip"]');
+    // barGroups[1] is the *second drawn bar* = groups[2] (Saturday): Friday
+    // is the gap group and is not in the roving set at all.
+    expect(tip?.textContent).toBe(`${groups[2]!.label}: ${groups[2]!.text}`);
+    expect(tip?.getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it("labels thin out when the groups would collide (≈48px minimum per label)", () => {
+    expect(labelEveryFor(10, 640)).toBe(1);
+    expect(labelEveryFor(60, 640)).toBe(5); // 13 slots fit, 60 need 5×
+    expect(labelEveryFor(1, 10)).toBe(1);
+    const { container } = render(<Series {...base} display="bar" groups={manyGroups} skipped={0} />);
+    const labels = container.querySelectorAll('[data-part="bar"] ~ [data-part="bar-label"], [data-part="bar-group"] [data-part="bar-label"]');
+    expect(labels.length).toBeLessThan(manyGroups.length); // thinned at the fallback width
+    expect(labels.length).toBeGreaterThan(0);
+  });
+
+  it("niceTicks walks 1/2/5 × 10ⁿ and always starts at 0", () => {
+    expect(niceTicks(12, 5)).toEqual({ ticks: [0, 5, 10, 15], top: 15 });
+    expect(niceTicks(0.31, 4).ticks[0]).toBe(0);
+    expect(niceTicks(0.31, 4).top).toBeCloseTo(0.4, 6);
+    expect(niceTicks(97, 5).top).toBe(100);
+  });
+
+  it("loading gives the chart a skeleton, not a stub or a crash", () => {
+    const { container } = render(<Series {...base} display="bar" groups={[]} skipped={0} loading />);
+    const sk = container.querySelector('[data-part="chart-skeleton"]');
+    expect(sk).not.toBeNull();
+    expect(sk?.getAttribute("aria-hidden")).toBe("true");
+    expect(container.querySelector("svg")).toBeNull();
+    expect(container.querySelectorAll('[data-part="skeleton-row"]').length).toBeGreaterThan(0);
+  });
+
+  it("the chart passes axe (bar names, hidden table, svg label)", async () => {
+    const { container } = render(
+      <div>
+        <Series {...base} display="bar" groups={groups} skipped={1} partial={{ read: 3, total: 9 }} />
+      </div>,
+    );
+    const results = await axe.run(container, { rules: { region: { enabled: false } } });
+    expect(results.violations.map((v) => `${v.id}: ${v.help}`)).toEqual([]);
   });
 });
