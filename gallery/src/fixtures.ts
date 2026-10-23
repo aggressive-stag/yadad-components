@@ -247,3 +247,36 @@ export function seriesWeekGroups(count = 12): SeriesGroupProps[] {
     return { key, label, value, text: String(value) };
   });
 }
+
+/**
+ * The same twelve weeks as an avg-of-weight measure (card 17c): values with
+ * decimals so the line's fitted axis (min/max/avg) is visible next to the
+ * bar/sum zero-anchored one, gaps kept (i % 4 === 3) so the line must break.
+ */
+export function seriesWeekLine(count = 12): SeriesGroupProps[] {
+  return seriesWeekGroups(count).map((g) =>
+    g.value === undefined ? g : { ...g, value: g.value * 2.5, text: `${g.value * 2.5} kg` },
+  );
+}
+
+/** A series with exactly one group (card 17c): the single point must show. */
+export function seriesSingleGroup(): SeriesGroupProps[] {
+  const [only] = seriesWeekGroups(1);
+  return [only!];
+}
+
+/**
+ * Twenty-six weeks with exactly two gap buckets (card 17c's gallery
+ * requirement): a long run, a hole, a middle run, a hole, a tail — the
+ * three segments the line must draw.
+ */
+export function seriesMonthLine(): SeriesGroupProps[] {
+  return Array.from({ length: 26 }, (_, i) => {
+    const d = new Date(Date.UTC(2026, 6, 6 + i * 7)); // Mondays from 2026-07-06
+    const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+    const label = `Week of ${key}`;
+    if (i === 9 || i === 18) return { key, label, value: undefined, text: "—" };
+    const value = 40 + ((i * 13) % 45);
+    return { key, label, value, text: `${value} kg` };
+  });
+}

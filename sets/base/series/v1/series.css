@@ -56,12 +56,12 @@
      the engine already sends the dash as the group's preformatted `text`,
      and the component never formats a number itself. */
 
-  /* --- chart (17b) --- */
+  /* --- chart (17b bars, 17c line) --- */
 
-  /* The bar chart draws, the table reads: with display=bar the table is the
+  /* The chart draws, the table reads: with a chart display the table is the
      accessible data layer and stays out of sight (positioned, not display:
      none, so screen readers keep it). */
-  :where([data-yadad="series"][data-display="bar"]) :where([data-part="table"]) {
+  :where([data-yadad="series"][data-display="bar"], [data-yadad="series"][data-display="line"]) :where([data-part="table"]) {
     /* A <table> box ignores width/height/containment (size containment does
        not apply to tables), so it becomes a block first — the rows inside
        still lay out as an anonymous table and keep their roles. Then the
@@ -96,7 +96,8 @@
   }
 
   :where([data-yadad="series"]) :where([data-part="tick-label"]),
-  :where([data-yadad="series"]) :where([data-part="bar-label"]) {
+  :where([data-yadad="series"]) :where([data-part="bar-label"]),
+  :where([data-yadad="series"]) :where([data-part="x-label"]) {
     fill: var(--yadad-color-text-muted);
     font-size: var(--yadad-series-note-size, var(--yadad-font-size-sm));
     font-family: var(--yadad-font-family, inherit);
@@ -108,6 +109,36 @@
 
   :where([data-yadad="series"]) :where([data-part="bar-group"]) {
     outline: none;
+  }
+
+  /* --- line (17c) --- */
+
+  :where([data-yadad="series"]) :where([data-part="line"]) {
+    fill: none;
+    stroke: var(--yadad-series-line, var(--yadad-color-accent));
+    stroke-width: 2;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+
+  :where([data-yadad="series"]) :where([data-part="dot"]) {
+    fill: var(--yadad-series-dot, var(--yadad-color-accent));
+  }
+
+  :where([data-yadad="series"]) :where([data-part="point-group"]) {
+    outline: none;
+  }
+
+  /* The x-label layer is paint-only: labels outside the marks (their boxes
+     would otherwise swallow neighbouring hover targets — found by the 17c
+     browser check) and never a pointer target themselves. */
+  :where([data-yadad="series"]) :where([data-part="x-labels"]) {
+    pointer-events: none;
+  }
+
+  :where([data-yadad="series"]) :where([data-part="point-group"]:focus-visible [data-part="dot"]),
+  :where([data-yadad="series"]) :where([data-part="dot"][data-active]) {
+    fill: var(--yadad-series-dot-active, var(--yadad-color-text));
   }
 
   :where([data-yadad="series"]) :where([data-part="bar-group"]:focus-visible [data-part="bar"]),
@@ -134,7 +165,8 @@
 
   /* Forced colours: the palette owns the bars (fill drops out under
      forced-colors unless it is a system colour), so the active state has to
-     survive some other way — an outline, the boundary that always survives. */
+     survive some other way — an outline, the boundary that always survives.
+     The same applies to the line's stroke and the dots (17c). */
   @media (forced-colors: active) {
     :where([data-yadad="series"]) :where([data-part="bar"]) {
       fill: CanvasText;
@@ -142,6 +174,16 @@
     :where([data-yadad="series"]) :where([data-part="bar"][data-active]),
     :where([data-yadad="series"]) :where([data-part="bar-group"]:focus-visible [data-part="bar"]) {
       outline: var(--yadad-focus-ring-width) solid Highlight;
+      fill: Highlight;
+    }
+    :where([data-yadad="series"]) :where([data-part="line"]) {
+      stroke: CanvasText;
+    }
+    :where([data-yadad="series"]) :where([data-part="dot"]) {
+      fill: CanvasText;
+    }
+    :where([data-yadad="series"]) :where([data-part="dot"][data-active]),
+    :where([data-yadad="series"]) :where([data-part="point-group"]:focus-visible [data-part="dot"]) {
       fill: Highlight;
     }
     :where([data-yadad="series"]) :where([data-part="tooltip"]) {
@@ -153,6 +195,8 @@
      ever added to the bars, reduced motion must be able to kill it. */
   @media (prefers-reduced-motion: reduce) {
     :where([data-yadad="series"]) :where([data-part="bar"]),
+    :where([data-yadad="series"]) :where([data-part="line"]),
+    :where([data-yadad="series"]) :where([data-part="dot"]),
     :where([data-yadad="series"]) :where([data-part="tooltip"]) {
       transition: none;
       animation: none;

@@ -12,7 +12,8 @@ import type { SeriesGroupProps } from "@yadad/core";
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import axe from "axe-core";
 import { afterEach, describe, expect, it } from "vitest";
-import { labelEveryFor, niceTicks, Series } from "./Series.js";
+import { labelEveryFor, measureFitsData, niceRange, niceTicks } from "./chart.js";
+import { Series } from "./Series.js";
 
 afterEach(cleanup);
 
@@ -46,9 +47,7 @@ describe("series table (card 17a)", () => {
     expect(rows[1]?.querySelector('[data-part="group-value"]')?.textContent).toBe("—");
   });
 
-  it("bar draws an SVG chart over the data table; line still falls back to the table alone (17c replaces it)", () => {
-    // 17a's fallback test, updated by 17b: bar is now a chart, line is the
-    // display still waiting for its card — and both keep the table as data.
+  it("bar and line both draw their chart over the data table (17b and 17c)", () => {
     {
       const { container } = render(<Series {...base} display="bar" groups={groups} skipped={0} />);
       expect(container.querySelector('[data-part="root"]')?.getAttribute("data-display")).toBe("bar");
@@ -60,8 +59,10 @@ describe("series table (card 17a)", () => {
     {
       const { container } = render(<Series {...base} display="line" groups={groups} skipped={0} />);
       expect(container.querySelector('[data-part="root"]')?.getAttribute("data-display")).toBe("line");
-      expect(container.querySelector("svg")).toBeNull(); // 17c will change this line
-      expect(container.querySelectorAll('[data-part="group-row"]')).toHaveLength(3);
+      expect(container.querySelector('svg[data-part="chart-svg"]')).not.toBeNull();
+      expect(container.querySelector('path[data-part="line"]')).not.toBeNull();
+      expect(container.querySelectorAll('[data-part="point-group"]')).toHaveLength(2); // the gap group draws no dot
+      expect(container.querySelectorAll('[data-part="table"] tbody [data-part="group-row"]')).toHaveLength(3);
       cleanup();
     }
   });
@@ -258,5 +259,141 @@ describe("series bar chart (card 17b)", () => {
     );
     const results = await axe.run(container, { rules: { region: { enabled: false } } });
     expect(results.violations.map((v) => `${v.id}: ${v.help}`)).toEqual([]);
+  });
+});
+
+// -------------------------------------------------------------- line (17c)
+
+/** Three runs of value separated by two null gaps. */
+const lineGroups: SeriesGroupProps[] = [
+  { key: "a", label: "A", value: 10, text: "10" },
+  { key: "b", label: "B", value: 20, text: "20" },
+  { key: "c", label: "C", value: undefined, text: "—" },
+  { key: "d", label: "D", value: 30, text: "30" },
+  { key: "e", label: "E", value: undefined, text: "—" },
+  { key: "f", label: "F", value: 40, text: "40" },
+];
+
+describe("series line chart (card 17c)", () => {
+  it("the path has one segment per run of non-null values (the line breaks at null)", () => {
+    const { container } = render(<Series {...base} display="line" groups={lineGroups} skipped={0} />);
+    const d = container.querySelector('path[data-part="line"]')?.getAttribute("d") ?? "";
+    const segments = d.split("M").filter((s) => s.trim() !== "");
+    expect(segments).toHaveLength(3); // [A B], [D], [F]
+    // each segment: one M plus its L's
+    expect(segments[0]).toContain("L");
+    expect(segments[1]).not.toContain("L"); // the lone point D
+    expect(segments[2]).not.toContain("L"); // the lone point F
+  });
+
+  it("a single point shows as a dot (no line needed to see it)", () => {
+    const one: SeriesGroupProps[] = [{ key: "x", label: "Only", value: 7, text: "7" }];
+    const { container } = render(<Series {...base} display="line" groups={one} skipped={0} />);
+    const dot = container.querySelector('circle[data-part="dot"]');
+    expect(dot).not.toBeNull();
+    expect(parseFloat(dot!.getAttribute("r") ?? "0")).toBeGreaterThan(0);
+  });
+
+  it("one dot per value group; a null group is a gap — no dot, no dash-as-zero", () => {
+    const { container } = render(<Series {...base} display="line" groups={lineGroups} skipped={0} />);
+    expect(container.querySelectorAll('circle[data-part="dot"]')).toHaveLength(4);
+    expect(container.querySelectorAll('[data-part="gap-group"]')).toHaveLength(2);
+    for (const gap of container.querySelectorAll('[data-part="gap-group"]')) {
+      expect(gap.querySelector('circle[data-part="dot"]')).toBeNull();
+      expect(gap.querySelector('[data-part="gap-dash"]')?.textContent).toBe("–");
+    }
+  });
+
+  it("the sum axis starts at 0; a min/max/avg axis fits the data", () => {
+    // measureLabel "Sum of sets" -> zero-anchored
+    {
+      const { container } = render(<Series {...base} display="line" groups={lineGroups} skipped={0} measureLabel="Sum of sets" />);
+      const sumTicks = [...container.querySelectorAll('[data-part="tick-label"]')].map((t) => parseFloat(t.textContent ?? "0"));
+      expect(sumTicks[0]).toBe(0);
+      cleanup();
+    }
+    // measureLabel "Avg of weight" -> fits the data: the lowest tick is
+    // clearly above zero (data spans 10..40, so the axis need not touch 0)
+    {
+      const { container } = render(<Series {...base} display="line" groups={lineGroups} skipped={0} measureLabel="Avg of weight" />);
+      const avgTicks = [...container.querySelectorAll('[data-part="tick-label"]')].map((t) => parseFloat(t.textContent ?? "0"));
+      expect(avgTicks[0]).toBeGreaterThan(0);
+      // and every data point still fits inside the axis
+      expect(Math.min(...avgTicks)).toBeLessThanOrEqual(10);
+      expect(Math.max(...avgTicks)).toBeGreaterThanOrEqual(40);
+      cleanup();
+    }
+  });
+
+  it("dots are focusable as one roving tab stop; focus shows label and text", () => {
+    const { container } = render(<Series {...base} display="line" groups={lineGroups} skipped={0} />);
+    const pts = [...container.querySelectorAll<SVGGElement>('[data-part="point-group"]')];
+    expect(pts).toHaveLength(4);
+    expect(pts.filter((p) => p.getAttribute("tabindex") === "0")).toHaveLength(1);
+    fireEvent.keyDown(pts[0]!, { key: "ArrowRight" });
+    expect(pts[1]?.getAttribute("tabindex")).toBe("0");
+    fireEvent.keyDown(pts[1]!, { key: "End" });
+    const last = pts[pts.length - 1]!;
+    expect(last.getAttribute("tabindex")).toBe("0");
+    expect(last.getAttribute("aria-label")).toBe("F: 40");
+    const tip = document.querySelector('[data-part="tooltip"]');
+    expect(tip?.textContent).toBe("F: 40");
+    expect(tip?.getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it("the hidden table carries every group's label and text (same rules as bars)", () => {
+    const { container } = render(<Series {...base} display="line" groups={lineGroups} skipped={0} />);
+    const table = container.querySelector('[data-part="table"]');
+    expect(table).not.toBeNull();
+    expect(table!.querySelectorAll("tbody [data-part=\"group-row\"]")).toHaveLength(lineGroups.length);
+    for (const g of lineGroups) {
+      expect(table!.textContent).toContain(g.label);
+      expect(table!.textContent).toContain(g.text);
+    }
+    const svg = container.querySelector('svg[data-part="chart-svg"]');
+    expect(svg?.getAttribute("role")).toBe("img");
+    expect(svg?.getAttribute("aria-label")).toBe("Sets per day");
+  });
+
+  it("loading gives the line a skeleton, not a stub or a crash", () => {
+    const { container } = render(<Series {...base} display="line" groups={[]} skipped={0} loading />);
+    expect(container.querySelector('[data-part="chart-skeleton"]')).not.toBeNull();
+    expect(container.querySelector("svg")).toBeNull();
+  });
+
+  it("the line passes axe (dot names, hidden table, svg label)", async () => {
+    const { container } = render(
+      <div>
+        <Series {...base} display="line" groups={lineGroups} skipped={1} partial={{ read: 4, total: 9 }} />
+      </div>,
+    );
+    const results = await axe.run(container, { rules: { region: { enabled: false } } });
+    expect(results.violations.map((v) => `${v.id}: ${v.help}`)).toEqual([]);
+  });
+});
+
+describe("chart helpers (shared by 17b and 17c)", () => {
+  it("niceRange rounds the bounds outward to a 1/2/5x10^n step", () => {
+    const r = niceRange(12, 43, 5);
+    expect(r.low).toBeLessThanOrEqual(12);
+    expect(r.top).toBeGreaterThanOrEqual(43);
+    expect(r.ticks[0]).toBe(r.low);
+    expect(r.ticks[r.ticks.length - 1]).toBe(r.top);
+    const step = (r.ticks[1] ?? 0) - r.low;
+    expect(step).toBeGreaterThan(0);
+  });
+
+  it("a flat run gets a padded axis instead of zero height", () => {
+    const r = niceRange(5, 5, 4);
+    expect(r.top).toBeGreaterThan(r.low);
+  });
+
+  it("measureFitsData reads the first word of measureLabel", () => {
+    expect(measureFitsData("Min of weight")).toBe(true);
+    expect(measureFitsData("Max of weight")).toBe(true);
+    expect(measureFitsData("Average of weight")).toBe(true);
+    expect(measureFitsData("Avg weight")).toBe(true);
+    expect(measureFitsData("Sum of sets")).toBe(false);
+    expect(measureFitsData("Count of records")).toBe(false);
   });
 });

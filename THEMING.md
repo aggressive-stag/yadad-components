@@ -596,7 +596,7 @@ A single-choice field, rendered as a native picker.
 
 ### series
 
-One measure per group of a table view, drawn as a compact captioned table (the engine computes the groups; bar and line draw over this same table).
+One measure per group of a table view, drawn as a compact captioned table, a bar chart, or a line chart (the engine computes the groups; bar and line draw over this same table — the line breaks at null and shows every point as a dot, so a lone point is visible).
 
 **`data-part` names** (marked parts carry the component marker and take `[data-yadad="<component>"][data-part="<name>"]`; nested parts are inside the component root and take the descendant form `[data-yadad="<component>"] [data-part="<name>"]` — the compound form on a nested part matches nothing):
 
@@ -611,13 +611,16 @@ One measure per group of a table view, drawn as a compact captioned table (the e
 - `gridline` — one horizontal gridline (target with `[data-yadad="series"] [data-part="gridline"]`)
 - `tick-label` — one axis tick's number (target with `[data-yadad="series"] [data-part="tick-label"]`)
 - `baseline` — the chart's baseline (target with `[data-yadad="series"] [data-part="baseline"]`)
-- `gap-group` — a no-value group's `<g>` (no bar, just the dash) (target with `[data-yadad="series"] [data-part="gap-group"]`)
-- `gap-dash` — the "–" drawn where a no-value group's bar would be (target with `[data-yadad="series"] [data-part="gap-dash"]`)
-- `bar-label` — one group's label under the bars (thinned when they would collide) (target with `[data-yadad="series"] [data-part="bar-label"]`)
-- `bar-group` — one bar's `<g>` (the focusable unit: roving tabindex, arrows move) (target with `[data-yadad="series"] [data-part="bar-group"]`)
+- `line` — the line `<path>` — one segment per run of non-null values, so the line breaks at null (target with `[data-yadad="series"] [data-part="line"]`)
+- `gap-group` — a no-value group's `<g>` (no bar and no dot, just the dash) (target with `[data-yadad="series"] [data-part="gap-group"]`)
+- `gap-dash` — the "–" drawn where a no-value group's bar or point would be (target with `[data-yadad="series"] [data-part="gap-dash"]`)
+- `point-hit` — one point's transparent slot-wide hit rect (the pointer target; the dot alone is too small) (target with `[data-yadad="series"] [data-part="point-hit"]`)
+- `dot` — one point's `<circle>` (`data-active` on hover/focus) (target with `[data-yadad="series"] [data-part="dot"]`)
 - `bar` — one bar's `<rect>` (`data-active` on hover/focus) (target with `[data-yadad="series"] [data-part="bar"]`)
-- `tooltip` — the visual label+text echo of the focused/hovered bar (`aria-hidden`; the words live in the bar's name and the table) (target with `[data-yadad="series"] [data-part="tooltip"]`)
-- `table` — the group/value `<table>` (named by the label; `aria-hidden` with skeleton rows while loading; visually hidden when `display="bar"` draws — it is still the data screen readers use) (target with `[data-yadad="series"] [data-part="table"]`)
+- `x-labels` — the label layer for the line (paint-only; `aria-hidden` — the table and the point names carry the words) (target with `[data-yadad="series"] [data-part="x-labels"]`)
+- `x-label` — one group's label under the points (thinned when they would collide) (target with `[data-yadad="series"] [data-part="x-label"]`)
+- `tooltip` — the visual label+text echo of the focused/hovered mark (`aria-hidden`; the words live in the mark's name and the table) (target with `[data-yadad="series"] [data-part="tooltip"]`)
+- `table` — the group/value `<table>` (named by the label; `aria-hidden` with skeleton rows while loading; visually hidden when `display="bar"` or `display="line"` draws — it is still the data screen readers use) (target with `[data-yadad="series"] [data-part="table"]`)
 - `caption` — the table's `<caption>` (visually hidden; the visible label is the part above) (target with `[data-yadad="series"] [data-part="caption"]`)
 - `group-header` — the group column's `<th>` (target with `[data-yadad="series"] [data-part="group-header"]`)
 - `measure-header` — the value column's `<th>` (shows `measureLabel`) (target with `[data-yadad="series"] [data-part="measure-header"]`)
@@ -639,6 +642,9 @@ One measure per group of a table view, drawn as a compact captioned table (the e
 - `--yadad-series-grid` — chart gridline color; default: token `--yadad-color-border` (borders and dividers)
 - `--yadad-series-note-size` — font size of the note lines; default: token `--yadad-font-size-sm` (small text (labels, secondary, table cells))
 - `--yadad-series-bar` — bar fill; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-series-line` — line stroke; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-series-dot` — point dot fill; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-series-dot-active` — dot fill while hovered or focused; default: token `--yadad-color-text` (main text color)
 - `--yadad-series-bar-active` — bar fill while hovered or focused; default: token `--yadad-color-text` (main text color)
 
 **Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-sm`, `--yadad-space-1`, `--yadad-space-2`

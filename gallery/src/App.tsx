@@ -26,7 +26,10 @@ import {
   manyReferenceOptions,
   referenceOptions,
   requiredError,
+  seriesMonthLine,
+  seriesSingleGroup,
   seriesWeekGroups,
+  seriesWeekLine,
   samples,
   weekGridDates,
   weekTitle,
@@ -943,6 +946,12 @@ const LAYOUT_ANCHORS = [
   "series-bar-many",
   "series-bar-loading",
   "series-bar-phone",
+  "series-line",
+  "series-line-sum",
+  "series-line-single",
+  "series-line-many",
+  "series-line-loading",
+  "series-line-phone",
   "calendar-month-empty",
   "calendar-month-busy",
   "calendar-month-today",
@@ -1275,6 +1284,38 @@ export default function App(): ReactNode {
             "phone frame (390px container): twelve weeks of bars, coarser ticks",
             <div className="phone-frame">
               <Series label="Sets per week" display="bar" groups={seriesWeekGroups(12)} skipped={0} loading={false} measureLabel="Sum of sets" />
+            </div>,
+          )}
+          {state(
+            "series-line",
+            "twenty-six weeks as an avg measure with two gap buckets: the axis fits the data (lowest tick above zero) and the line breaks at each gap",
+            <Series label="Weight per week" display="line" groups={seriesMonthLine()} skipped={0} loading={false} measureLabel="Avg of weight" />,
+          )}
+          {state(
+            "series-line-sum",
+            "the same shape as a sum measure: the axis is anchored at zero (bars and sum-lines share the rule)",
+            <Series label="Sets per week" display="line" groups={seriesWeekGroups(12)} skipped={0} loading={false} measureLabel="Sum of sets" />,
+          )}
+          {state(
+            "series-line-single",
+            "one group only: a lone point has no line to sit on, so the dot alone must make it visible",
+            <Series label="Weight per week" display="line" groups={seriesSingleGroup()} skipped={0} loading={false} measureLabel="Avg of weight" />,
+          )}
+          {state(
+            "series-line-many",
+            "sixty groups: the line crowds and the x labels thin out",
+            <Series label="Weight per week" display="line" groups={seriesWeekLine(60)} skipped={0} loading={false} measureLabel="Avg of weight" />,
+          )}
+          {state(
+            "series-line-loading",
+            "loading holds the chart shape with a skeleton block",
+            <Series label="Weight per week" display="line" groups={[]} skipped={0} loading measureLabel="Avg of weight" />,
+          )}
+          {state(
+            "series-line-phone",
+            "phone frame (390px container): twelve weeks of line, coarser ticks",
+            <div className="phone-frame">
+              <Series label="Weight per week" display="line" groups={seriesWeekLine(12)} skipped={0} loading={false} measureLabel="Avg of weight" />
             </div>,
           )}
         </section>
