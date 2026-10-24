@@ -47,21 +47,20 @@
 import { globSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { TOKEN_NAMES } from "@yadad/theme";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SETS = path.join(root, "sets");
 const THEMING_MD = path.join(root, "THEMING.md");
 
-// The theme tokens (TOKEN_NAMES in @yadad/theme). Each is --yadad-<name>.
+// The theme tokens, read from the source of truth: TOKEN_NAMES in @yadad/theme
+// (packages/theme/src/tokens.ts), the same list the engine emits into
+// tokens.css. Each is --yadad-<name>. Deriving it here (card 20) means a token
+// added upstream is covered by the report the moment the theme is bumped —
+// a hand-copied list silently drifts, which is the drift check-engine.ts
+// exists to kill but cannot reach.
 // A component "reads" a token when its CSS references var(--yadad-<name>).
-const TOKENS = [
-  "color-text", "color-text-muted", "color-background", "color-surface",
-  "color-border", "color-accent", "color-danger",
-  "space-1", "space-2", "space-3", "space-4",
-  "radius-sm", "radius-md",
-  "font-family", "font-size-sm", "font-size-md", "focus-ring-width",
-  "shadow-sm", "shadow-md",
-];
+const TOKENS: readonly string[] = TOKEN_NAMES;
 
 const TOKEN_SET = new Set(TOKENS);
 
