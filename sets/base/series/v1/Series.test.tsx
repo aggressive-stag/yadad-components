@@ -22,6 +22,7 @@ const base = {
   display: "table" as const,
   loading: false,
   measureLabel: "Sum of sets",
+  aggregation: "sum" as const,
 };
 
 const groups: SeriesGroupProps[] = [
@@ -315,12 +316,27 @@ describe("series line chart (card 17c)", () => {
     // measureLabel "Avg of weight" -> fits the data: the lowest tick is
     // clearly above zero (data spans 10..40, so the axis need not touch 0)
     {
-      const { container } = render(<Series {...base} display="line" groups={lineGroups} skipped={0} measureLabel="Avg of weight" />);
+      const { container } = render(<Series {...base} display="line" groups={lineGroups} skipped={0} measureLabel="Avg of weight" aggregation="avg" />);
       const avgTicks = [...container.querySelectorAll('[data-part="tick-label"]')].map((t) => parseFloat(t.textContent ?? "0"));
       expect(avgTicks[0]).toBeGreaterThan(0);
       // and every data point still fits inside the axis
       expect(Math.min(...avgTicks)).toBeLessThanOrEqual(10);
       expect(Math.max(...avgTicks)).toBeGreaterThanOrEqual(40);
+      cleanup();
+    }
+    // card 19: with `aggregation` present the label is decoration. A min
+    // wearing a sum's label still fits its data...
+    {
+      const { container } = render(<Series {...base} display="line" groups={lineGroups} skipped={0} measureLabel="Total kg" aggregation="min" />);
+      const ticks = [...container.querySelectorAll('[data-part="tick-label"]')].map((t) => parseFloat(t.textContent ?? "0"));
+      expect(ticks[0]).toBeGreaterThan(0);
+      cleanup();
+    }
+    // ...and a sum wearing a min's label still anchors at 0.
+    {
+      const { container } = render(<Series {...base} display="line" groups={lineGroups} skipped={0} measureLabel="Minimum kg" aggregation="sum" />);
+      const ticks = [...container.querySelectorAll('[data-part="tick-label"]')].map((t) => parseFloat(t.textContent ?? "0"));
+      expect(ticks[0]).toBe(0);
       cleanup();
     }
   });
@@ -388,12 +404,22 @@ describe("chart helpers (shared by 17b and 17c)", () => {
     expect(r.top).toBeGreaterThan(r.low);
   });
 
-  it("measureFitsData reads the first word of measureLabel", () => {
-    expect(measureFitsData("Min of weight")).toBe(true);
-    expect(measureFitsData("Max of weight")).toBe(true);
-    expect(measureFitsData("Average of weight")).toBe(true);
-    expect(measureFitsData("Avg weight")).toBe(true);
-    expect(measureFitsData("Sum of sets")).toBe(false);
-    expect(measureFitsData("Count of records")).toBe(false);
+  it("measureFitsData reads the first word of measureLabel (fallback: no aggregation, card 19)", () => {
+    expect(measureFitsData(undefined, "Min of weight")).toBe(true);
+    expect(measureFitsData(undefined, "Max of weight")).toBe(true);
+    expect(measureFitsData(undefined, "Average of weight")).toBe(true);
+    expect(measureFitsData(undefined, "Avg weight")).toBe(true);
+    expect(measureFitsData(undefined, "Sum of sets")).toBe(false);
+    expect(measureFitsData(undefined, "Count of records")).toBe(false);
+  });
+
+  it("measureFitsData trusts aggregation over the label's first word (card 19)", () => {
+    // the label is engine-owned copy; the op is protocol
+    expect(measureFitsData("min", "Total kg")).toBe(true); // misleading label, real op
+    expect(measureFitsData("max", "Total kg")).toBe(true);
+    expect(measureFitsData("avg", "Total kg")).toBe(true);
+    expect(measureFitsData("sum", "Minimum kg")).toBe(false); // friendly label, sum still anchors at 0
+    expect(measureFitsData("count", "Average of luck")).toBe(false);
+    expect(measureFitsData("countDistinct", "Min per day")).toBe(false);
   });
 });

@@ -77,6 +77,7 @@ export function Series({
   loading,
   error,
   measureLabel,
+  aggregation,
   strings = {},
 }: SeriesComponentProps): ReactNode {
   const emptyLabel = strings.emptyLabel ?? "Nothing to show yet";
@@ -128,10 +129,11 @@ export function Series({
 
   const numeric = groups.map((g) => g.value).filter((v): v is number => v !== undefined);
   // Axis (shared rules, chart.ts): bars and zero-anchored lines run from 0;
-  // a min/max/avg line fits its data. The aggregation is not in
-  // SeriesWidgetProps — core 0.13.0 carries only `measureLabel` — so the
-  // measure is recognised from the label's first word (Decision: 17c).
-  const fits = isLine && measureFitsData(measureLabel);
+  // a min/max/avg line fits its data. The machine answer is
+  // SeriesWidgetProps.aggregation (core >= 0.14); the label sniff inside
+  // measureFitsData runs only against an older engine that omits it
+  // (Decision: 17c, updated by card 19).
+  const fits = isLine && measureFitsData(aggregation, measureLabel);
   const axis = (() => {
     if (isBar || !fits) {
       const positives = numeric.filter((v) => v > 0);

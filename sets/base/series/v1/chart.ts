@@ -7,6 +7,7 @@
  * width, so 1 unit = 1 px at rest (see the preserveAspectRatio Decision in
  * the 17b Report — a resize re-renders the viewBox instead of stretching).
  */
+import type { Measure } from "@yadad/core";
 
 export const CHART_HEIGHT = 260;
 export const MARGIN = { top: 10, right: 8, bottom: 30, left: 36 };
@@ -74,13 +75,17 @@ export function tickText(v: number, step: number): string {
 }
 
 /**
- * `Decision:` the axis baseline (17c). The engine gives the component only
- * `measureLabel` — core 0.13.0's `SeriesWidgetProps` carries no aggregation —
- * so the measure is recognised from the label's first word (min/max/avg/
- * average, case-insensitive) and its axis fits the data; every other measure
- * (sum, count, and anything unrecognised) starts at 0, the honest default.
+ * `Decision:` the axis baseline (17c, updated by card 19). Core 0.14.0's
+ * `SeriesWidgetProps` carries `aggregation: Measure["op"]` — the machine
+ * answer to "what is this number" — and the axis trusts it: `min`, `max` and
+ * `avg` fit their data; `sum`, `count` (and any other op) start at 0, the
+ * honest default. The 17c label sniff (first word min/max/avg/average,
+ * case-insensitive) survives ONLY as the fallback for an engine older than
+ * core 0.14, which sends just the prose `measureLabel`; it is copy, not
+ * protocol, so behaviour must never depend on it when `aggregation` is there.
  */
-export function measureFitsData(measureLabel: string): boolean {
+export function measureFitsData(aggregation: Measure["op"] | undefined, measureLabel: string): boolean {
+  if (aggregation !== undefined) return aggregation === "min" || aggregation === "max" || aggregation === "avg";
   const first = measureLabel.trim().split(/\s+/)[0]?.toLowerCase() ?? "";
   return first === "min" || first === "max" || first === "avg" || first === "average";
 }
