@@ -1,5 +1,16 @@
 # @yadad/components
 
+## 0.25.0
+
+### Minor Changes
+
+- 30318d6: The Button now renders the `tone` prop the engine already sends (RFC 0007): `tone="danger"` — an action confirm's destructive button — paints its primary fill, border and focus ring from the danger token instead of rendering identical to "Save". New host variables `--yadad-button-danger-background`, `--yadad-button-danger-border`, `--yadad-button-danger-focus` default to `--yadad-color-danger`.
+- eb5e0d2: The series widget's axis now reads `SeriesWidgetProps.aggregation` (the op, new in `@yadad/core` 0.14) to decide whether a line may start above its data, instead of reading the first word of the engine's `measureLabel` prose — a copy edit or translation can no longer silently flip chart behaviour. The label sniff survives only as the fallback for an engine older than 0.14 (RFC 0008 §3, card 19). `peerDependencies` accepts `@yadad/core` ^0.14.0.
+
+### Patch Changes
+
+- 67e7cdf: Removed dead menu state from the table's `RowActions`: an outer `open`/`setOpen`, its `triggerRef`/`panelRef` and the focus effect reading them were shadowed in full by the `Menu` render prop and never fired. Focus movement was always `Menu`'s own contract — pinned non-vacuously by `registry/table.test.tsx` (card 21's repro and mutation check carry the evidence). No behaviour change.
+
 ## 0.24.0
 
 ### Minor Changes
