@@ -1,7 +1,7 @@
 "use client";
 
 import type { RecordActionItem, TableProps } from "@yadad/core";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu } from "../../../internal/menu/v1/index.js";
 import { Skeleton } from "../../../internal/skeleton/v1/index.js";
 import type { ReactNode } from "react";
@@ -55,18 +55,16 @@ function ActionButton({ action, disabled }: { action: RecordActionItem; disabled
  * in the cell. Phone width: two or more actions collapse into an "Actions…"
  * menu with the board's "Move to…" behaviour — Tab reaches the trigger,
  * Enter or Space opens the panel, every action is reachable by Tab, Escape
- * closes and focus returns to the trigger (the trigger unmounts while open,
- * so the refocus happens through a ref like Board.tsx does). One action
- * stays a plain button on phones too. While a record has an action in
- * flight every one of its buttons is disabled and a polite status says
+ * closes and focus returns to the trigger — all of that focus movement is
+ * `Menu`'s own contract (sets/internal/menu), including the refocus through
+ * a ref when the trigger unmounts while open. One action stays a plain
+ * button on phones too. While a record has an action in flight every one of
+ * its buttons is disabled and a polite status says
  * "Working...". There is no disabled-with-a-reason state: the renderer hides
  * unavailable actions instead.
  */
 function RowActions({ actions, rowLabel, strings }: { actions: readonly RecordActionItem[]; rowLabel: string; strings: TableStrings }): ReactNode {
   const [phone, setPhone] = useState(isPhone);
-  const [open, setOpen] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const panelRef = useRef<HTMLSpanElement>(null);
 
   // Re-evaluate the phone breakpoint; jsdom has no matchMedia (desktop).
   useEffect(() => {
@@ -76,19 +74,6 @@ function RowActions({ actions, rowLabel, strings }: { actions: readonly RecordAc
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
   }, []);
-
-  // Focus goes into the panel on open and back to the trigger on close — the
-  // board's MoveControl contract. Skipped on mount: first render must not
-  // steal focus.
-  const hasOpened = useRef(false);
-  useEffect(() => {
-    if (open) {
-      hasOpened.current = true;
-      panelRef.current?.focus();
-    } else if (hasOpened.current) {
-      triggerRef.current?.focus();
-    }
-  }, [open]);
 
   // The live region is always mounted; only its text changes. A region
   // inserted at the moment work starts is often not announced (screen
