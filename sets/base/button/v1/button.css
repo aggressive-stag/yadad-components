@@ -28,9 +28,27 @@
     background: var(--yadad-button-secondary-background, var(--yadad-color-background));
   }
 
+  /* tone=danger (RFC 0007: an action confirm's destructive button) paints the
+     primary fill from the danger token. The board's record actions read danger
+     through colour AND border; the filled primary reads it through background,
+     border and focus ring so every painted edge says "destructive". */
+  :where([data-yadad="button"][data-variant="primary"][data-tone="danger"]) {
+    border-color: var(--yadad-button-danger-border, var(--yadad-color-danger));
+  }
+
+  :where([data-yadad="button"][data-variant="primary"][data-tone="danger"]) {
+    background: var(--yadad-button-danger-background, var(--yadad-color-danger));
+  }
+
   :where([data-yadad="button"][data-part="root"]):focus-visible {
     outline: var(--yadad-focus-ring-width) solid var(--yadad-button-focus, var(--yadad-color-accent));
     outline-offset: 1px;
+  }
+
+  /* After the generic focus ring: `:where()` adds no specificity, so the
+     outline-colour override wins on source order. */
+  :where([data-yadad="button"][data-part="root"][data-variant="primary"][data-tone="danger"]):focus-visible {
+    outline-color: var(--yadad-button-danger-focus, var(--yadad-color-danger));
   }
 
   :where([data-yadad="button"][data-part="root"]):disabled {

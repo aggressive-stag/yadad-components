@@ -914,6 +914,7 @@ const LAYOUT_ANCHORS = [
   "section-untitled",
   "button-primary-enabled",
   "button-primary-disabled",
+  "button-primary-danger",
   "button-secondary-enabled",
   "button-secondary-disabled",
   "table-empty",
@@ -1172,6 +1173,7 @@ export default function App(): ReactNode {
           <h2>button</h2>
           {state("button-primary-enabled", "primary, enabled", <Button label="Save" type="button" variant="primary" disabled={false} />)}
           {state("button-primary-disabled", "primary, disabled", <Button label="Save" type="button" variant="primary" disabled onPress={() => {}} />)}
+          {state("button-primary-danger", "primary, tone=danger (an action confirm's destructive button)", <Button label="Delete" type="button" variant="primary" tone="danger" disabled={false} />)}
           {state("button-secondary-enabled", "secondary, enabled", <Button label="Cancel" type="button" variant="secondary" disabled={false} />)}
           {state("button-secondary-disabled", "secondary, disabled", <Button label="Cancel" type="button" variant="secondary" disabled onPress={() => {}} />)}
         </section>
@@ -1485,7 +1487,7 @@ export default function App(): ReactNode {
               <p>Deleting is permanent.</p>
               <p>
                 <Button label="Cancel" type="button" variant="secondary" disabled={false} />{" "}
-                <Button label="Delete" type="button" variant="primary" disabled={false} />
+                <Button label="Delete" type="button" variant="primary" tone="danger" disabled={false} />
               </p>
             </DialogComponent>,
           )}

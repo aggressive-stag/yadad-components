@@ -495,6 +495,9 @@ const VAR_DESCRIPTION: Record<string, string> = {
   "button-padding": "inner padding", tap: "minimum tap-target height (phone)",
   "primary-color": "primary variant text", "primary-background": "primary variant background",
   "secondary-color": "secondary variant text", "secondary-background": "secondary variant background",
+  "danger-background": "primary variant background for tone=danger (destructive confirm)",
+  "danger-border": "primary variant border for tone=danger",
+  "danger-focus": "primary variant focus-ring color for tone=danger",
   "disabled-opacity": "opacity when disabled",
   // count
   "count-gap": "gap between label and value",

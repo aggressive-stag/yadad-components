@@ -176,10 +176,13 @@ A pressable control with primary/secondary variants.
 - `--yadad-button-primary-background` — primary variant background; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-button-secondary-color` — secondary variant text; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-button-secondary-background` — secondary variant background; default: token `--yadad-color-background` (page and control background)
+- `--yadad-button-danger-border` — primary variant border for tone=danger; default: token `--yadad-color-danger` (error / danger text and borders)
+- `--yadad-button-danger-background` — primary variant background for tone=danger (destructive confirm); default: token `--yadad-color-danger` (error / danger text and borders)
 - `--yadad-button-focus` — focus-ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-button-danger-focus` — primary variant focus-ring color for tone=danger; default: token `--yadad-color-danger` (error / danger text and borders)
 - `--yadad-button-disabled-opacity` — opacity when disabled; default: `0.6`
 
-**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-sm`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-danger`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-sm`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 
 ### calendar
 
