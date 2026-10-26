@@ -1,13 +1,19 @@
 import type { DiffSegment, DisplayProps, InputProps, TextField } from "@yadad/core";
 import type { ReactNode } from "react";
 
-/** Single-line text input. Emits undefined when emptied (no value). */
+/**
+ * Single-line text input. Emits undefined when emptied (no value). A field's
+ * `maxLength` (RFC 0008 item 13c) is set as the native attribute so the browser
+ * stops typing at the limit; absent when the field declares none. `multiline`
+ * is not rendered as a textarea by this set yet, so there is no second control.
+ */
 export function TextInput({ inputId, field, value, onChange, invalid, describedBy, labelledBy }: InputProps<TextField, string>): ReactNode {
   return (
     <input
       id={inputId}
       name={field.id}
       type="text"
+      maxLength={field.maxLength}
       data-yadad="text"
       data-part="input"
       value={value ?? ""}

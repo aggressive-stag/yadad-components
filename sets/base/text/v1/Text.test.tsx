@@ -1,7 +1,7 @@
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import type { DiffSegment } from "@yadad/core";
-import { TextDisplay } from "./Text.js";
+import { TextDisplay, TextInput } from "./Text.js";
 
 afterEach(cleanup);
 
@@ -76,5 +76,25 @@ describe("TextDisplay with diff", () => {
   it("tags the display so CSS (underline + strike, never colour alone) can key off it", () => {
     const { container } = render(<TextDisplay field={field} value="Ada Lovelace" diff={diff} />);
     expect(container.querySelector('[data-part="display"]')?.getAttribute("data-diff")).toBe("words");
+  });
+});
+
+describe("TextInput maxLength", () => {
+  const props = { inputId: "name", value: undefined, onChange: () => {}, invalid: false } as const;
+
+  it("sets the native maxLength attribute from the field", () => {
+    const { container } = render(<TextInput {...props} field={{ ...field, maxLength: 12 }} />);
+    expect(container.querySelector("input")?.getAttribute("maxlength")).toBe("12");
+  });
+
+  it("leaves the attribute off when the field declares no limit", () => {
+    const { container } = render(<TextInput {...props} field={field} />);
+    expect(container.querySelector("input")?.hasAttribute("maxlength")).toBe(false);
+  });
+
+  it("a multiline field still renders the one input, with the limit", () => {
+    const { container } = render(<TextInput {...props} field={{ ...field, multiline: true, maxLength: 4000 }} />);
+    expect(container.querySelectorAll("input, textarea")).toHaveLength(1);
+    expect(container.querySelector("input")?.getAttribute("maxlength")).toBe("4000");
   });
 });

@@ -293,6 +293,19 @@ function ReferenceStates(): ReactNode {
   );
 }
 
+/** A text input with a 10-character limit and real state, so typing past it can be tried by hand and by gallery/check/text-maxlength.ts. */
+function TextMaxLengthStates(): ReactNode {
+  const { field } = samples.text;
+  const Input = baseRegistry.fields.text.Input;
+  const [value, setValue] = useState<string | undefined>(undefined);
+  return (
+    <section id="group-text-maxlength">
+      <h2>text: maxLength</h2>
+      {state("text-maxlength", "input: maxLength 10, the browser stops typing at the limit", <Input inputId="g-text-maxlength" field={{ ...field, maxLength: 10 }} value={value} onChange={setValue} invalid={false} />)}
+    </section>
+  );
+}
+
 /** The states only a text field has: the word diff of a compare column (RFC 0007). */
 function TextDiffStates(): ReactNode {
   const { field } = samples.text;
@@ -1308,6 +1321,7 @@ export default function App(): ReactNode {
 
         <FieldGroup type="text" />
         <TextDiffStates />
+        <TextMaxLengthStates />
         <FieldGroup type="number" />
         <FieldGroup type="boolean" />
         <FieldGroup type="select" />
