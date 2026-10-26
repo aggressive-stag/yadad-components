@@ -52,7 +52,7 @@ git clone --depth 1 "${CI_SERVER_URL}/yadad/yadad.git" ../yadad
 # root, so git (run by `prepare`) would refuse it as "dubious ownership".
 git config --global --add safe.directory "${CI_PROJECT_DIR}"
 corepack enable
-(cd ../yadad && pnpm install --frozen-lockfile)
+(cd ../yadad && pnpm install --frozen-lockfile && pnpm exec tsc -b packages/theme)
 pnpm install --frozen-lockfile
 pnpm typecheck
 pnpm test
