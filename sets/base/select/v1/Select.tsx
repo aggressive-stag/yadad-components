@@ -1,3 +1,4 @@
+import { optionValue } from "@yadad/core";
 import type { DisplayProps, InputProps, SelectField } from "@yadad/core";
 import type { ReactNode } from "react";
 
@@ -18,8 +19,12 @@ export function SelectInput({ inputId, field, value, onChange, invalid, describe
     >
       <option value="">{chooseLabel ?? "Choose…"}</option>
       {field.options.values.map((choice) => (
-        <option key={choice} value={choice}>
-          {choice}
+        // RFC 0008 item 5 made an option `{ value, label?, color? }` or a bare
+        // string. Rendering `label ?? value` and the colour dot is card 23b;
+        // until then an object option shows its stored value, unchanged from
+        // the string behaviour (optionValue normalizes both spellings).
+        <option key={optionValue(choice)} value={optionValue(choice)}>
+          {optionValue(choice)}
         </option>
       ))}
     </select>
