@@ -62,6 +62,7 @@ GALLERY_URL=http://localhost:5199/ node gallery/check/phone-touch.ts
 If the machine's Chromium differs from the one `playwright-core` ships, set `PLAYWRIGHT_EXECUTABLE_PATH=/path/to/chrome-headless-shell`.
 
 - `tabs-keyboard.ts`: at 200% text the long tab list scrolls internally instead of forcing page-level horizontal overflow; `End` reaches the last tab with its focus ring inside the viewport; the tablist's ring-clearance padding covers the focus-ring extent in both themes at both sizes.
+- `token-fallback.ts` (needs `pnpm build`, no dev server): with no host tokens the pre-built CSS renders styled from the generated light fallback, and a host dark theme (on `:root` or scoped) still wins; desktop and 390x844 touch.
 - `phone-touch.ts`: at 390x844 and 320 px wide with touch, in both themes and at 200% text: tap targets (buttons, checkbox label, sortable headers, tabs, pickers) are at least 44x44; nothing forces the host page to scroll sideways; inputs render at 16 px or larger; the long tab list stays scrollable with the selected tab visible; a real touch tap activates the button; the stacked phone table works (rows as cards, a column label on every cell, sort strip tap targets) and is a normal table at desktop width; section and panel pick up a shadow from the engine's shadow tokens. A native date control's intrinsic minimum width cannot be shrunk by CSS; if it is the only cause of page overflow it is reported as a documented limitation, not a failure.
 
 ## Keeping up with engine releases

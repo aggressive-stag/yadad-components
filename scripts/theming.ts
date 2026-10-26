@@ -848,6 +848,8 @@ export function generateThemingDoc(): string {
   push();
   push("**Why host CSS wins.** All component CSS lives in `@layer yadad.components` (tokens in `@layer yadad.tokens`, ordered before it). Unlayered host CSS always beats layered CSS, and an earlier layer beats a later one — so your unlayered rules win, and you can also override the tokens by writing your own `@layer yadad.tokens` *before* importing the component styles, or by unlayered `:root` custom properties.");
   push();
+  push("**Fallback tokens.** The pre-built stylesheet also declares the default light values of every token under `:where(:root)` in `@layer yadad.tokens` (generated from `@yadad/theme` at build time, zero specificity), so a page that never wrote the theme still renders styled. Any token you write, on `:root` or any scope, wins over it. Write your theme anyway if you want a look other than the default light one.");
+  push();
   push("### Restyling one component");
   push();
   push("Give every input a pill shape and a thicker focus ring, in just your host CSS — no component edits:");

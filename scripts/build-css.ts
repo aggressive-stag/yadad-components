@@ -10,12 +10,15 @@
 // so an internal stylesheet is appended to every base fragment whose view
 // imports the internal component (see needsInternal below).
 import { globSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { fallbackCss } from "./token-fallback.ts";
 
 const files = globSync("sets/**/*.css").sort();
 const preamble = [
   "/* @yadad/components: pre-built styles. Every rule is in @layer yadad.components; */",
-  "/* unlayered host CSS always wins. Tokens come from @yadad/theme (--yadad-*). */",
+  "/* unlayered host CSS always wins. Tokens come from @yadad/theme (--yadad-*); */",
+  "/* the default light values are a zero-specificity fallback, so unthemed pages stay styled. */",
   "@layer yadad.tokens, yadad.components;",
+  fallbackCss(),
 ];
 
 const css = [
@@ -45,6 +48,7 @@ for (const f of files) {
   const body = [
     `/* @yadad/components: ${f}${extras.length ? " + internal sheets it depends on" : ""}. Layered with @yadad.tokens; unlayered host CSS wins. */`,
     "@layer yadad.tokens, yadad.components;",
+    fallbackCss(),
     readFileSync(f, "utf8").trim(),
     ...extras,
   ].join("\n");
