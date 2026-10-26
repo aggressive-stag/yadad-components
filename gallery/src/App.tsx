@@ -297,11 +297,16 @@ function ReferenceStates(): ReactNode {
 function TextMaxLengthStates(): ReactNode {
   const { field } = samples.text;
   const Input = baseRegistry.fields.text.Input;
+  const Display = baseRegistry.fields.text.Display;
   const [value, setValue] = useState<string | undefined>(undefined);
+  const [area, setArea] = useState<string | undefined>(undefined);
   return (
     <section id="group-text-maxlength">
       <h2>text: maxLength</h2>
       {state("text-maxlength", "input: maxLength 10, the browser stops typing at the limit", <Input inputId="g-text-maxlength" field={{ ...field, maxLength: 10 }} value={value} onChange={setValue} invalid={false} />)}
+      {state("text-multiline", "input: multiline textarea, maxLength 4000", <Input inputId="g-text-multiline" field={{ ...field, multiline: true, maxLength: 4000 }} value={area} onChange={setArea} invalid={false} />)}
+      {state("text-multiline-invalid", "input: multiline, invalid", <Input inputId="g-text-multiline-invalid" field={{ ...field, multiline: true }} value={"Line one\nLine two"} onChange={() => {}} invalid />)}
+      {state("text-multiline-display", "display: multiline keeps line breaks", <Display field={{ ...field, multiline: true }} value={"First line\nSecond line\n\nAfter a blank line"} />)}
     </section>
   );
 }

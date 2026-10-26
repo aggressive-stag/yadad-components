@@ -1,4 +1,4 @@
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import type { DiffSegment } from "@yadad/core";
 import { TextDisplay, TextInput } from "./Text.js";
@@ -92,9 +92,61 @@ describe("TextInput maxLength", () => {
     expect(container.querySelector("input")?.hasAttribute("maxlength")).toBe(false);
   });
 
-  it("a multiline field still renders the one input, with the limit", () => {
-    const { container } = render(<TextInput {...props} field={{ ...field, multiline: true, maxLength: 4000 }} />);
-    expect(container.querySelectorAll("input, textarea")).toHaveLength(1);
-    expect(container.querySelector("input")?.getAttribute("maxlength")).toBe("4000");
+});
+
+describe("TextInput multiline", () => {
+  const multi = { ...field, multiline: true, required: true, maxLength: 4000 } as const;
+  const props = { inputId: "name", value: undefined, onChange: () => {}, invalid: false } as const;
+
+  it("renders one textarea, no input, with the id, name, limit and part names", () => {
+    const { container } = render(<TextInput {...props} field={multi} />);
+    expect(container.querySelectorAll("input")).toHaveLength(0);
+    const area = container.querySelector("textarea");
+    expect(area?.id).toBe("name");
+    expect(area?.getAttribute("name")).toBe("name");
+    expect(area?.getAttribute("maxlength")).toBe("4000");
+    expect(area?.getAttribute("data-yadad")).toBe("text");
+    expect(area?.getAttribute("data-part")).toBe("input");
+    expect(area?.getAttribute("aria-required")).toBe("true");
+    expect(Number(area?.getAttribute("rows"))).toBeGreaterThanOrEqual(3);
+  });
+
+  it("carries aria-invalid, aria-describedby and aria-labelledby", () => {
+    const { container } = render(<TextInput {...props} field={multi} invalid describedBy="err" labelledBy="lbl" />);
+    const area = container.querySelector("textarea");
+    expect(area?.getAttribute("aria-invalid")).toBe("true");
+    expect(area?.getAttribute("aria-describedby")).toBe("err");
+    expect(area?.getAttribute("aria-labelledby")).toBe("lbl");
+  });
+
+  it("shows the value, emits the string, and undefined when emptied", () => {
+    const seen: (string | undefined)[] = [];
+    const { container } = render(<TextInput {...props} value={"a\nb"} field={multi} onChange={(v) => seen.push(v)} />);
+    const area = container.querySelector("textarea") as HTMLTextAreaElement;
+    expect(area.value).toBe("a\nb");
+    fireEvent.change(area, { target: { value: "a\nbc" } });
+    fireEvent.change(area, { target: { value: "" } });
+    expect(seen).toEqual(["a\nbc", undefined]);
+  });
+
+  it("a field that is not multiline stays a single-line input", () => {
+    const { container } = render(<TextInput {...props} field={{ ...field, multiline: false }} />);
+    expect(container.querySelector("textarea")).toBeNull();
+    expect(container.querySelector("input")).not.toBeNull();
+  });
+});
+
+describe("TextDisplay multiline", () => {
+  it("marks a multiline display so CSS keeps line breaks, and keeps the raw text (no markup)", () => {
+    const { container } = render(<TextDisplay field={{ ...field, multiline: true }} value={"one\n<b>two</b>"} />);
+    const d = container.querySelector('[data-part="display"]');
+    expect(d?.getAttribute("data-multiline")).toBe("true");
+    expect(d?.textContent).toBe("one\n<b>two</b>");
+    expect(d?.querySelector("b")).toBeNull();
+  });
+
+  it("does not mark a single-line display", () => {
+    const { container } = render(<TextDisplay field={field} value="x" />);
+    expect(container.querySelector('[data-part="display"]')?.hasAttribute("data-multiline")).toBe(false);
   });
 });

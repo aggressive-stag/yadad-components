@@ -13,6 +13,21 @@
     border-radius: var(--yadad-text-radius, var(--yadad-radius-sm));
   }
 
+  /* Multi-line (RFC 0008 item 13): a few rows tall, resizable vertically only,
+     and wrapping like prose. The textarea's own monospace default is replaced
+     by the same font token as the single-line input. */
+  :where([data-yadad="text"][data-part="input"][data-multiline="true"]) {
+    min-block-size: var(--yadad-text-multiline-min-height, calc(var(--yadad-font-size-md) * 6));
+    line-height: var(--yadad-text-multiline-line-height, 1.4);
+    resize: vertical;
+  }
+
+  /* A multiline value keeps its line breaks; runs of spaces still collapse. */
+  :where([data-yadad="text"][data-part="display"][data-multiline="true"]) {
+    white-space: pre-line;
+    overflow-wrap: break-word;
+  }
+
   :where([data-yadad="text"][data-part="input"]):focus-visible {
     outline: var(--yadad-focus-ring-width) solid var(--yadad-text-focus, var(--yadad-color-accent));
     outline-offset: 1px;

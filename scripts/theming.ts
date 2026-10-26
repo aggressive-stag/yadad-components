@@ -398,7 +398,7 @@ const PART_DESCRIPTION: Record<string, Record<string, string>> = {
   tabs: { root: "the tab component wrapper", list: "the `<tablist>` (scrolls internally for long lists)", tab: "a tab button", panel: "the selected tab's panel" },
   tags: { input: "the chip-editor wrapper (chips + add row)", chips: "the `<ul>` of entered chips (wraps)", chip: "one entered chip (`<li>` in the editor, `<span>` in the display)", "chip-label": "the chip's text", remove: "the chip's remove button", editor: "the wrapper of the add row (text input + Add button)", "add-input": "the text `<input>` for the next tag", add: "the add button", display: "read-only chips (em-dash marker when empty)" },
   time: { input: "the time `<input>`", display: "read-only value (`<time>`; em-dash marker when empty)" },
-  text: { input: "the text `<input>`", display: "read-only value", "diff-same": "a word-diff run present in both versions (compare column, RFC 0007)", "diff-added": "a `<ins>` run only in the new version", "diff-removed": "a `<del>` run only in the old version", "diff-label": "visually hidden \"added:\" / \"removed:\" text prefixing a diff run" },
+  text: { input: "the text `<input>`, or the `<textarea>` (`data-multiline=\"true\"`) for a multiline field", display: "read-only value (`data-multiline=\"true\"` keeps its line breaks)", "diff-same": "a word-diff run present in both versions (compare column, RFC 0007)", "diff-added": "a `<ins>` run only in the new version", "diff-removed": "a `<del>` run only in the old version", "diff-label": "visually hidden \"added:\" / \"removed:\" text prefixing a diff run" },
 };
 
 const COMPONENT_INTRO: Record<string, string> = {
@@ -422,7 +422,7 @@ const COMPONENT_INTRO: Record<string, string> = {
   tabs: "A tab list with a single selected tab and its panel.",
   tags: "A free-text tag list (RFC 0008 item 15): chips with remove buttons, an add row, and Backspace-on-empty removes the last chip.",
   time: "A time-of-day field (RFC 0008 item 14), rendered as a native time input.",
-  text: "A single-line text field.",
+  text: "A text field: a single-line input, or a textarea when the field is `multiline`.",
 };
 
 // Per-component variable descriptions. Keys are the variable's suffix
@@ -596,6 +596,8 @@ const VAR_DESCRIPTION: Record<string, string> = {
   "tabs-tap": "minimum tap-target height (phone)",
   // text
   "text-padding": "inner padding",
+  "text-multiline-min-height": "minimum height of the multiline textarea (default about six lines of text)",
+  "text-multiline-line-height": "line height of the multiline textarea",
   "text-diff-added-color": "underline colour of an added word-diff run (compare column; never the only signal)",
   "text-diff-added-background": "background of an added word-diff run",
   "text-diff-removed-color": "strike-through colour of a removed word-diff run",

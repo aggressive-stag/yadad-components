@@ -844,12 +844,12 @@ A free-text tag list (RFC 0008 item 15): chips with remove buttons, an add row, 
 
 ### text
 
-A single-line text field.
+A text field: a single-line input, or a textarea when the field is `multiline`.
 
 **`data-part` names** (marked parts carry the component marker and take `[data-yadad="<component>"][data-part="<name>"]`; nested parts are inside the component root and take the descendant form `[data-yadad="<component>"] [data-part="<name>"]` — the compound form on a nested part matches nothing):
 
-- `input` — the text `<input>` (target with `[data-yadad="text"][data-part="input"]`)
-- `display` — read-only value (target with `[data-yadad="text"][data-part="display"]`)
+- `input` — the text `<input>`, or the `<textarea>` (`data-multiline="true"`) for a multiline field (target with `[data-yadad="text"][data-part="input"]`)
+- `display` — read-only value (`data-multiline="true"` keeps its line breaks) (target with `[data-yadad="text"][data-part="display"]`)
 - `diff-same` — a word-diff run present in both versions (compare column, RFC 0007) (target with `[data-yadad="text"] [data-part="diff-same"]`)
 - `diff-added` — a `<ins>` run only in the new version (target with `[data-yadad="text"] [data-part="diff-added"]`)
 - `diff-label` — visually hidden "added:" / "removed:" text prefixing a diff run (target with `[data-yadad="text"] [data-part="diff-label"]`)
@@ -866,6 +866,8 @@ A single-line text field.
 - `--yadad-text-border-width` — border width; default: `1px`
 - `--yadad-text-border` — border color; default: token `--yadad-color-border` (borders and dividers)
 - `--yadad-text-radius` — corner radius; default: token `--yadad-radius-sm` (small corner radius (inputs, buttons, chips))
+- `--yadad-text-multiline-min-height` — minimum height of the multiline textarea (default about six lines of text); default: `calc(var(--yadad-font-size-md) * 6)` (token-derived: `--yadad-font-size-md`)
+- `--yadad-text-multiline-line-height` — line height of the multiline textarea; default: `1.4`
 - `--yadad-text-focus` — focus-ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-text-border-invalid` — border color when invalid; default: token `--yadad-color-danger` (error / danger text and borders)
 - `--yadad-text-diff-added-color` — underline colour of an added word-diff run (compare column; never the only signal); default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
