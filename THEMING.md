@@ -321,7 +321,7 @@ A big-number widget with a label (e.g. a total).
 **`data-part` names** (marked parts carry the component marker and take `[data-yadad="<component>"][data-part="<name>"]`; nested parts are inside the component root and take the descendant form `[data-yadad="<component>"] [data-part="<name>"]` — the compound form on a nested part matches nothing):
 
 - `root` — the widget wrapper (target with `[data-yadad="count"][data-part="root"]`)
-- `label` — the count label (target with `[data-yadad="count"] [data-part="label"]`)
+- `label` — the count label (an `<h2>`: the widget's heading) (target with `[data-yadad="count"] [data-part="label"]`)
 - `value` — the counted value (wraps when long) (target with `[data-yadad="count"] [data-part="value"]`)
 
 **Per-component variables** (set on the component or an ancestor; the default is shown):
@@ -655,7 +655,7 @@ One measure per group of a table view, drawn as a compact captioned table, a bar
 **`data-part` names** (marked parts carry the component marker and take `[data-yadad="<component>"][data-part="<name>"]`; nested parts are inside the component root and take the descendant form `[data-yadad="<component>"] [data-part="<name>"]` — the compound form on a nested part matches nothing):
 
 - `root` — the widget wrapper (target with `[data-yadad="series"][data-part="root"]`)
-- `label` — the widget label above the table (target with `[data-yadad="series"] [data-part="label"]`)
+- `label` — the widget label above the table (an `<h2>`: the widget's heading) (target with `[data-yadad="series"] [data-part="label"]`)
 - `error` — the failed-read note (`role=alert`) (target with `[data-yadad="series"] [data-part="error"]`)
 - `chart` — the chart wrapper (measured for width; holds the skeleton while loading) (target with `[data-yadad="series"] [data-part="chart"]`)
 - `chart-skeleton` — the loading block where the plot will be (target with `[data-yadad="series"] [data-part="chart-skeleton"]`)

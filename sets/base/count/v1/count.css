@@ -7,6 +7,10 @@
   }
 
   :where([data-yadad="count"]) :where([data-part="label"]) {
+    /* An <h2> (RFC 0008 item 12) restyled to the label it replaced. */
+    margin: 0;
+    font-weight: 400;
+    line-height: inherit;
     font-size: var(--yadad-count-label-size, var(--yadad-font-size-sm));
     color: var(--yadad-count-label-color, var(--yadad-color-text-muted));
     /* Long labels must wrap on narrow screens instead of running the page

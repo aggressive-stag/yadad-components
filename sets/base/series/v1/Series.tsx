@@ -109,7 +109,7 @@ export function Series({
     // A failed read is content, not decoration: it must be readable.
     return (
       <div data-yadad="series" data-part="root" data-display={display} data-state="error">
-        <div data-part="label">{label}</div>
+        <h2 data-part="label">{label}</h2>
         <p data-part="error" role="alert">
           {error}
         </p>
@@ -228,7 +228,7 @@ export function Series({
 
   return (
     <div data-yadad="series" data-part="root" data-display={display} data-state={loading ? "loading" : groups.length === 0 ? "empty" : "ready"}>
-      <div data-part="label">{label}</div>
+      <h2 data-part="label">{label}</h2>
       {isChart && (
         <div data-part="chart" ref={wrapRef}>
           {loading ? (

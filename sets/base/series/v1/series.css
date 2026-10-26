@@ -11,7 +11,9 @@
     font-size: var(--yadad-series-label-size, var(--yadad-font-size-sm));
     font-weight: 600;
     color: var(--yadad-series-label-color, var(--yadad-color-text-muted));
-    margin-bottom: var(--yadad-series-gap, var(--yadad-space-1));
+    /* An <h2> (RFC 0008 item 12): the UA heading margins are replaced by the gap below. */
+    margin: 0 0 var(--yadad-series-gap, var(--yadad-space-1));
+    line-height: inherit;
   }
 
   :where([data-yadad="series"]) :where([data-part="caption"]) {
