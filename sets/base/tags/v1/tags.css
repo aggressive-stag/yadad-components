@@ -1,0 +1,115 @@
+/* tags/v1. Override any --yadad-tags-* variable (on the element or any ancestor)
+   or the underlying --yadad-* tokens; the fallbacks below are the defaults. */
+@layer yadad.components {
+  :where([data-yadad="tags"][data-part="input"]) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--yadad-tags-gap, var(--yadad-space-2));
+  }
+
+  :where([data-yadad="tags"] [data-part="chips"]) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--yadad-tags-chips-gap, var(--yadad-space-1));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  :where([data-yadad="tags"] [data-part="chip"]) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--yadad-tags-chip-gap, var(--yadad-space-1));
+    padding: var(--yadad-tags-chip-padding, 0 var(--yadad-space-2));
+    font-family: var(--yadad-tags-font-family, var(--yadad-font-family));
+    font-size: var(--yadad-tags-chip-font-size, var(--yadad-font-size-sm));
+    color: var(--yadad-tags-chip-color, var(--yadad-color-text));
+    background: var(--yadad-tags-chip-background, var(--yadad-color-surface));
+    border: var(--yadad-tags-chip-border-width, 1px) solid var(--yadad-tags-chip-border, var(--yadad-color-border));
+    border-radius: var(--yadad-tags-chip-radius, var(--yadad-radius-sm));
+  }
+
+  :where([data-yadad="tags"] [data-part="remove"]) {
+    all: unset;
+    cursor: pointer;
+    color: var(--yadad-tags-remove-color, var(--yadad-color-text-muted));
+    font-size: var(--yadad-tags-remove-font-size, var(--yadad-font-size-md));
+    line-height: 1;
+    padding: var(--yadad-tags-remove-padding, 0 var(--yadad-space-1));
+  }
+
+  :where([data-yadad="tags"] [data-part="remove"]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-tags-focus, var(--yadad-color-accent));
+    outline-offset: 1px;
+    border-radius: var(--yadad-tags-chip-radius, var(--yadad-radius-sm));
+  }
+
+  :where([data-yadad="tags"] [data-part="editor"]) {
+    display: flex;
+    gap: var(--yadad-tags-editor-gap, var(--yadad-space-1));
+  }
+
+  :where([data-yadad="tags"] [data-part="add-input"]) {
+    box-sizing: border-box;
+    flex: 1;
+    min-inline-size: 0;
+    padding: var(--yadad-tags-padding, var(--yadad-space-2) var(--yadad-space-3));
+    font-family: var(--yadad-tags-font-family, var(--yadad-font-family));
+    font-size: var(--yadad-tags-font-size, var(--yadad-font-size-md));
+    color: var(--yadad-tags-color, var(--yadad-color-text));
+    background: var(--yadad-tags-background, var(--yadad-color-background));
+    border: var(--yadad-tags-border-width, 1px) solid var(--yadad-tags-border, var(--yadad-color-border));
+    border-radius: var(--yadad-tags-radius, var(--yadad-radius-sm));
+  }
+
+  :where([data-yadad="tags"] [data-part="add-input"]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-tags-focus, var(--yadad-color-accent));
+    outline-offset: 1px;
+  }
+
+  :where([data-yadad="tags"] [data-part="add-input"][aria-invalid="true"]) {
+    border-color: var(--yadad-tags-border-invalid, var(--yadad-color-danger));
+  }
+
+  :where([data-yadad="tags"] [data-part="add"]) {
+    padding: var(--yadad-tags-padding, var(--yadad-space-2) var(--yadad-space-3));
+    font-family: var(--yadad-tags-font-family, var(--yadad-font-family));
+    font-size: var(--yadad-tags-font-size, var(--yadad-font-size-md));
+    color: var(--yadad-tags-add-color, var(--yadad-color-accent));
+    background: var(--yadad-tags-background, var(--yadad-color-background));
+    border: var(--yadad-tags-border-width, 1px) solid var(--yadad-tags-border, var(--yadad-color-border));
+    border-radius: var(--yadad-tags-radius, var(--yadad-radius-sm));
+    cursor: pointer;
+  }
+
+  :where([data-yadad="tags"] [data-part="add"]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-tags-focus, var(--yadad-color-accent));
+    outline-offset: 1px;
+  }
+
+  :where([data-yadad="tags"] [data-part="add"][disabled]) {
+    opacity: var(--yadad-tags-add-disabled-opacity, 0.5);
+    cursor: default;
+  }
+
+  :where([data-yadad="tags"][data-part="display"]) {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: var(--yadad-tags-chips-gap, var(--yadad-space-1));
+  }
+
+  :where([data-yadad="tags"][data-part="display"] [data-part="chip"]) {
+    padding: var(--yadad-tags-chip-padding, 0 var(--yadad-space-2));
+    font-family: var(--yadad-tags-font-family, var(--yadad-font-family));
+    font-size: var(--yadad-tags-chip-font-size, var(--yadad-font-size-sm));
+    color: var(--yadad-tags-chip-color, var(--yadad-color-text));
+    background: var(--yadad-tags-chip-background, var(--yadad-color-surface));
+    border: var(--yadad-tags-chip-border-width, 1px) solid var(--yadad-tags-chip-border, var(--yadad-color-border));
+    border-radius: var(--yadad-tags-chip-radius, var(--yadad-radius-sm));
+  }
+
+  /* The empty marker (em-dash), same convention as time's display-empty. */
+  :where([data-yadad="tags"][data-part="display"][data-empty="true"]) {
+    color: var(--yadad-tags-display-color-empty, var(--yadad-color-text-muted));
+  }
+}

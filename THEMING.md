@@ -745,6 +745,54 @@ A tab list with a single selected tab and its panel.
 
 **Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-border`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-space-1`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 
+### tags
+
+A free-text tag list (RFC 0008 item 15): chips with remove buttons, an add row, and Backspace-on-empty removes the last chip.
+
+**`data-part` names** (marked parts carry the component marker and take `[data-yadad="<component>"][data-part="<name>"]`; nested parts are inside the component root and take the descendant form `[data-yadad="<component>"] [data-part="<name>"]` — the compound form on a nested part matches nothing):
+
+- `input` — the chip-editor wrapper (chips + add row) (target with `[data-yadad="tags"][data-part="input"]`)
+- `chips` — the `<ul>` of entered chips (wraps) (target with `[data-yadad="tags"] [data-part="chips"]`)
+- `chip` — one entered chip (`<li>` in the editor, `<span>` in the display) (target with `[data-yadad="tags"] [data-part="chip"]`)
+- `chip-label` — the chip's text (target with `[data-yadad="tags"] [data-part="chip-label"]`)
+- `remove` — the chip's remove button (target with `[data-yadad="tags"] [data-part="remove"]`)
+- `editor` — the wrapper of the add row (text input + Add button) (target with `[data-yadad="tags"] [data-part="editor"]`)
+- `add-input` — the text `<input>` for the next tag (target with `[data-yadad="tags"] [data-part="add-input"]`)
+- `add` — the add button (target with `[data-yadad="tags"] [data-part="add"]`)
+- `display` — read-only chips (em-dash marker when empty) (target with `[data-yadad="tags"][data-part="display"]`)
+
+**Per-component variables** (set on the component or an ancestor; the default is shown):
+
+- `--yadad-tags-gap` — gap between parts; default: token `--yadad-space-2` (spacing scale, step 2)
+- `--yadad-tags-chips-gap` — gap between chips (both the editor list and the display); default: token `--yadad-space-1` (spacing scale, step 1 (tightest))
+- `--yadad-tags-chip-gap` — gap between a chip's label and its remove button; default: token `--yadad-space-1` (spacing scale, step 1 (tightest))
+- `--yadad-tags-chip-padding` — chip inner padding; default: `0 var(--yadad-space-2)` (token-derived: `--yadad-space-2`)
+- `--yadad-tags-font-family` — font stack; default: token `--yadad-font-family` (base font stack)
+- `--yadad-tags-chip-font-size` — chip text size; default: token `--yadad-font-size-sm` (small text (labels, secondary, table cells))
+- `--yadad-tags-chip-color` — chip text colour; default: token `--yadad-color-text` (main text color)
+- `--yadad-tags-chip-background` — chip background; default: token `--yadad-color-surface` (raised surface (sections, panels, table headers))
+- `--yadad-tags-chip-border-width` — chip border width; default: `1px`
+- `--yadad-tags-chip-border` — chip border colour; default: token `--yadad-color-border` (borders and dividers)
+- `--yadad-tags-chip-radius` — chip corner radius; default: token `--yadad-radius-sm` (small corner radius (inputs, buttons, chips))
+- `--yadad-tags-remove-color` — chip remove-button colour; default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
+- `--yadad-tags-remove-font-size` — chip remove-button glyph size; default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
+- `--yadad-tags-remove-padding` — chip remove-button padding (the glyph needs a little air to be tappable); default: `0 var(--yadad-space-1)` (token-derived: `--yadad-space-1`)
+- `--yadad-tags-focus` — focus-ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-tags-editor-gap` — gap between the add input and the add button; default: token `--yadad-space-1` (spacing scale, step 1 (tightest))
+- `--yadad-tags-padding` — inner padding; default: `var(--yadad-space-2) var(--yadad-space-3)` (token-derived: `--yadad-space-2`, `--yadad-space-3`)
+- `--yadad-tags-font-size` — font size; default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
+- `--yadad-tags-color` — foreground color; default: token `--yadad-color-text` (main text color)
+- `--yadad-tags-background` — background; default: token `--yadad-color-background` (page and control background)
+- `--yadad-tags-border-width` — border width; default: `1px`
+- `--yadad-tags-border` — border color; default: token `--yadad-color-border` (borders and dividers)
+- `--yadad-tags-radius` — corner radius; default: token `--yadad-radius-sm` (small corner radius (inputs, buttons, chips))
+- `--yadad-tags-border-invalid` — border color when invalid; default: token `--yadad-color-danger` (error / danger text and borders)
+- `--yadad-tags-add-color` — add-button text colour; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-tags-add-disabled-opacity` — opacity of the add button while the draft is empty; default: `0.5`
+- `--yadad-tags-display-color-empty` — colour of the empty marker (em-dash) in the read-only display; default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
+
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-sm`, `--yadad-space-1`, `--yadad-space-2`, `--yadad-space-3`
+
 ### text
 
 A single-line text field.
@@ -777,4 +825,30 @@ A single-line text field.
 - `--yadad-text-diff-removed-background` — background of a removed word-diff run; default: `color-mix(in srgb, var(--yadad-color-danger) 14%, transparent)` (token-derived: `--yadad-color-danger`)
 
 **Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`
+
+### time
+
+A time-of-day field (RFC 0008 item 14), rendered as a native time input.
+
+**`data-part` names** (marked parts carry the component marker and take `[data-yadad="<component>"][data-part="<name>"]`; nested parts are inside the component root and take the descendant form `[data-yadad="<component>"] [data-part="<name>"]` — the compound form on a nested part matches nothing):
+
+- `input` — the time `<input>` (target with `[data-yadad="time"][data-part="input"]`)
+- `display` — read-only value (`<time>`; em-dash marker when empty) (target with `[data-yadad="time"][data-part="display"]`)
+
+**Per-component variables** (set on the component or an ancestor; the default is shown):
+
+- `--yadad-time-width` — inline size; default: `100%`
+- `--yadad-time-padding` — inner padding; default: `var(--yadad-space-2) var(--yadad-space-3)` (token-derived: `--yadad-space-2`, `--yadad-space-3`)
+- `--yadad-time-font-family` — font stack; default: token `--yadad-font-family` (base font stack)
+- `--yadad-time-font-size` — font size; default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
+- `--yadad-time-color` — foreground color; default: token `--yadad-color-text` (main text color)
+- `--yadad-time-background` — background; default: token `--yadad-color-background` (page and control background)
+- `--yadad-time-border-width` — border width; default: `1px`
+- `--yadad-time-border` — border color; default: token `--yadad-color-border` (borders and dividers)
+- `--yadad-time-radius` — corner radius; default: token `--yadad-radius-sm` (small corner radius (inputs, buttons, chips))
+- `--yadad-time-focus` — focus-ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-time-border-invalid` — border color when invalid; default: token `--yadad-color-danger` (error / danger text and borders)
+- `--yadad-time-display-color-empty` — colour of the empty marker (em-dash) in the read-only display; default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
+
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`
 

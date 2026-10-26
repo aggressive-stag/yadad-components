@@ -389,6 +389,8 @@ const PART_DESCRIPTION: Record<string, Record<string, string>> = {
   select: { input: "the `<select>` picker", display: "read-only value" },
   table: { root: "the table wrapper (scroll container)", table: "the `<table>`", caption: "the `<caption>`", header: "a column `<th>`", sort: "a sortable-header button", "sort-indicator": "the sort direction arrow", "sort-status": "visually hidden sort direction text inside the sort button", empty: "the empty-state cell", row: "a data `<tr>`", cell: "a data `<td>`", "skeleton-row": "a placeholder `<tr>` shown while rows load (card 15e)", actions: "the actions cell wrapper (RFC 0007)", "actions-list": "the row's action buttons side by side (desktop)", action: "one record-action button (`data-tone` = neutral | danger)", "actions-trigger": "the phone \"Actions…\" menu trigger", "actions-panel": "the opened phone menu panel", "actions-cancel": "the menu's Cancel button", "action-status": "the \"Working...\" live-region text while an action is in flight" },
   tabs: { root: "the tab component wrapper", list: "the `<tablist>` (scrolls internally for long lists)", tab: "a tab button", panel: "the selected tab's panel" },
+  tags: { input: "the chip-editor wrapper (chips + add row)", chips: "the `<ul>` of entered chips (wraps)", chip: "one entered chip (`<li>` in the editor, `<span>` in the display)", "chip-label": "the chip's text", remove: "the chip's remove button", editor: "the wrapper of the add row (text input + Add button)", "add-input": "the text `<input>` for the next tag", add: "the add button", display: "read-only chips (em-dash marker when empty)" },
+  time: { input: "the time `<input>`", display: "read-only value (`<time>`; em-dash marker when empty)" },
   text: { input: "the text `<input>`", display: "read-only value", "diff-same": "a word-diff run present in both versions (compare column, RFC 0007)", "diff-added": "a `<ins>` run only in the new version", "diff-removed": "a `<del>` run only in the old version", "diff-label": "visually hidden \"added:\" / \"removed:\" text prefixing a diff run" },
 };
 
@@ -411,6 +413,8 @@ const COMPONENT_INTRO: Record<string, string> = {
   select: "A single-choice field, rendered as a native picker.",
   table: "A data table with sortable headers and an empty state.",
   tabs: "A tab list with a single selected tab and its panel.",
+  tags: "A free-text tag list (RFC 0008 item 15): chips with remove buttons, an add row, and Backspace-on-empty removes the last chip.",
+  time: "A time-of-day field (RFC 0008 item 14), rendered as a native time input.",
   text: "A single-line text field.",
 };
 
@@ -570,6 +574,25 @@ const VAR_DESCRIPTION: Record<string, string> = {
   "text-diff-added-background": "background of an added word-diff run",
   "text-diff-removed-color": "strike-through colour of a removed word-diff run",
   "text-diff-removed-background": "background of a removed word-diff run",
+  // time (card 23a, RFC 0008 item 14)
+  "time-display-color-empty": "colour of the empty marker (em-dash) in the read-only display",
+  // tags (card 23a, RFC 0008 item 15)
+  "tags-chips-gap": "gap between chips (both the editor list and the display)",
+  "tags-chip-gap": "gap between a chip's label and its remove button",
+  "tags-chip-padding": "chip inner padding",
+  "tags-chip-font-size": "chip text size",
+  "tags-chip-color": "chip text colour",
+  "tags-chip-background": "chip background",
+  "tags-chip-border-width": "chip border width",
+  "tags-chip-border": "chip border colour",
+  "tags-chip-radius": "chip corner radius",
+  "tags-remove-color": "chip remove-button colour",
+  "tags-remove-font-size": "chip remove-button glyph size",
+  "tags-remove-padding": "chip remove-button padding (the glyph needs a little air to be tappable)",
+  "tags-editor-gap": "gap between the add input and the add button",
+  "tags-add-color": "add-button text colour",
+  "tags-add-disabled-opacity": "opacity of the add button while the draft is empty",
+  "tags-display-color-empty": "colour of the empty marker (em-dash) in the read-only display",
   // table record actions (RFC 0007)
   "table-actions-link": "record-action button text colour",
   "table-actions-border": "record-action button border colour",

@@ -1,0 +1,38 @@
+/* time/v1. Override any --yadad-time-* variable (on the element or any ancestor)
+   or the underlying --yadad-* tokens; the fallbacks below are the defaults. */
+@layer yadad.components {
+  :where([data-yadad="time"][data-part="input"]) {
+    box-sizing: border-box;
+    inline-size: var(--yadad-time-width, 100%);
+    /* Like the date control, a native time control has an intrinsic minimum
+       width; min-inline-size: 0 keeps it out of grid/flex tracks at phone
+       width and 200% text (same fix as date.css). */
+    min-inline-size: 0;
+    padding: var(--yadad-time-padding, var(--yadad-space-2) var(--yadad-space-3));
+    font-family: var(--yadad-time-font-family, var(--yadad-font-family));
+    font-size: var(--yadad-time-font-size, var(--yadad-font-size-md));
+    color: var(--yadad-time-color, var(--yadad-color-text));
+    background: var(--yadad-time-background, var(--yadad-color-background));
+    border: var(--yadad-time-border-width, 1px) solid var(--yadad-time-border, var(--yadad-color-border));
+    border-radius: var(--yadad-time-radius, var(--yadad-radius-sm));
+  }
+
+  :where([data-yadad="time"][data-part="input"]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-time-focus, var(--yadad-color-accent));
+    outline-offset: 1px;
+  }
+
+  :where([data-yadad="time"][data-part="input"][aria-invalid="true"]) {
+    border-color: var(--yadad-time-border-invalid, var(--yadad-color-danger));
+  }
+
+  :where([data-yadad="time"][data-part="display"]) {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The empty marker (em-dash), matching how the dashboard shows a missing
+     value: muted, so it reads as absence, not as content. */
+  :where([data-yadad="time"][data-part="display"][data-empty="true"]) {
+    color: var(--yadad-time-display-color-empty, var(--yadad-color-text-muted));
+  }
+}

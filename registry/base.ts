@@ -18,7 +18,9 @@ import { SelectDisplay, SelectInput } from "../sets/base/select/v1/index.js";
 import { Series } from "../sets/base/series/v1/index.js";
 import { Table } from "../sets/base/table/v1/index.js";
 import { Tabs } from "../sets/base/tabs/v1/index.js";
+import { TagsDisplay, TagsInput } from "../sets/base/tags/v1/index.js";
 import { TextDisplay, TextInput } from "../sets/base/text/v1/index.js";
+import { TimeDisplay, TimeInput } from "../sets/base/time/v1/index.js";
 
 /**
  * The base set: one component version per field type. Switching a version is
@@ -33,6 +35,8 @@ export const baseRegistry: Registry<ReactNode> = {
     date: { type: "date", Input: DateInput, Display: DateDisplay },
     datetime: { type: "datetime", Input: DatetimeInput, Display: DatetimeDisplay },
     reference: { type: "reference", Input: ReferenceInput, Display: ReferenceDisplay },
+    time: { type: "time", Input: TimeInput, Display: TimeDisplay },
+    tags: { type: "tags", Input: TagsInput, Display: TagsDisplay },
   },
   layout: { FieldFrame, Section, Button, Table, ErrorSummary, Tabs, Panel, Calendar, Board, Dialog },
   widgets: { count: Count, series: Series },

@@ -111,10 +111,20 @@
       "types": "./dist/sets/base/tabs/v1/index.d.ts",
       "default": "./dist/sets/base/tabs/v1/index.js"
     },
+    "./tags": {
+      "@yadad/source": "./sets/base/tags/v1/index.ts",
+      "types": "./dist/sets/base/tags/v1/index.d.ts",
+      "default": "./dist/sets/base/tags/v1/index.js"
+    },
     "./text": {
       "@yadad/source": "./sets/base/text/v1/index.ts",
       "types": "./dist/sets/base/text/v1/index.d.ts",
       "default": "./dist/sets/base/text/v1/index.js"
+    },
+    "./time": {
+      "@yadad/source": "./sets/base/time/v1/index.ts",
+      "types": "./dist/sets/base/time/v1/index.d.ts",
+      "default": "./dist/sets/base/time/v1/index.js"
     },
     "./styles.css": "./dist/yadad-components.css",
     "./styles/board.css": "./dist/styles/board.css",
@@ -136,7 +146,9 @@
     "./styles/series.css": "./dist/styles/series.css",
     "./styles/table.css": "./dist/styles/table.css",
     "./styles/tabs.css": "./dist/styles/tabs.css",
-    "./styles/text.css": "./dist/styles/text.css"
+    "./styles/tags.css": "./dist/styles/tags.css",
+    "./styles/text.css": "./dist/styles/text.css",
+    "./styles/time.css": "./dist/styles/time.css"
   },
   "files": [
     "dist",

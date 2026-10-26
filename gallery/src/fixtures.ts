@@ -84,6 +84,10 @@ export const samples: FieldSamples = {
     inputExtras: { options: { status: "ready", options: referenceOptions, more: false } },
     displayExtras: { label: "Bench press", status: "found" },
   },
+  // RFC 0008 items 14-15 (card 23a): a time of day with the field's bounds,
+  // and a tag list long enough to wrap at phone width.
+  time: { field: { id: "start", type: "time", label: "Start", min: "09:00", max: "17:00", step: 15 }, value: "09:30", inputExtras: NONE, displayExtras: NONE },
+  tags: { field: { id: "tags", type: "tags", label: "Tags" }, value: ["squat", "bench press", "deadlift", "overhead press", "5x5", "accessory work"], inputExtras: NONE, displayExtras: NONE },
 };
 
 /** The error shapes the contract kit drives components with. */

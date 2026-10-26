@@ -195,7 +195,10 @@ function Field<K extends FieldType>({
   const sample = samples[type];
   const { field } = sample;
   const entry = baseRegistry.fields[type];
-  // A reference picker keeps its picked value so typing and picking can be tried by hand; every other state is static.
+  // A reference picker keeps its picked value so typing and picking can be tried by hand; a tags
+  // field keeps its chips so Enter-add, chip-remove and Backspace-remove can be tried by hand
+  // (card 23a's keyboard-only check drives the real component, so it needs real state).
+  // Every other state is static.
   const [picked, setPicked] = useState(value);
   // The datetime entry is optional until the reference set ships it (RFC 0007); the
   // gallery only renders types it has wired, so this is an invariant, not a state.
@@ -211,8 +214,11 @@ function Field<K extends FieldType>({
           {
             inputId,
             field,
-            value: type === "reference" ? picked : value,
-            onChange: type === "reference" ? (v: FieldValueTypes[K] | undefined) => setPicked(v) : () => {},
+            value: type === "reference" || type === "tags" ? picked : value,
+            onChange:
+              type === "reference" || type === "tags"
+                ? (v: FieldValueTypes[K] | undefined) => setPicked(v)
+                : () => {},
             invalid: errors !== undefined && errors.length > 0,
             ...(errors && errors.length > 0 ? { describedBy: errorId } : {}),
           },
@@ -305,6 +311,21 @@ function DatetimeStates(): ReactNode {
     <section id="group-datetime-text">
       <h2>datetime: formatted display</h2>
       {state("datetime-display-text", "display: renderer-formatted text (the stored UTC instant stays in dateTime)", <DatetimeDisplay field={field} value={value} text="Oct 4, 2026, 7:30 AM" />)}
+    </section>
+  );
+}
+
+/** The states only tags has: one chip, and many long chips wrapping (checked at 320px by the phone checks). */
+function TagsStates(): ReactNode {
+  const { field } = samples.tags;
+  const entry = baseRegistry.fields.tags;
+  if (entry === undefined) return <p>not wired: tags</p>;
+  const Display = entry.Display;
+  return (
+    <section id="group-tags-states">
+      <h2>tags: chip counts</h2>
+      {state("tags-display-one", "display: one chip", <Display field={field} value={["squat"]} />)}
+      {state("tags-display-many", "display: many long chips (wraps at 320px)", <Display field={field} value={["squat", "bench press", "deadlift", "overhead press, strict, from the rack", "5x5 @ 100 kg", "accessory work", "feet elevated"]} />)}
     </section>
   );
 }
@@ -1144,6 +1165,9 @@ export default function App(): ReactNode {
         <DatetimeStates />
         <FieldGroup type="reference" />
         <ReferenceStates />
+        <FieldGroup type="time" />
+        <FieldGroup type="tags" />
+        <TagsStates />
 
         <section id="group-field-frame">
           <h2>field-frame</h2>
