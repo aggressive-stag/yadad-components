@@ -670,9 +670,12 @@ function CalendarHarness({
   movable,
   openable,
   doneable,
+  maxEntriesPerDay = 3,
 }: {
   id: string;
   initialMode: "month" | "week";
+  /** The view's busy-day cutoff the renderer resolves into each day's `overflow` (RFC 0008 item 7; default 3). */
+  maxEntriesPerDay?: number;
   oneModeOnly?: boolean;
   initialAnchor: string;
   entries: typeof calendarFixtureEntries;
@@ -695,6 +698,7 @@ function CalendarHarness({
   const title = mode === "month" ? monthTitle(anchor) : weekTitle(dates);
   const days = calendarDays(dates, mode === "month" ? anchor : dates[0] ?? anchor, localEntries).map((d) => ({
     ...d,
+    ...(d.entries.length > maxEntriesPerDay ? { overflow: { shown: maxEntriesPerDay, hidden: d.entries.length - maxEntriesPerDay } } : {}),
     entries: d.entries.map((e, i) => ({
       ...e,
       content: entryContent(e.title, e.detail),
@@ -1556,6 +1560,11 @@ export default function App(): ReactNode {
             "calendar-month-busy",
             "busy day with overflow (+N more)",
             <CalendarHarness id="Training" initialMode="month" initialAnchor={CALENDAR_TODAY} entries={calendarFixtureEntries} />,
+          )}
+          {state(
+            "calendar-month-cap-4",
+            "busy day with maxEntriesPerDay 4 (one hidden, \"+1 more\")",
+            <CalendarHarness id="Training (cap 4)" initialMode="month" initialAnchor={CALENDAR_TODAY} entries={calendarFixtureEntries} maxEntriesPerDay={4} />,
           )}
           {state(
             "calendar-month-today",

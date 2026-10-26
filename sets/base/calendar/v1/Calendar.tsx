@@ -7,7 +7,6 @@ import { Menu } from "../../../internal/menu/v1/index.js";
 import { useTouchDrag } from "../../../internal/touch-drag/v1/index.js";
 
 /** How many entries show before a day collapses the rest behind "+N more" (card 11 issue 3: unbounded growth). */
-const MAX_VISIBLE_ENTRIES = 3;
 
 const nounFor = (mode: CalendarMode): string => (mode === "month" ? "month" : "week");
 
@@ -311,7 +310,9 @@ function DayCell({
   strings: CalendarStrings;
 }): ReactNode {
   const [expanded, setExpanded] = useState(false);
-  const visible = expanded ? day.entries : day.entries.slice(0, MAX_VISIBLE_ENTRIES);
+  // The renderer owns the cutoff (RFC 0008 item 7, the view's maxEntriesPerDay) and sends
+  // `overflow` only for a day with hidden entries; a day without it shows every entry.
+  const visible = expanded || day.overflow === undefined ? day.entries : day.entries.slice(0, day.overflow.shown);
   const hidden = day.entries.length - visible.length;
   const canDrop = !!onMove;
   return (

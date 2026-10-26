@@ -341,3 +341,38 @@ describe("completion checkbox on calendar entries (RFC 0008 item 3)", () => {
     expect(stop).toHaveBeenCalled();
   });
 });
+
+describe("busy-day cutoff comes from the renderer (RFC 0008 item 7)", () => {
+  const entryOf = (n: number): CalendarEntry<ReactNode> => ({ id: `e${n}`, label: `Entry ${n}`, content: <span>Entry {n}</span>, movable: false, pending: false });
+  const renderDay = (count: number, overflow?: { shown: number; hidden: number }) => {
+    const days = [{ date: CALENDAR_TODAY, dayOfMonth: 16, weekday: 5, label: "Friday 16 October 2026", inMonth: true, isToday: true, entries: Array.from({ length: count }, (_, i) => entryOf(i + 1)), ...(overflow ? { overflow } : {}) }];
+    return render(
+      <Calendar label="Training" title="October 2026" mode="week" modes={[{ mode: "week", label: "Week" }]} weekdays={calendarWeekdays} days={days} legend={[]} loading={false} onModeChange={() => {}} onPrevious={() => {}} onNext={() => {}} onToday={() => {}} />,
+    );
+  };
+
+  it("shows overflow.shown entries and a +N more button for the hidden ones", () => {
+    const { container } = renderDay(7, { shown: 5, hidden: 2 });
+    expect(container.querySelectorAll('[data-part="entry"]')).toHaveLength(5);
+    expect(container.querySelector('[data-part="overflow"]')?.textContent).toBe("+2 more");
+  });
+
+  it("a cutoff above the old fixed 3 shows all of them with no button when nothing is hidden", () => {
+    const { container } = renderDay(5);
+    expect(container.querySelectorAll('[data-part="entry"]')).toHaveLength(5);
+    expect(container.querySelector('[data-part="overflow"]')).toBeNull();
+  });
+
+  it("a cutoff of 1 shows one entry", () => {
+    const { container } = renderDay(3, { shown: 1, hidden: 2 });
+    expect(container.querySelectorAll('[data-part="entry"]')).toHaveLength(1);
+    expect(container.querySelector('[data-part="overflow"]')?.textContent).toBe("+2 more");
+  });
+
+  it("expanding the day shows every entry", () => {
+    const { container } = renderDay(7, { shown: 5, hidden: 2 });
+    fireEvent.click(container.querySelector('[data-part="overflow"]') as HTMLElement);
+    expect(container.querySelectorAll('[data-part="entry"]')).toHaveLength(7);
+    expect(container.querySelector('[data-part="overflow"]')).toBeNull();
+  });
+});
