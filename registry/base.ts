@@ -11,6 +11,7 @@ import { DatetimeDisplay, DatetimeInput } from "../sets/base/datetime/v1/index.j
 import { ErrorSummary } from "../sets/base/error-summary/v1/index.js";
 import { FieldFrame } from "../sets/base/field-frame/v1/index.js";
 import { NumberDisplay, NumberInput } from "../sets/base/number/v1/index.js";
+import { TablePager } from "../sets/base/pager/v1/index.js";
 import { Panel } from "../sets/base/panel/v1/index.js";
 import { Section } from "../sets/base/section/v1/index.js";
 import { ReferenceDisplay, ReferenceInput } from "../sets/base/reference/v1/index.js";
@@ -38,6 +39,6 @@ export const baseRegistry: Registry<ReactNode> = {
     time: { type: "time", Input: TimeInput, Display: TimeDisplay },
     tags: { type: "tags", Input: TagsInput, Display: TagsDisplay },
   },
-  layout: { FieldFrame, Section, Button, Table, ErrorSummary, Tabs, Panel, Calendar, Board, Dialog },
+  layout: { FieldFrame, Section, Button, Table, ErrorSummary, Tabs, Panel, Calendar, Board, Dialog, Pager: TablePager },
   widgets: { count: Count, series: Series },
 };

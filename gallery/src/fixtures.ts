@@ -284,3 +284,31 @@ export function seriesMonthLine(): SeriesGroupProps[] {
     return { key, label, value, text: `${value} kg` };
   });
 }
+
+/* Pager fixtures (RFC 0008 item 11 / registry PagerProps), mirroring the     */
+/* calendarFixtureEntries pattern: data shaped exactly like the engine's      */
+/* contract, built by the gallery's render step.                              */
+
+/** One page of a long-enough-to-page table: eight rows, a wide text column. */
+export function pagerTableRows(page: number, pageCount: number): { id: string; cells: [string, string, string] }[] {
+  return Array.from({ length: 8 }, (_, i) => {
+    const n = (page - 1) * 8 + i + 1;
+    return {
+      id: `r${n}`,
+      cells: [`2026-10-${String((n % 28) + 1).padStart(2, "0")}`, `${60 + ((n * 7) % 90)} kg`, `Session ${n} of ${pageCount * 8} — ${n % 3 === 0 ? "a long note that wraps on a phone" : "ok"}`],
+    } as const;
+  });
+}
+
+/** The registry PagerProps for a paged table: page is 1-based, ends disabled at the edges. */
+export function pagerProps(page: number, pageCount: number): { label: string; hasPrevious: boolean; hasNext: boolean; page: number; pageCount: number; onPrevious: () => void; onNext: () => void } {
+  return {
+    label: "Sessions pages",
+    hasPrevious: page > 1,
+    hasNext: page < pageCount,
+    page,
+    pageCount,
+    onPrevious: () => {},
+    onNext: () => {},
+  };
+}

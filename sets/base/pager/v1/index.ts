@@ -1,2 +1,2 @@
-export { Pager } from "./Pager.js";
-export type { PagerProps } from "./Pager.js";
+export { Pager, TablePager } from "./Pager.js";
+export type { PagerCursorProps } from "./Pager.js";

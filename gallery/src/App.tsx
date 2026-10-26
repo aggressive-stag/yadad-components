@@ -25,6 +25,8 @@ import {
   monthGridDates,
   monthTitle,
   manyReferenceOptions,
+  pagerProps,
+  pagerTableRows,
   referenceOptions,
   requiredError,
   seriesMonthLine,
@@ -57,7 +59,7 @@ import { Board as BoardComponent } from "../../sets/base/board/v1/index.js";
 // change without an engine card), so the skeleton state imports the real
 // component instead of the registry slot, the way DialogComponent does.
 import { Table as TableComponent } from "../../sets/base/table/v1/index.js";
-import { Pager } from "../../sets/base/pager/v1/index.js";
+import { Pager, TablePager } from "../../sets/base/pager/v1/index.js";
 const TextEntry = baseRegistry.fields.text;
 
 /**
@@ -375,6 +377,29 @@ function SelectStates(): ReactNode {
       {state("select-display-plain-value", "display: a value no option carries (kept as-is)", <Display field={coloured} value="#ABCDEF" />)}
       {state("select-formitem-label", "form-item label override (renderer: item.label ?? field.label)", <FieldFrame inputId="g-select-formitem" errorId="g-select-formitem-errors" label="Important" required={false} errors={[]}><Host component={entry.Input as unknown as (props: FieldInputProps<"select">) => ReactNode} props={{ inputId: "g-select-formitem", field: { ...coloured, id: "flag" }, value: "#8764B8", onChange: () => {}, invalid: false }} /></FieldFrame>)}
     </section>
+  );
+}
+
+/**
+ * The `layout.Pager` registry component (card 23c, RFC 0008 item 11): a table
+ * long enough to page, the registry pager under it, current-page marker,
+ * disabled ends, and a 320px check — the pager must not overflow.
+ */
+function PagerRegistryStates(): ReactNode {
+  // headerIds carry the state prefix: two tables on one page must not share
+  // them (the freeze test fails the page on any duplicate id).
+  const columns = (idPrefix: string) => [
+    { id: "day", headerId: `${idPrefix}-col-day`, label: "Day", sortable: false },
+    { id: "weight", headerId: `${idPrefix}-col-weight`, label: "Weight", sortable: false },
+    { id: "note", headerId: `${idPrefix}-col-note`, label: "Note", sortable: false },
+  ];
+  return (
+    <>
+      {state("pager-registry-middle", "registry pager: a paged table, middle page (aria-current, both ends live)", <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}><TableComponent caption="Sessions (page 3 of 5)" columns={columns("g-regpager-mid")} rows={pagerTableRows(3, 5)} onSort={() => {}} empty="No sessions" /><TablePager {...pagerProps(3, 5)} /></div>)}
+      {state("pager-registry-ends", "registry pager: first page disables Previous, last disables Next", <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}><TablePager {...{ ...pagerProps(1, 5), label: "Sessions pages (first)" }} /><TablePager {...{ ...pagerProps(5, 5), label: "Sessions pages (last)" }} /></div>)}
+      {state("pager-registry-cursor", "registry pager: cursor mode (no total) reads “Page 4”", <TablePager label="Sessions pages" hasPrevious hasNext page={4} onPrevious={() => {}} onNext={() => {}} />)}
+      {state("pager-registry-phone", "phone frame (390px container, 320px content): the pager does not overflow", <div className="phone-frame" style={{ inlineSize: "320px" }}><div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}><TableComponent caption="Sessions (phone)" columns={columns("g-regpager-ph")} rows={pagerTableRows(2, 5)} onSort={() => {}} empty="No sessions" /><TablePager {...pagerProps(2, 5)} /></div></div>)}
+    </>
   );
 }
 
@@ -1045,6 +1070,10 @@ const LAYOUT_ANCHORS = [
   "pager-first",
   "pager-last",
   "pager-info-wrap",
+  "pager-registry-middle",
+  "pager-registry-ends",
+  "pager-registry-cursor",
+  "pager-registry-phone",
 ] as const;
 
 const FIELD_STATES = ["empty", "filled", "required", "invalid", "display-value", "display-empty"] as const;
@@ -1419,6 +1448,7 @@ export default function App(): ReactNode {
               <Pager hasPrev hasNext info="Zeigt 1.240 bis 1.271 von 14.112 Einträgen (gefiltert nach Bearbeiter)" onFirst={() => {}} onPrev={() => {}} onNext={() => {}} />
             </div>,
           )}
+          <PagerRegistryStates />
         </section>
 
         <section id="group-calendar">

@@ -18,4 +18,12 @@
     color: var(--yadad-pager-info-color, var(--yadad-color-text-muted));
     overflow-wrap: break-word;
   }
+
+  /* The registry pager (card 23c): the current page is marked typographically
+     — bold weight, full-strength text — never by colour alone; aria-current
+     carries it for assistive tech. */
+  :where([data-yadad="pager"][data-yadad-pager]) :where([data-part="info"][aria-current]) {
+    font-weight: var(--yadad-pager-current-font-weight, 600);
+    color: var(--yadad-pager-current-color, var(--yadad-color-text));
+  }
 }

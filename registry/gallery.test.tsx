@@ -31,6 +31,7 @@ function registryEntryTypes(): readonly string[] {
     Calendar: "calendar",
     Board: "board",
     Dialog: "dialog",
+    Pager: "pager",
   } as const;
   for (const name of Object.keys(layout)) {
     entryTypes.push(layoutNames[name as keyof typeof layoutNames]);

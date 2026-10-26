@@ -478,15 +478,17 @@ A numeric field with an optional unit suffix.
 **`data-part` names** (marked parts carry the component marker and take `[data-yadad="<component>"][data-part="<name>"]`; nested parts are inside the component root and take the descendant form `[data-yadad="<component>"] [data-part="<name>"]` — the compound form on a nested part matches nothing):
 
 - `root` — the `<nav>` wrapper (target with `[data-yadad="pager"][data-part="root"]`)
-- `info` — the count text between the buttons (polite live text) (target with `[data-yadad="pager"] [data-part="info"]`)
+- `info` — the count text between the buttons (polite live text; the registry pager marks the current page here with aria-current) (target with `[data-yadad="pager"] [data-part="info"]`)
 
 **Per-component variables** (set on the component or an ancestor; the default is shown):
 
 - `--yadad-pager-gap` — gap between the paging buttons and the count text; default: token `--yadad-space-2` (spacing scale, step 2)
 - `--yadad-pager-font-family` — font family of the whole control; default: token `--yadad-font-family` (base font stack)
 - `--yadad-pager-info-color` — color of the count text between the buttons; default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
+- `--yadad-pager-current-font-weight` — weight of the current-page marker in the registry pager (typographic, never colour alone); default: `600`
+- `--yadad-pager-current-color` — color of the current-page marker in the registry pager; default: token `--yadad-color-text` (main text color)
 
-**Theme tokens it reads:** `--yadad-color-text-muted`, `--yadad-font-family`, `--yadad-space-2`
+**Theme tokens it reads:** `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-font-family`, `--yadad-space-2`
 
 ### panel
 

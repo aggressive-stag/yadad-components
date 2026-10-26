@@ -382,7 +382,7 @@ const PART_DESCRIPTION: Record<string, Record<string, string>> = {
   "field-frame": { root: "the field wrapper (label, control, error)", label: "the field `<label>`", required: "the required marker", errors: "the error list region", error: "one error message" },
   number: { root: "the field wrapper (input + unit)", input: "the number `<input>`", unit: "the unit suffix (e.g. kg)", display: "read-only value" },
   panel: { root: "the panel wrapper", title: "the panel title" },
-  pager: { root: "the `<nav>` wrapper", info: "the count text between the buttons (polite live text)" },
+  pager: { root: "the `<nav>` wrapper", info: "the count text between the buttons (polite live text; the registry pager marks the current page here with aria-current)" },
   skeleton: { skeleton: "a grey placeholder bar (`aria-hidden`; the loading announcement stays the host's text)" },
   section: { root: "the `<fieldset>` wrapper", title: "the `<legend>` title" },
   reference: { input: "the picker `<select>`; it carries `data-yadad=\"select\"`, so style it with the select component's variables and selector, not this component's", status: "the status line under the picker (loading, error, empty, cut short)", combobox: "wrapper of the type-to-filter input and its popup (8 or more records)", listbox: "the combobox popup `<ul role=\"listbox\">`", option: "one `<li role=\"option\">` in the popup (`data-active` = the keyboard-highlighted one, `data-state=\"empty\"` = the No matches row)", display: "read-only label of the referenced record" },
@@ -531,6 +531,8 @@ const VAR_DESCRIPTION: Record<string, string> = {
   // pager (card 15e)
   "pager-gap": "gap between the paging buttons and the count text",
   "pager-info-color": "color of the count text between the buttons",
+  "pager-current-font-weight": "weight of the current-page marker in the registry pager (typographic, never colour alone)",
+  "pager-current-color": "color of the current-page marker in the registry pager",
   "pager-font-family": "font family of the whole control",
   // skeleton (card 15e)
   "skeleton-color": "fill of a placeholder bar",
