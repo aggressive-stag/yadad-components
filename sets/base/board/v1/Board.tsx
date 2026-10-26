@@ -356,12 +356,12 @@ function ColumnView({
           }
         : {})}
     >
-      <h3 id={headingId} data-part="column-heading">
+      <h2 id={headingId} data-part="column-heading">
         <span data-part="column-label">{column.label}</span>
         <span data-part="column-count" aria-label={(strings.columnCountLabel ?? ((count: number) => `${count} ${count === 1 ? "card" : "cards"}`))(column.count)}>
           {column.count}
         </span>
-      </h3>
+      </h2>
       <ul data-part="cards" aria-labelledby={headingId} {...(scrollFocusable ? { tabIndex: 0 } : {})}>
         {column.cards.length === 0 && loading ? (
           // Loading holds the shape (card 15e): bars where the cards will

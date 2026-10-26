@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 export function Panel({ title, children }: PanelProps<ReactNode>): ReactNode {
   return (
     <div data-yadad="panel" data-part="root">
-      {title !== undefined && <h3 data-part="title">{title}</h3>}
+      {title !== undefined && <h2 data-part="title">{title}</h2>}
       {children}
     </div>
   );

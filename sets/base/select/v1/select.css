@@ -27,4 +27,41 @@
   :where([data-yadad="select"][data-part="input"][aria-invalid="true"]) {
     border-color: var(--yadad-select-border-invalid, var(--yadad-color-danger));
   }
+
+  /* RFC 0008 item 5 (card 23b): the option-colour vocabulary, as component-
+     owned variables on the display (the calendar slot precedent — the base
+     theme has no categorical palette; defaults are composed from the theme's
+     own tokens via color-mix(), no hard-coded colors, never the only signal:
+     the dot sits beside the label text). */
+  :where([data-yadad="select"][data-part="display"]) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--yadad-space-2);
+
+    --yadad-select-slot-0: var(--yadad-color-accent);
+    --yadad-select-slot-1: color-mix(in srgb, var(--yadad-color-accent) 35%, var(--yadad-color-danger) 65%);
+    --yadad-select-slot-2: color-mix(in srgb, var(--yadad-color-danger) 75%, var(--yadad-color-text) 25%);
+    --yadad-select-slot-3: color-mix(in srgb, var(--yadad-color-accent) 50%, var(--yadad-color-text-muted) 50%);
+    --yadad-select-slot-4: color-mix(in srgb, var(--yadad-color-accent) 70%, var(--yadad-color-text) 30%);
+    --yadad-select-slot-5: color-mix(in srgb, var(--yadad-color-danger) 45%, var(--yadad-color-text-muted) 55%);
+    --yadad-select-slot-6: color-mix(in srgb, var(--yadad-color-accent) 60%, var(--yadad-color-danger) 40%);
+    --yadad-select-slot-7: var(--yadad-color-text-muted);
+  }
+
+  :where([data-yadad="select"]) :where([data-part="swatch"]) {
+    flex: 0 0 auto;
+    inline-size: calc(var(--yadad-font-size-md) * 0.7);
+    block-size: calc(var(--yadad-font-size-md) * 0.7);
+    border-radius: var(--yadad-select-radius-full, 50%);
+    border: 1px solid var(--yadad-select-border, var(--yadad-color-border));
+    background: var(--yadad-select-slot-0);
+  }
+
+  :where([data-yadad="select"]) :where([data-part="swatch"][data-slot="1"]) { background: var(--yadad-select-slot-1); }
+  :where([data-yadad="select"]) :where([data-part="swatch"][data-slot="2"]) { background: var(--yadad-select-slot-2); }
+  :where([data-yadad="select"]) :where([data-part="swatch"][data-slot="3"]) { background: var(--yadad-select-slot-3); }
+  :where([data-yadad="select"]) :where([data-part="swatch"][data-slot="4"]) { background: var(--yadad-select-slot-4); }
+  :where([data-yadad="select"]) :where([data-part="swatch"][data-slot="5"]) { background: var(--yadad-select-slot-5); }
+  :where([data-yadad="select"]) :where([data-part="swatch"][data-slot="6"]) { background: var(--yadad-select-slot-6); }
+  :where([data-yadad="select"]) :where([data-part="swatch"][data-slot="7"]) { background: var(--yadad-select-slot-7); }
 }

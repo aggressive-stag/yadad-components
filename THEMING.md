@@ -573,12 +573,13 @@ A titled or untitled grouping with a border.
 
 ### select
 
-A single-choice field, rendered as a native picker.
+A single-choice field, rendered as a native picker; the display shows `label ?? value` and the documented 8-colour vocabulary as a token-derived dot beside the label (card 23b).
 
 **`data-part` names** (marked parts carry the component marker and take `[data-yadad="<component>"][data-part="<name>"]`; nested parts are inside the component root and take the descendant form `[data-yadad="<component>"] [data-part="<name>"]` — the compound form on a nested part matches nothing):
 
 - `input` — the `<select>` picker (target with `[data-yadad="select"][data-part="input"]`)
-- `display` — read-only value (target with `[data-yadad="select"][data-part="display"]`)
+- `display` — read-only value (`inline-flex`, gap before the dot) (target with `[data-yadad="select"][data-part="display"]`)
+- `swatch` — the RFC 0008 option-colour dot (`data-slot=0..7` = the documented vocabulary index; `aria-hidden` — the label text beside it is the signal) (target with `[data-yadad="select"] [data-part="swatch"]`)
 
 **Per-component variables** (set on the component or an ancestor; the default is shown):
 
@@ -594,8 +595,17 @@ A single-choice field, rendered as a native picker.
 - `--yadad-select-tap` — minimum tap-target height (phone); default: `calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))` (token-derived: `--yadad-space-3`, `--yadad-space-4`)
 - `--yadad-select-focus` — focus-ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-select-border-invalid` — border color when invalid; default: token `--yadad-color-danger` (error / danger text and borders)
+- `--yadad-select-radius-full` — option-colour swatch corner radius (circular); default: `50%`
+- `--yadad-select-slot-0` — colour slot 0 (categorical entry/legend color); default: no default — the host must set it
+- `--yadad-select-slot-1` — colour slot 1 (categorical entry/legend color); default: no default — the host must set it
+- `--yadad-select-slot-2` — colour slot 2 (categorical entry/legend color); default: no default — the host must set it
+- `--yadad-select-slot-3` — colour slot 3 (categorical entry/legend color); default: no default — the host must set it
+- `--yadad-select-slot-4` — colour slot 4 (categorical entry/legend color); default: no default — the host must set it
+- `--yadad-select-slot-5` — colour slot 5 (categorical entry/legend color); default: no default — the host must set it
+- `--yadad-select-slot-6` — colour slot 6 (categorical entry/legend color); default: no default — the host must set it
+- `--yadad-select-slot-7` — colour slot 7 (categorical entry/legend color); default: no default — the host must set it
 
-**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 
 ### series
 

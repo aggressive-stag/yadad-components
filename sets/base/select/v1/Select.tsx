@@ -1,8 +1,37 @@
-import { optionValue } from "@yadad/core";
+import { optionLabel, optionValue } from "@yadad/core";
 import type { DisplayProps, InputProps, SelectField } from "@yadad/core";
 import type { ReactNode } from "react";
 
-/** A native select over the field's static choices. The empty "Choose…" entry emits undefined. `chooseLabel` overrides that entry's text (card 15a; default: "Choose…"). */
+/**
+ * The documented colour vocabulary: the 8-hex palette RFC 0008 item 5 names as
+ * its source (the todo app's list colours, F3-documents.md). A colour outside
+ * this list paints no dot (card 23b Decision). Keys are lowercase; matching is
+ * case-insensitive on the author's hex.
+ */
+const PALETTE_SLOTS: Readonly<Record<string, number>> = {
+  "#464ea9": 0, // blue (indigo)
+  "#d13438": 1, // red
+  "#f7630c": 2, // orange
+  "#ffb900": 3, // yellow
+  "#107c10": 4, // green
+  "#038387": 5, // teal
+  "#8764b8": 6, // purple
+  "#c239b3": 7, // pink
+};
+
+/** The colour slot of an option, or undefined when it carries no vocabulary colour. */
+function optionSlot(option: string | { readonly color?: string }): number | undefined {
+  const color = typeof option === "string" ? undefined : option.color;
+  return color === undefined ? undefined : PALETTE_SLOTS[color.toLowerCase()];
+}
+
+/**
+ * A native select over the field's static choices. The empty "Choose…" entry
+ * emits undefined. `chooseLabel` overrides that entry's text (card 15a;
+ * default: "Choose…"). RFC 0008 item 5: an option may be `{ value, label?,
+ * color? }`; every surface shows `label ?? value`. A native `<option>` cannot
+ * hold a swatch, so the colour rides on the display only (Decision).
+ */
 export function SelectInput({ inputId, field, value, onChange, invalid, describedBy, labelledBy, chooseLabel }: InputProps<SelectField, string> & { chooseLabel?: string }): ReactNode {
   return (
     <select
@@ -19,22 +48,28 @@ export function SelectInput({ inputId, field, value, onChange, invalid, describe
     >
       <option value="">{chooseLabel ?? "Choose…"}</option>
       {field.options.values.map((choice) => (
-        // RFC 0008 item 5 made an option `{ value, label?, color? }` or a bare
-        // string. Rendering `label ?? value` and the colour dot is card 23b;
-        // until then an object option shows its stored value, unchanged from
-        // the string behaviour (optionValue normalizes both spellings).
         <option key={optionValue(choice)} value={optionValue(choice)}>
-          {optionValue(choice)}
+          {optionLabel(choice)}
         </option>
       ))}
     </select>
   );
 }
 
-export function SelectDisplay({ value }: DisplayProps<SelectField, string>): ReactNode {
+/**
+ * Read-only label plus the RFC 0008 colour dot. The dot is token-derived
+ * (categorical `--yadad-select-slot-*` variables, the calendar slot precedent)
+ * and never the only signal: the label text sits beside it, and an option
+ * without a colour — or with one outside the documented vocabulary — paints
+ * no dot at all.
+ */
+export function SelectDisplay({ field, value }: DisplayProps<SelectField, string>): ReactNode {
+  const option = value === undefined ? undefined : field.options.values.find((choice) => optionValue(choice) === value);
+  const slot = option === undefined ? undefined : optionSlot(option);
   return (
     <span data-yadad="select" data-part="display">
-      {value ?? ""}
+      {slot !== undefined && <span data-part="swatch" data-slot={slot} aria-hidden="true" />}
+      {option === undefined ? (value ?? "") : optionLabel(option)}
     </span>
   );
 }

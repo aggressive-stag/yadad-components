@@ -9,7 +9,8 @@
  * check can link to it.
  */
 import { darkTheme, lightTheme, themeToCss, type Theme } from "@yadad/theme";
-import type { BoardCard, BoardColumn, DocumentError, FieldDisplayExtras, FieldDisplayProps, FieldInputExtras, FieldInputProps, FieldType, FieldValueTypes } from "@yadad/core";
+import { optionValue } from "@yadad/core";
+import type { BoardCard, BoardColumn, DocumentError, FieldDisplayExtras, FieldDisplayProps, FieldInputExtras, FieldInputProps, FieldType, FieldValueTypes, SelectField } from "@yadad/core";
 import { useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { baseRegistry } from "../../registry/base.js";
@@ -326,6 +327,53 @@ function TagsStates(): ReactNode {
       <h2>tags: chip counts</h2>
       {state("tags-display-one", "display: one chip", <Display field={field} value={["squat"]} />)}
       {state("tags-display-many", "display: many long chips (wraps at 320px)", <Display field={field} value={["squat", "bench press", "deadlift", "overhead press, strict, from the rack", "5x5 @ 100 kg", "accessory work", "feet elevated"]} />)}
+    </section>
+  );
+}
+
+/**
+ * RFC 0008 items 5–6 (card 23b): options as objects — `label ?? value` in the
+ * picker and the display, the documented 8-colour vocabulary as a dot (and an
+ * out-of-vocabulary colour painting none), and the FormItem.label override the
+ * renderer passes as the frame label (display-only; nothing writes it back).
+ */
+function SelectStates(): ReactNode {
+  const entry = baseRegistry.fields.select;
+  if (entry === undefined) return <p>not wired: select</p>;
+  const Display = entry.Display;
+  const coloured: SelectField = {
+    id: "list",
+    type: "select",
+    label: "List",
+    options: {
+      source: "static",
+      values: [
+        { value: "#464EA9", label: "Home", color: "#464EA9" },
+        { value: "#D13438", label: "Work", color: "#D13438" },
+        { value: "#F7630C", label: "Gym", color: "#F7630C" },
+        { value: "#FFB900", label: "Reading", color: "#FFB900" },
+        { value: "#107C10", label: "Garden", color: "#107C10" },
+        { value: "#038387", label: "Side project", color: "#038387" },
+        { value: "#8764B8", label: "Music", color: "#8764B8" },
+        { value: "#C239B3", label: "Trips", color: "#C239B3" },
+      ],
+    },
+  };
+  const outside: SelectField = {
+    id: "tone",
+    type: "select",
+    label: "Tone",
+    options: { source: "static", values: [{ value: "hot", label: "Hot", color: "#123456" }, { value: "cold", label: "Cold" }] },
+  };
+  return (
+    <section id="group-select-states">
+      <h2>select: labels, colours, form-item label</h2>
+      {state("select-options-labelled", "options with labels (picker shows label, not value)", <FieldFrame inputId="g-select-labelled" errorId="g-select-labelled-errors" label="List" required={false} errors={[]}><Host component={entry.Input as unknown as (props: FieldInputProps<"select">) => ReactNode} props={{ inputId: "g-select-labelled", field: coloured, value: "#D13438", onChange: () => {}, invalid: false }} /></FieldFrame>)}
+      {state("select-display-labelled", "display: label plus the vocabulary dot", <Display field={coloured} value="#D13438" />)}
+      {state("select-display-all-colours", "display: the full vocabulary", <span style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>{coloured.options.values.map((o) => <Display key={optionValue(o)} field={coloured} value={optionValue(o)} />)}</span>)}
+      {state("select-display-no-dot", "display: colour outside the vocabulary paints no dot", <Display field={outside} value="hot" />)}
+      {state("select-display-plain-value", "display: a value no option carries (kept as-is)", <Display field={coloured} value="#ABCDEF" />)}
+      {state("select-formitem-label", "form-item label override (renderer: item.label ?? field.label)", <FieldFrame inputId="g-select-formitem" errorId="g-select-formitem-errors" label="Important" required={false} errors={[]}><Host component={entry.Input as unknown as (props: FieldInputProps<"select">) => ReactNode} props={{ inputId: "g-select-formitem", field: { ...coloured, id: "flag" }, value: "#8764B8", onChange: () => {}, invalid: false }} /></FieldFrame>)}
     </section>
   );
 }
@@ -1160,6 +1208,7 @@ export default function App(): ReactNode {
         <FieldGroup type="number" />
         <FieldGroup type="boolean" />
         <FieldGroup type="select" />
+        <SelectStates />
         <FieldGroup type="date" />
         <FieldGroup type="datetime" />
         <DatetimeStates />
