@@ -285,6 +285,36 @@
     opacity: 0.6;
   }
 
+  /* Completion checkbox (RFC 0008 item 3): a native checkbox with a visible
+     "Done" word; the whole label is the 44px tap target. */
+  :where([data-yadad="calendar"]) :where([data-part="done"]) {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--yadad-space-2);
+    padding-inline: var(--yadad-space-1);
+    min-block-size: var(--yadad-calendar-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    min-inline-size: var(--yadad-calendar-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    cursor: pointer;
+    color: var(--yadad-calendar-done-color, var(--yadad-color-text));
+    font-size: var(--yadad-font-size-sm);
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="done-input"]) {
+    margin: 0;
+    accent-color: var(--yadad-calendar-done-accent, var(--yadad-color-accent));
+    cursor: inherit;
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="done-input"]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-calendar-focus, var(--yadad-color-accent));
+    outline-offset: var(--yadad-focus-ring-width);
+  }
+
+  :where([data-yadad="calendar"]) :where([data-part="done-input"]):disabled {
+    cursor: not-allowed;
+  }
+
   /* Record actions (RFC 0007): the calendar has no entry menu, so the
      buttons sit next to the entry, under it — a horizontal cluster, or the
      "Actions…" trigger with its panel opened in-flow below (the day cell

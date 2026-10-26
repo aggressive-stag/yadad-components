@@ -651,6 +651,7 @@ function CalendarHarness({
   notice,
   movable,
   openable,
+  doneable,
 }: {
   id: string;
   initialMode: "month" | "week";
@@ -661,7 +662,10 @@ function CalendarHarness({
   notice?: ReactNode;
   movable?: boolean;
   openable?: boolean;
+  /** Every entry gets the completion checkbox (RFC 0008 item 3); the third one is locked (disabled). */
+  doneable?: boolean;
 }): ReactNode {
+  const [doneIds, setDoneIds] = useState<ReadonlySet<string>>(new Set());
   const [mode, setMode] = useState<"month" | "week">(initialMode);
   const [anchor, setAnchor] = useState(initialAnchor);
   const [localEntries, setLocalEntries] = useState(entries);
@@ -673,7 +677,19 @@ function CalendarHarness({
   const title = mode === "month" ? monthTitle(anchor) : weekTitle(dates);
   const days = calendarDays(dates, mode === "month" ? anchor : dates[0] ?? anchor, localEntries).map((d) => ({
     ...d,
-    entries: d.entries.map((e) => ({ ...e, content: entryContent(e.title, e.detail) })),
+    entries: d.entries.map((e, i) => ({
+      ...e,
+      content: entryContent(e.title, e.detail),
+      ...(doneable
+        ? {
+            done: {
+              checked: doneIds.has(e.id),
+              disabled: i % 3 === 2,
+              toggle: () => setDoneIds((prev) => (prev.has(e.id) ? new Set([...prev].filter((x) => x !== e.id)) : new Set([...prev, e.id]))),
+            },
+          }
+        : {}),
+    })),
   }));
 
   const step = (n: number): void => {
@@ -816,7 +832,8 @@ function BoardHarness({
  * movable, and a move into "Done" is refused with a live-announced message.
  * `readOnly` withholds `onMove`, as the renderer does for a viewer who may not edit.
  */
-function MovableBoardHarness({ id, readOnly }: { id: string; readOnly?: boolean }): ReactNode {
+function MovableBoardHarness({ id, readOnly, doneable }: { id: string; readOnly?: boolean; doneable?: boolean }): ReactNode {
+  const [doneIds, setDoneIds] = useState<ReadonlySet<number>>(new Set());
   const [rows, setRows] = useState(() =>
     Array.from({ length: 9 }, (_, i) => ({ n: i + 1, status: STATUS_NAMES[i % 3] as string })),
   );
@@ -832,7 +849,19 @@ function MovableBoardHarness({ id, readOnly }: { id: string; readOnly?: boolean 
       name,
       rows
         .filter((r) => r.status === name)
-        .map((r) => ({ ...boardCard(r.n, `Task ${r.n}`, r.n % 3 === 0 ? "Locked" : undefined), movable: r.n % 3 !== 0 })),
+        .map((r) => ({
+          ...boardCard(r.n, `Task ${r.n}`, r.n % 3 === 0 ? "Locked" : undefined),
+          movable: r.n % 3 !== 0,
+          ...(doneable
+            ? {
+                done: {
+                  checked: doneIds.has(r.n),
+                  disabled: r.n % 3 === 0,
+                  toggle: () => setDoneIds((prev) => (prev.has(r.n) ? new Set([...prev].filter((x) => x !== r.n)) : new Set([...prev, r.n]))),
+                },
+              }
+            : {}),
+        })),
     ),
   );
   return (
@@ -1093,6 +1122,7 @@ const LAYOUT_ANCHORS = [
   "calendar-phone-agenda",
   "calendar-movable",
   "calendar-actions",
+  "calendar-done",
   "board-columns",
   "board-empty-column",
   "board-many-cards",
@@ -1102,6 +1132,7 @@ const LAYOUT_ANCHORS = [
   "board-loading",
   "board-movable",
   "board-actions",
+  "board-done",
   "board-phone",
   "board-read-only",
   "pager-middle",
@@ -1548,6 +1579,11 @@ export default function App(): ReactNode {
             />,
           )}
           {state(
+            "calendar-done",
+            "completion checkbox on every entry (RFC 0008 item 3); every third entry is locked (disabled); never opens or drags the entry",
+            <CalendarHarness id="Training (done)" initialMode="month" initialAnchor={CALENDAR_TODAY} entries={calendarFixtureEntries} movable openable doneable />,
+          )}
+          {state(
             "calendar-actions",
             "record actions on entries (one action: plain button; several: Actions… menu; danger Delete really deletes)",
             <ActionsCalendarHarness id="Training (actions)" />,
@@ -1599,6 +1635,11 @@ export default function App(): ReactNode {
             "board-movable",
             "movable cards (drag onto a column, or Move to…); every third card is locked; moves into Done are refused",
             <MovableBoardHarness id="Tasks (movable)" />,
+          )}
+          {state(
+            "board-done",
+            "completion checkbox on every card (RFC 0008 item 3); every third card is locked (disabled); never opens or drags the card",
+            <MovableBoardHarness id="Tasks (done)" doneable />,
           )}
           {state(
             "board-actions",

@@ -39,6 +39,10 @@ export interface BoardStrings {
   readonly chooseColumnLabel?: string;
   /** Move panel confirm button. Default: "Move". */
   readonly moveConfirmLabel?: string;
+  /** Completion checkbox visible text. Default: "Done". */
+  readonly doneLabel?: string;
+  /** Completion checkbox accessible name. Default: `Done: ${cardLabel}`. */
+  readonly doneAriaLabel?: (cardLabel: string) => string;
   /** Group-by select label. Default: "Group by". */
   readonly groupByLabel?: string;
   /** Empty column while loading. Default: "Loading cards…". */
@@ -197,6 +201,31 @@ function CardActions({ card, strings }: { card: BoardCard<ReactNode>; strings: B
   );
 }
 
+/**
+ * The card's completion checkbox (RFC 0008 item 3), drawn only when the
+ * renderer passes `done`. A native checkbox named for the card; it owns
+ * `checked` and `disabled` from the renderer and calls `toggle` once per
+ * change. Pointer-down stops here so a press on it never lifts the card for a
+ * touch drag; it is a sibling of the open-card button, so it never opens it.
+ */
+function DoneToggle({ card, strings }: { card: BoardCard<ReactNode>; strings: BoardStrings }): ReactNode {
+  const done = card.done;
+  if (!done) return null;
+  return (
+    <label data-part="done" onPointerDown={(e) => e.stopPropagation()}>
+      <input
+        type="checkbox"
+        data-part="done-input"
+        aria-label={(strings.doneAriaLabel ?? ((label: string) => `Done: ${label}`))(card.label)}
+        checked={done.checked}
+        disabled={done.disabled}
+        onChange={() => done.toggle()}
+      />
+      <span data-part="done-label">{strings.doneLabel ?? "Done"}</span>
+    </label>
+  );
+}
+
 /** The id of the droppable column under a point, other than the card's own; undefined elsewhere. */
 function columnUnder(x: number, y: number, ownColumn: string): string | undefined {
   const el = document.elementFromPoint(x, y)?.closest('[data-part="column"]');
@@ -285,6 +314,7 @@ function CardView({
           <span data-part="card-content">{card.content}</span>
         </span>
       )}
+      <DoneToggle card={card} strings={strings} />
       {canMove ? <MoveControl card={card} columnId={columnId} columns={columns} onMove={onMove} onMoved={onMoved} strings={strings} /> : null}
       <CardActions card={card} strings={strings} />
     </li>

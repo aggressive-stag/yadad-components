@@ -179,6 +179,58 @@ describe("record actions on cards (RFC 0007)", () => {
   });
 });
 
+describe("completion checkbox on cards (RFC 0008 item 3)", () => {
+  const withDone = (done: BoardCard<ReactNode>["done"], onOpenCard?: (id: string) => void, onMove?: (id: string, c: string) => void) => {
+    const c: BoardCard<ReactNode> = { ...card("r1", onMove !== undefined), ...(done ? { done } : {}) };
+    const view = render(
+      <Board label="Tasks" groupChoices={[{ field: "s", label: "S" }]} groupField="s" columns={[col("a", [c])]} loading={false} onGroupBy={() => {}} {...(onOpenCard ? { onOpenCard } : {})} {...(onMove ? { onMove } : {})} />,
+    );
+    return { ...view, box: view.container.querySelector('[data-part="done-input"]') as HTMLInputElement | null };
+  };
+
+  it("renders nothing without done", () => {
+    const { container, box } = withDone(undefined);
+    expect(box).toBeNull();
+    expect(container.querySelector('[data-part="done"]')).toBeNull();
+  });
+
+  it("renders a native checkbox named for the card, reflecting checked", () => {
+    const { box, getByRole } = withDone({ checked: true, disabled: false, toggle: () => {} });
+    expect(box?.type).toBe("checkbox");
+    expect(box?.checked).toBe(true);
+    expect(getByRole("checkbox", { name: "Done: r1" })).toBe(box);
+  });
+
+  it("calls toggle once per change and never opens the card or starts a move", () => {
+    const toggle = vi.fn();
+    const onOpenCard = vi.fn();
+    const onMove = vi.fn();
+    const { box } = withDone({ checked: false, disabled: false, toggle }, onOpenCard, onMove);
+    fireEvent.click(box as HTMLInputElement);
+    expect(toggle).toHaveBeenCalledTimes(1);
+    expect(onOpenCard).not.toHaveBeenCalled();
+    expect(onMove).not.toHaveBeenCalled();
+  });
+
+  it("does not toggle when disabled", () => {
+    const toggle = vi.fn();
+    const { box } = withDone({ checked: false, disabled: true, toggle });
+    expect(box?.disabled).toBe(true);
+    // A disabled native checkbox takes no click or Space in a browser (jsdom's synthetic click ignores that), so the attribute is the contract.
+    expect(toggle).not.toHaveBeenCalled();
+  });
+
+  it("is a tab stop after the open-card button and keeps the pointer-down from the card's touch drag", () => {
+    const { container, box } = withDone({ checked: false, disabled: false, toggle: () => {} }, () => {}, () => {});
+    const stops = [...container.querySelectorAll<HTMLElement>("button, input")].map((el) => el.getAttribute("data-part"));
+    expect(stops.slice(0, 2)).toEqual(["card-open", "done-input"]);
+    const down = createEvent.pointerDown(box as HTMLInputElement, { pointerType: "touch" });
+    const stop = vi.spyOn(down, "stopPropagation");
+    fireEvent(box as HTMLInputElement, down);
+    expect(stop).toHaveBeenCalled();
+  });
+});
+
 describe("board touch drag", () => {
   class FakePointerEvent extends MouseEvent {
     pointerType: string;

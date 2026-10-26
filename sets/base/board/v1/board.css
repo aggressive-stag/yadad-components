@@ -238,6 +238,36 @@
     outline-offset: var(--yadad-focus-ring-width);
   }
 
+  /* Completion checkbox (RFC 0008 item 3): a native checkbox with a visible
+     "Done" word; the whole label is the 44px tap target. */
+  :where([data-yadad="board"]) :where([data-part="done"]) {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--yadad-space-2);
+    margin: 0 var(--yadad-space-2) var(--yadad-space-2);
+    min-block-size: var(--yadad-board-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    min-inline-size: var(--yadad-board-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    cursor: pointer;
+    color: var(--yadad-board-done-color, var(--yadad-color-text));
+    font-size: var(--yadad-font-size-sm);
+  }
+
+  :where([data-yadad="board"]) :where([data-part="done-input"]) {
+    margin: 0;
+    accent-color: var(--yadad-board-done-accent, var(--yadad-color-accent));
+    cursor: inherit;
+  }
+
+  :where([data-yadad="board"]) :where([data-part="done-input"]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-board-focus, var(--yadad-color-accent));
+    outline-offset: var(--yadad-focus-ring-width);
+  }
+
+  :where([data-yadad="board"]) :where([data-part="done-input"]):disabled {
+    cursor: not-allowed;
+  }
+
   /* Record actions (RFC 0007) sit next to the "Move to…" path and borrow its
      button look. tone=danger reads through colour AND border. The open menu
      is in-flow (never absolute): the columns row scrolls sideways and an

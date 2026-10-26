@@ -18,7 +18,7 @@ const action = (over: Partial<RecordActionItem> = {}): RecordActionItem => ({
 });
 
 /** One month whose only entry on the anchor day carries the given actions. */
-function entryWithActions(actions: readonly RecordActionItem[] | undefined, opts: { pending?: boolean; movable?: boolean } = {}) {
+function entryWithActions(actions: readonly RecordActionItem[] | undefined, opts: { pending?: boolean; movable?: boolean; done?: CalendarEntry<ReactNode>["done"]; onOpenEntry?: (id: string) => void; onMove?: (id: string, d: string) => void } = {}) {
   const entry: CalendarEntry<ReactNode> = {
     id: "e1",
     label: "Bench press, 5x5 @ 70kg",
@@ -26,6 +26,7 @@ function entryWithActions(actions: readonly RecordActionItem[] | undefined, opts
     movable: opts.movable ?? false,
     pending: opts.pending ?? false,
     ...(actions ? { actions } : {}),
+    ...(opts.done ? { done: opts.done } : {}),
   };
   const days = [{ date: CALENDAR_TODAY, dayOfMonth: 16, weekday: 5, label: "Friday 16 October 2026", inMonth: true, isToday: true, entries: [entry] }];
   const view = render(
@@ -42,6 +43,8 @@ function entryWithActions(actions: readonly RecordActionItem[] | undefined, opts
       onPrevious={() => {}}
       onNext={() => {}}
       onToday={() => {}}
+      {...(opts.onOpenEntry ? { onOpenEntry: opts.onOpenEntry } : {})}
+      {...(opts.onMove ? { onMove: opts.onMove } : {})}
     />,
   );
   const q = (sel: string): HTMLElement | null => view.container.querySelector(`[data-part="entry"] ${sel}`);
@@ -290,5 +293,51 @@ describe("calendar touch drag", () => {
     const e = createEvent.dragStart(q('[data-part="entry"]'), { dataTransfer: { setData() {}, getData: () => "", effectAllowed: "" } });
     fireEvent(q('[data-part="entry"]'), e);
     expect(e.defaultPrevented).toBe(true);
+  });
+});
+
+describe("completion checkbox on calendar entries (RFC 0008 item 3)", () => {
+  it("renders nothing without done", () => {
+    const { q } = entryWithActions(undefined);
+    expect(q('[data-part="done"]')).toBeNull();
+  });
+
+  it("renders a native checkbox named for the entry, reflecting checked", () => {
+    const { q, getByRole } = entryWithActions(undefined, { done: { checked: true, disabled: false, toggle: () => {} } });
+    const box = q('[data-part="done-input"]') as HTMLInputElement;
+    expect(box.type).toBe("checkbox");
+    expect(box.checked).toBe(true);
+    expect(getByRole("checkbox", { name: "Done: Bench press, 5x5 @ 70kg" })).toBe(box);
+  });
+
+  it("calls toggle once per change and never opens the entry or moves it", () => {
+    const toggle = vi.fn();
+    const onOpenEntry = vi.fn();
+    const onMove = vi.fn();
+    const { q } = entryWithActions(undefined, { movable: true, onOpenEntry, onMove, done: { checked: false, disabled: false, toggle } });
+    fireEvent.click(q('[data-part="done-input"]') as HTMLInputElement);
+    expect(toggle).toHaveBeenCalledTimes(1);
+    expect(onOpenEntry).not.toHaveBeenCalled();
+    expect(onMove).not.toHaveBeenCalled();
+  });
+
+  it("does not toggle when disabled", () => {
+    const toggle = vi.fn();
+    const { q } = entryWithActions(undefined, { done: { checked: false, disabled: true, toggle } });
+    const box = q('[data-part="done-input"]') as HTMLInputElement;
+    expect(box.disabled).toBe(true);
+    // A disabled native checkbox takes no click or Space in a browser (jsdom's synthetic click ignores that), so the attribute is the contract.
+    expect(toggle).not.toHaveBeenCalled();
+  });
+
+  it("is a tab stop after the open-entry button and keeps pointer-down from the entry's touch drag", () => {
+    const { container, q } = entryWithActions(undefined, { movable: true, onOpenEntry: () => {}, onMove: () => {}, done: { checked: false, disabled: false, toggle: () => {} } });
+    const stops = [...container.querySelectorAll<HTMLElement>('[data-part="entry"] button, [data-part="entry"] input')].map((el) => el.getAttribute("data-part"));
+    expect(stops.slice(0, 2)).toEqual(["entry-open", "done-input"]);
+    const box = q('[data-part="done-input"]') as HTMLInputElement;
+    const down = createEvent.pointerDown(box, { pointerType: "touch" });
+    const stop = vi.spyOn(down, "stopPropagation");
+    fireEvent(box, down);
+    expect(stop).toHaveBeenCalled();
   });
 });

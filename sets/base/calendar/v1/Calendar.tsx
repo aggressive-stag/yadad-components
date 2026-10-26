@@ -36,6 +36,10 @@ export interface CalendarStrings {
   readonly moveToLabel?: (entryLabel: string) => string;
   /** Move panel confirm button. Default: "Move". */
   readonly moveConfirmLabel?: string;
+  /** Completion checkbox visible text. Default: "Done". */
+  readonly doneLabel?: string;
+  /** Completion checkbox accessible name. Default: `Done: ${entryLabel}`. */
+  readonly doneAriaLabel?: (entryLabel: string) => string;
   /** Today badge in the phone agenda. Default: "Today". */
   readonly todayLabel?: string;
   /** Day entries list accessible name. Default: `Entries for ${dayLabel}`. */
@@ -170,6 +174,31 @@ function EntryActions({ entry, strings }: { entry: CalendarEntry<ReactNode>; str
   );
 }
 
+/**
+ * The entry's completion checkbox (RFC 0008 item 3), drawn only when the
+ * renderer passes `done`. A native checkbox named for the entry; `checked` and
+ * `disabled` come from the renderer and a change calls `toggle` once.
+ * Pointer-down stops here so a press on it never lifts the entry for a touch
+ * drag; it is a sibling of the open-entry button, so it never opens it.
+ */
+function DoneToggle({ entry, strings }: { entry: CalendarEntry<ReactNode>; strings: CalendarStrings }): ReactNode {
+  const done = entry.done;
+  if (!done) return null;
+  return (
+    <label data-part="done" onPointerDown={(e) => e.stopPropagation()}>
+      <input
+        type="checkbox"
+        data-part="done-input"
+        aria-label={(strings.doneAriaLabel ?? ((label: string) => `Done: ${label}`))(entry.label)}
+        checked={done.checked}
+        disabled={done.disabled}
+        onChange={() => done.toggle()}
+      />
+      <span data-part="done-label">{strings.doneLabel ?? "Done"}</span>
+    </label>
+  );
+}
+
 /** The date of the day cell under a point, other than the entry's own; undefined elsewhere. */
 function dayUnder(x: number, y: number, ownDay: string): string | undefined {
   const date = document.elementFromPoint(x, y)?.closest('[data-part="day"]')?.getAttribute("data-date");
@@ -245,6 +274,7 @@ function EntryView({
       ) : (
         <span data-part="entry-static">{content}</span>
       )}
+      <DoneToggle entry={entry} strings={strings} />
       {entry.movable && onMove ? <MoveControl entry={entry} day={day} onMove={onMove} strings={strings} /> : null}
       <EntryActions entry={entry} strings={strings} />
     </li>
