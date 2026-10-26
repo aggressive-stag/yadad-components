@@ -1,5 +1,11 @@
 # @yadad/components
 
+## 0.28.1
+
+### Patch Changes
+
+- 4350665: The base text input sets the native `maxlength` attribute from the field's `maxLength`, so the browser stops typing at the limit (RFC 0008 item 13c).
+
 ## 0.28.0
 
 ### Minor Changes
