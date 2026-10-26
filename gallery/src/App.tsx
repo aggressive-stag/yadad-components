@@ -799,11 +799,14 @@ function BoardHarness({
   emptyColumn,
   openable,
   notice,
+  coloured,
 }: {
   id: string;
   columnsBy?: "status" | "owner";
   many?: boolean;
   emptyColumn?: boolean;
+  /** Columns carry the RFC 0008 item 5 colour hint: three vocabulary hexes, the rest none; the last in-use one is outside the vocabulary. */
+  coloured?: boolean;
   openable?: boolean;
   notice?: ReactNode;
 }): ReactNode {
@@ -825,6 +828,8 @@ function BoardHarness({
     ? [...byField(field === "owner" ? OWNER_NAMES : STATUS_NAMES, field === "owner" ? "owner" : "status"),
        ...Array.from({ length: 8 }, (_, i) => boardColumn(`v:extra${i}`, `Extra column ${i + 1}`, []))]
     : byField(field === "owner" ? OWNER_NAMES : STATUS_NAMES, field === "owner" ? "owner" : "status");
+  const hexes = ["#464ea9", "#d13438", "#107c10", "#123456"];
+  const shown = coloured ? columns.map((c, i) => (hexes[i] === undefined ? c : { ...c, color: hexes[i] as string })) : columns;
   return (
     <>
       <Board
@@ -834,7 +839,7 @@ function BoardHarness({
           { field: "owner", label: "Owner" },
         ]}
         groupField={field}
-        columns={columns}
+        columns={shown}
         loading={false}
         {...(notice !== undefined ? { notice } : {})}
         {...(announcement ? { announcement } : {})}
@@ -1622,6 +1627,7 @@ export default function App(): ReactNode {
         <section id="group-board">
           <h2>board</h2>
           {state("board-columns", "columns with cards, openable (Enter or click)", <BoardHarness id="Tasks" openable />)}
+          {state("board-column-colours", "column colour hints: three from the vocabulary get a dot, one outside it none", <BoardHarness id="Tasks (coloured columns)" coloured />)}
           {state("board-empty-column", "an empty column", <BoardHarness id="Tasks (empty column)" emptyColumn />)}
           {state("board-many-cards", "many cards: each column scrolls on its own", <BoardHarness id="Tasks (many cards)" many openable notice={<p>Showing the first 1,000 of 1,412 cards. Narrow the filter.</p>} />)}
           {state(

@@ -90,6 +90,7 @@ Cards in columns, one column per value of a field, with a group-by picker; colum
 - `column` — one column (a labelled region) (target with `[data-yadad="board"] [data-part="column"]`)
 - `column-heading` — a column's heading (`<h3>`) with label and count (target with `[data-yadad="board"] [data-part="column-heading"]`)
 - `column-label` — a column's label text (target with `[data-yadad="board"] [data-part="column-label"]`)
+- `swatch` — the RFC 0008 column-colour dot in a column heading (`data-slot=0..7`; `aria-hidden` — the label text beside it is the signal; no dot for a colour outside the documented vocabulary) (target with `[data-yadad="board"] [data-part="swatch"]`)
 - `column-count` — a column's card count (target with `[data-yadad="board"] [data-part="column-count"]`)
 - `cards` — a column's card list; scrolls on its own (target with `[data-yadad="board"] [data-part="cards"]`)
 - `column-empty` — the placeholder in a column with no cards (target with `[data-yadad="board"] [data-part="column-empty"]`)

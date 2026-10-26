@@ -7,6 +7,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { Menu } from "../../../internal/menu/v1/index.js";
 import { useTouchDrag } from "../../../internal/touch-drag/v1/index.js";
 import { Skeleton } from "../../../internal/skeleton/v1/index.js";
+import { paletteSlot } from "../../../internal/swatch/v1/index.js";
 
 /** Drag payload type: the card id. Also set as text/plain so other drop targets and tests can read it. */
 const DRAG_TYPE = "application/x-yadad-board-card";
@@ -387,7 +388,10 @@ function ColumnView({
         : {})}
     >
       <h2 id={headingId} data-part="column-heading">
-        <span data-part="column-label">{column.label}</span>
+        <span data-part="column-label">
+          {paletteSlot(column.color) !== undefined && <span data-part="swatch" data-slot={paletteSlot(column.color)} aria-hidden="true" />}
+          {column.label}
+        </span>
         <span data-part="column-count" aria-label={(strings.columnCountLabel ?? ((count: number) => `${count} ${count === 1 ? "card" : "cards"}`))(column.count)}>
           {column.count}
         </span>

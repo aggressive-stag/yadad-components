@@ -295,6 +295,7 @@ const PART_DESCRIPTION: Record<string, Record<string, string>> = {
     root: "the `<section>` wrapper",
     header: "the title + group-by row",
     title: "the board title (`<h2>`)",
+    swatch: "the RFC 0008 column-colour dot in a column heading (`data-slot=0..7`; `aria-hidden` — the label text beside it is the signal; no dot for a colour outside the documented vocabulary)",
     "group-by": "the group-by picker wrapper (shown with more than one grouping)",
     "group-by-label": "the group-by picker's `<label>`",
     input: "the group-by `<select>` (shares the select component's styling)",

@@ -96,6 +96,9 @@
   }
 
   :where([data-yadad="board"]) :where([data-part="column-label"]) {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--yadad-space-2);
     overflow-wrap: anywhere;
   }
 

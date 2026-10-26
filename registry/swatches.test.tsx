@@ -1,7 +1,9 @@
 // @vitest-environment jsdom
-import type { ReferenceField } from "@yadad/core";
+import type { BoardColumn, ReferenceField } from "@yadad/core";
 import { cleanup, render } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { afterEach, describe, expect, it } from "vitest";
+import { Board } from "../sets/base/board/v1/Board.js";
 import { ReferenceDisplay } from "../sets/base/reference/v1/Reference.js";
 
 afterEach(cleanup);
@@ -24,5 +26,25 @@ describe("reference display colour (RFC 0008 item 8, colorFrom)", () => {
     expect(show({}).querySelector('[data-part="swatch"]')).toBeNull();
     expect(show({ color: "#123456" }).querySelector('[data-part="swatch"]')).toBeNull();
     expect(show({ color: "#d13438", status: "missing" }).querySelector('[data-part="swatch"]')).toBeNull();
+  });
+});
+
+describe("board column colour (RFC 0008 item 5)", () => {
+  const column = (id: string, color?: string): BoardColumn<ReactNode> => ({ id, label: id, count: 0, droppable: true, cards: [], ...(color ? { color } : {}) });
+  const heading = (c: BoardColumn<ReactNode>): Element => {
+    const { container } = render(<Board label="Tasks" groupChoices={[{ field: "s", label: "S" }]} groupField="s" columns={[c]} loading={false} onGroupBy={() => {}} />);
+    return container.querySelector('[data-part="column-heading"]') as Element;
+  };
+
+  it("paints a dot in the heading for a vocabulary colour, and the label text stays", () => {
+    const h = heading(column("Doing", "#107c10"));
+    expect(h.querySelector('[data-part="swatch"]')?.getAttribute("data-slot")).toBe("4");
+    expect(h.querySelector('[data-part="column-label"]')?.textContent).toBe("Doing");
+  });
+
+  it("paints no dot without a colour or with one outside the vocabulary", () => {
+    expect(heading(column("A")).querySelector('[data-part="swatch"]')).toBeNull();
+    cleanup();
+    expect(heading(column("B", "#123456")).querySelector('[data-part="swatch"]')).toBeNull();
   });
 });
