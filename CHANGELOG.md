@@ -1,5 +1,44 @@
 # @yadad/components
 
+## 0.26.0
+
+### Minor Changes
+
+- 8705841: The `layout.Pager` registry component (RFC 0008 item 11, engine 47e): the base
+  set now supplies a styled pager, so hosts get it without writing markup. The
+  `TablePager` component matches the renderer's built-in shape — a labelled
+  `<nav>` carrying `data-yadad-pager`, the same secondary Previous/Next pair,
+  the same "Page N [of M]" text (cursor mode: "Page N") — and adds the base
+  styling: the current page is marked typographically (bold via
+  `--yadad-pager-current-font-weight`, `aria-current` for assistive tech, never
+  colour alone), disabled ends and focus rings come from the Button. The
+  existing cursor `Pager` is unchanged and still not a registry key; its props
+  type is now `PagerCursorProps` so the core `PagerProps` name stays free for
+  the registry contract.
+- 386f11d: The RFC 0009 surfaces (build items 3–5): the saved-filter chip row, the batch
+  composer's repeat-row chrome, and the checklist. `Button` now honours the
+  engine's `pressed` prop (the saved-filter chip toggle, engine 47f) — a pressed
+  button draws the filled accent and announces `aria-pressed`; a plain push
+  button carries neither attribute. The new `composer` set styles what the
+  renderer draws: chips are the Button read as pills (half-tap-height radius,
+  wrapping so a full row folds at 320px instead of side-scrolling), batch rows
+  separate on a token hairline with the "+ another" controls under the last row,
+  and a ticked checklist row strikes through in muted ink — `:has()` on the set's
+  own checkbox, scoped to sub-record tables, and never the only signal (the tick
+  itself stays). The checklist tick box grows to a thumb-sized default
+  (`--yadad-boolean-size`, 24px at defaults): in a checklist the box IS the row's
+  tap target. `Chip`/`ChipRow` components draw the renderer's exact saved-filters
+  markup for tests and galleries; hosts keep rendering the renderer's chips.
+- a32a52b: Add the `time` and `tags` components for the RFC 0008 field types: `TimeInput`/`TimeDisplay` (native time control, minute-step scaling, `<time>` display with the em-dash marker) and `TagsInput`/`TagsDisplay` (chip add via Enter or the add button, per-chip and Backspace removal, case-insensitive dedupe, trimmed and space-collapsed tags). Both register in the base registry and ship `@yadad/components/time`, `@yadad/components/tags` plus `styles/time.css` / `styles/tags.css` fragments.
+- 0e8c631: RFC 0008 items 5–6 and 12 on the base select and layout: options may be
+  `{ value, label?, color? }` and every surface shows `label ?? value` (the
+  stored value never changes); a colour inside the documented 8-hex todo-app
+  vocabulary paints a token-derived dot beside the read-only label — `aria-hidden`,
+  never the only signal — and anything outside the vocabulary paints no dot.
+  Panel titles and board column headings render `h2` (item 12). The form-item
+  label override rides the renderer's `item.label ?? field.label` through the
+  frame as display text; no set change was needed and nothing writes it back.
+
 ## 0.25.0
 
 ### Minor Changes
