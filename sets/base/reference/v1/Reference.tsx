@@ -1,5 +1,6 @@
 "use client";
 
+import { paletteSlot } from "../../../internal/swatch/v1/index.js";
 import type { FieldDisplayProps, FieldInputProps } from "@yadad/core";
 import type { ReactNode } from "react";
 import { useEffect, useId, useState } from "react";
@@ -225,10 +226,14 @@ function ReferenceSelect({ inputId, field, value, onChange, invalid, describedBy
   );
 }
 
-/** The referenced record's label (the renderer passes its raw id while loading and "Unknown" when it is gone). */
-export function ReferenceDisplay({ value, label, status }: FieldDisplayProps<"reference">): ReactNode {
+/** The referenced record's label (the renderer passes its raw id while loading and "Unknown" when it is gone), with its colour dot when the field declares `colorFrom`. */
+export function ReferenceDisplay({ value, label, status, color }: FieldDisplayProps<"reference">): ReactNode {
+  // RFC 0008 item 8: the referenced record's own colour (field.colorFrom) is a swatch hint,
+  // painted only for a found record and only from the documented vocabulary (as the select does).
+  const slot = status === "found" ? paletteSlot(color) : undefined;
   return value === undefined || value === "" ? null : (
     <span data-yadad="reference" data-part="display" data-status={status}>
+      {slot !== undefined && <span data-part="swatch" data-slot={slot} aria-hidden="true" />}
       {label}
     </span>
   );

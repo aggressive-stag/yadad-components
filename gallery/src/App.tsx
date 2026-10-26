@@ -288,6 +288,8 @@ function ReferenceStates(): ReactNode {
       {state("reference-combobox-more", "40 records, more than listed", <Field type="reference" value="e99" idPrefix="g-reference-combobox-more" extras={{ options: { status: "ready", options: manyReferenceOptions, more: true }, valueLabel: "Zercher squat" }} />)}
       {state("reference-display-loading", "display: label loading (raw id)", <Display field={field} value="e99" label="e99" status="loading" />)}
       {state("reference-display-missing", "display: record deleted", <Display field={field} value="e99" label="Unknown" status="missing" />)}
+      {state("reference-display-colour", "display: colorFrom colour from the vocabulary (dot beside the label)", <Display field={field} value="e1" label={referenceOptions[0]?.label ?? ""} status="found" color="#d13438" />)}
+      {state("reference-display-colour-outside", "display: colour outside the vocabulary (no dot)", <Display field={field} value="e1" label={referenceOptions[0]?.label ?? ""} status="found" color="#123456" />)}
       {state("reference-display-long", "display: long label", <Display field={field} value="e4" label={referenceOptions[3]?.label ?? ""} status="found" />)}
     </section>
   );

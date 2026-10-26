@@ -560,6 +560,7 @@ A link to a record of another entity, rendered as a native picker with fewer tha
 - `listbox` — the combobox popup `<ul role="listbox">` (target with `[data-yadad="reference"][data-part="listbox"]`)
 - `option` — one `<li role="option">` in the popup (`data-active` = the keyboard-highlighted one, `data-state="empty"` = the No matches row) (target with `[data-yadad="reference"][data-part="option"]`)
 - `display` — read-only label of the referenced record (target with `[data-yadad="reference"][data-part="display"]`)
+- `swatch` — the RFC 0008 `colorFrom` dot beside the label (`data-slot=0..7`; `aria-hidden`; no dot for a colour outside the documented vocabulary) (target with `[data-yadad="reference"] [data-part="swatch"]`)
 
 **Per-component variables** (set on the component or an ancestor; the default is shown):
 
@@ -716,6 +717,28 @@ One measure per group of a table view, drawn as a compact captioned table, a bar
 - `--yadad-skeleton-duration` — how long one shimmer sweep takes (removed under reduced motion); default: `1.4s`
 
 **Theme tokens it reads:** `--yadad-color-background`, `--yadad-color-border`, `--yadad-radius-sm`
+
+### swatch
+
+
+
+**`data-part` names** (marked parts carry the component marker and take `[data-yadad="<component>"][data-part="<name>"]`; nested parts are inside the component root and take the descendant form `[data-yadad="<component>"] [data-part="<name>"]` — the compound form on a nested part matches nothing):
+
+
+**Per-component variables** (set on the component or an ancestor; the default is shown):
+
+- `--yadad-swatch-radius-full` — colour dot corner radius on a reference display and a board column heading (circular); default: `50%`
+- `--yadad-swatch-border` — colour dot border; default: token `--yadad-color-border` (borders and dividers)
+- `--yadad-swatch-slot-0` — colour of vocabulary slot 0 on a reference display and a board column heading dot; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-swatch-slot-1` — colour of vocabulary slot 1 on a reference display and a board column heading dot; default: `color-mix(in srgb, var(--yadad-color-accent) 35%, var(--yadad-color-danger) 65%)` (token-derived: `--yadad-color-accent`, `--yadad-color-danger`)
+- `--yadad-swatch-slot-2` — colour of vocabulary slot 2 on a reference display and a board column heading dot; default: `color-mix(in srgb, var(--yadad-color-danger) 75%, var(--yadad-color-text) 25%)` (token-derived: `--yadad-color-danger`, `--yadad-color-text`)
+- `--yadad-swatch-slot-3` — colour of vocabulary slot 3 on a reference display and a board column heading dot; default: `color-mix(in srgb, var(--yadad-color-accent) 50%, var(--yadad-color-text-muted) 50%)` (token-derived: `--yadad-color-accent`, `--yadad-color-text-muted`)
+- `--yadad-swatch-slot-4` — colour of vocabulary slot 4 on a reference display and a board column heading dot; default: `color-mix(in srgb, var(--yadad-color-accent) 70%, var(--yadad-color-text) 30%)` (token-derived: `--yadad-color-accent`, `--yadad-color-text`)
+- `--yadad-swatch-slot-5` — colour of vocabulary slot 5 on a reference display and a board column heading dot; default: `color-mix(in srgb, var(--yadad-color-danger) 45%, var(--yadad-color-text-muted) 55%)` (token-derived: `--yadad-color-danger`, `--yadad-color-text-muted`)
+- `--yadad-swatch-slot-6` — colour of vocabulary slot 6 on a reference display and a board column heading dot; default: `color-mix(in srgb, var(--yadad-color-accent) 60%, var(--yadad-color-danger) 40%)` (token-derived: `--yadad-color-accent`, `--yadad-color-danger`)
+- `--yadad-swatch-slot-7` — colour of vocabulary slot 7 on a reference display and a board column heading dot; default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
+
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-font-size-md`
 
 ### table
 

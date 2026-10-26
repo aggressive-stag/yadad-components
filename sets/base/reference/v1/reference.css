@@ -25,6 +25,14 @@
     font-style: italic;
   }
 
+  /* RFC 0008 item 8: a display with a colorFrom swatch lays the dot beside the
+     label (the dot's own look is the internal swatch sheet). */
+  :where([data-yadad="reference"][data-part="display"]) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--yadad-space-2);
+  }
+
   :where([data-yadad="reference"][data-part="combobox"]) {
     position: relative;
   }

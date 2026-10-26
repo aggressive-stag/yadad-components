@@ -38,7 +38,7 @@ for (const f of files) {
   const extras: string[] = [];
   const baseDir = `sets/base/${m[1]}/`;
   const sources = globSync(`${baseDir}**/*.tsx`);
-  for (const internal of ["menu", "skeleton"]) {
+  for (const internal of ["menu", "skeleton", "swatch"]) {
     if (sources.some((s) => readFileSync(s, "utf8").includes(`internal/${internal}/v1`))) {
       for (const css of globSync(`sets/internal/${internal}/**/*.css`)) {
         extras.push(`\n/* ${css} (used by ${m[1]}) */\n${readFileSync(css, "utf8").trim()}`);
