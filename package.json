@@ -36,6 +36,11 @@
       "types": "./dist/sets/base/calendar/v1/index.d.ts",
       "default": "./dist/sets/base/calendar/v1/index.js"
     },
+    "./composer": {
+      "@yadad/source": "./sets/base/composer/v1/index.ts",
+      "types": "./dist/sets/base/composer/v1/index.d.ts",
+      "default": "./dist/sets/base/composer/v1/index.js"
+    },
     "./count": {
       "@yadad/source": "./sets/base/count/v1/index.ts",
       "types": "./dist/sets/base/count/v1/index.d.ts",
@@ -131,6 +136,7 @@
     "./styles/boolean.css": "./dist/styles/boolean.css",
     "./styles/button.css": "./dist/styles/button.css",
     "./styles/calendar.css": "./dist/styles/calendar.css",
+    "./styles/composer.css": "./dist/styles/composer.css",
     "./styles/count.css": "./dist/styles/count.css",
     "./styles/date.css": "./dist/styles/date.css",
     "./styles/datetime.css": "./dist/styles/datetime.css",

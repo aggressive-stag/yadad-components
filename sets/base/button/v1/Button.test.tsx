@@ -22,3 +22,26 @@ describe("Button tone (the prop the engine's action confirm sends, RFC 0007)", (
     expect(container.querySelector("button")?.getAttribute("data-tone")).toBe("neutral");
   });
 });
+
+describe("Button pressed (the saved-filter chip toggle, RFC 0009 item 5)", () => {
+  it("marks the pressed chip for styling and assistive tech", () => {
+    const { container } = render(<Button {...base} variant="secondary" pressed />);
+    const button = container.querySelector("button")!;
+    expect(button.getAttribute("data-pressed")).toBe("true");
+    expect(button.getAttribute("aria-pressed")).toBe("true");
+  });
+
+  it("leaves an unpressed chip unmarked but announced", () => {
+    const { container } = render(<Button {...base} variant="secondary" pressed={false} />);
+    const button = container.querySelector("button")!;
+    expect(button.hasAttribute("data-pressed")).toBe(false);
+    expect(button.getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("a plain push button carries neither attribute (no stray aria-pressed)", () => {
+    const { container } = render(<Button {...base} />);
+    const button = container.querySelector("button")!;
+    expect(button.hasAttribute("data-pressed")).toBe(false);
+    expect(button.hasAttribute("aria-pressed")).toBe(false);
+  });
+});

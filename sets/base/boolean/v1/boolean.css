@@ -1,10 +1,16 @@
-/* boolean/v1. Override any --yadad-boolean-* variable or the underlying tokens. */
+/* boolean/v1. Override any --yadad-boolean-* variable or the underlying tokens.
+   --yadad-boolean-size: the tick box's rendered side. In a checklist the box IS
+   the row's tap target (RFC 0009 item 6), so the default is thumb-sized
+   (1.5x space-4 = 24px at defaults, rescaling with the theme) rather than the
+   browser's 13px. */
 @layer yadad.components {
   :where([data-yadad="boolean"][data-part="input"]) {
-    inline-size: var(--yadad-boolean-size, var(--yadad-space-4));
-    block-size: var(--yadad-boolean-size, var(--yadad-space-4));
+    inline-size: var(--yadad-boolean-size, calc(var(--yadad-space-4) * 1.5));
+    block-size: var(--yadad-boolean-size, calc(var(--yadad-space-4) * 1.5));
     margin: 0;
+    flex-shrink: 0;
     accent-color: var(--yadad-boolean-accent, var(--yadad-color-accent));
+    cursor: pointer;
   }
 
   :where([data-yadad="boolean"][data-part="input"]):focus-visible {

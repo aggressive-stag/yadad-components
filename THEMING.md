@@ -147,7 +147,7 @@ A single on/off field, rendered as a checkbox.
 
 **Per-component variables** (set on the component or an ancestor; the default is shown):
 
-- `--yadad-boolean-size` — box size; default: token `--yadad-space-4` (spacing scale, step 4 (loosest))
+- `--yadad-boolean-size` — box size; default: `calc(var(--yadad-space-4) * 1.5)` (token-derived: `--yadad-space-4`)
 - `--yadad-boolean-accent` — accent color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-boolean-focus` — focus-ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-boolean-border-invalid` — border color when invalid; default: token `--yadad-color-danger` (error / danger text and borders)
@@ -181,6 +181,9 @@ A pressable control with primary/secondary variants.
 - `--yadad-button-focus` — focus-ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-button-danger-focus` — primary variant focus-ring color for tone=danger; default: token `--yadad-color-danger` (error / danger text and borders)
 - `--yadad-button-disabled-opacity` — opacity when disabled; default: `0.6`
+- `--yadad-button-pressed-color` — pressed (toggled) button text colour — the saved-filter chip lit state (RFC 0009 item 5); default: token `--yadad-color-background` (page and control background)
+- `--yadad-button-pressed-background` — pressed (toggled) button background — the selected look is the filled accent; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-button-pressed-border` — pressed (toggled) button border colour; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 
 **Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-danger`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-sm`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 
@@ -275,6 +278,28 @@ A month/week grid of entries with navigation, a colour-slot legend, and a keyboa
 - `--yadad-calendar-link` — move-trigger / overflow button text color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 
 **Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-md`, `--yadad-shadow-md`, `--yadad-shadow-sm`, `--yadad-space-1`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
+
+### composer
+
+
+
+**`data-part` names** (marked parts carry the component marker and take `[data-yadad="<component>"][data-part="<name>"]`; nested parts are inside the component root and take the descendant form `[data-yadad="<component>"] [data-part="<name>"]` — the compound form on a nested part matches nothing):
+
+- `root` — the chip row’s `<nav>` (the renderer’s saved-filters hook) (target with `[data-yadad="composer"][data-part="root"]`)
+
+**Per-component variables** (set on the component or an ancestor; the default is shown):
+
+- `--yadad-composer-chip-gap` — gap between saved-filter chips in the chip row; default: token `--yadad-space-2` (spacing scale, step 2)
+- `--yadad-composer-chip-radius` — corner radius of a saved-filter chip (pill by default); default: `calc((var(--yadad-space-4) * 2 + var(--yadad-space-3)) / 2)` (token-derived: `--yadad-space-3`, `--yadad-space-4`)
+- `--yadad-composer-chip-padding-inline` — chip's inline padding (snugger than a full button); default: token `--yadad-space-4` (spacing scale, step 4 (loosest))
+- `--yadad-composer-row-border-width` — hairline width between batch repeat rows; default: `1px`
+- `--yadad-composer-row-border` — hairline colour between batch repeat rows; default: token `--yadad-color-border` (borders and dividers)
+- `--yadad-composer-row-gap` — vertical rhythm between batch rows, controls and the checklist add-step; default: token `--yadad-space-3` (spacing scale, step 3)
+- `--yadad-composer-controls-gap` — gap inside the batch controls and the checklist add-step; default: token `--yadad-space-3` (spacing scale, step 3)
+- `--yadad-composer-status-color` — colour of the checklist/batch status line (role=status); default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
+- `--yadad-composer-completed-color` — text colour of a completed (ticked) checklist row, struck through; default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
+
+**Theme tokens it reads:** `--yadad-color-border`, `--yadad-color-text-muted`, `--yadad-font-size-sm`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 
 ### count
 

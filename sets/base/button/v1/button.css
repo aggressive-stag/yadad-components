@@ -55,4 +55,14 @@
     cursor: not-allowed;
     opacity: var(--yadad-button-disabled-opacity, 0.6);
   }
+
+  /* pressed=true (RFC 0009 item 5, the saved-filter chip): the selected look
+     is the filled accent — the same painted vocabulary as primary — so a lit
+     chip is unmistakable beside unlit ones. aria-pressed carries it for
+     assistive tech; the fill is never the only signal. */
+  :where([data-yadad="button"][data-part="root"][data-pressed="true"]) {
+    color: var(--yadad-button-pressed-color, var(--yadad-color-background));
+    background: var(--yadad-button-pressed-background, var(--yadad-color-accent));
+    border-color: var(--yadad-button-pressed-border, var(--yadad-color-accent));
+  }
 }

@@ -1,0 +1,65 @@
+/* composer/v1 — the RFC 0009 surfaces (items 3–5): the saved-filter chip row,
+   the batch composer's repeat-row chrome, and the sub-record checklist. The
+   renderer owns WHEN each appears (engine 47f); this file owns HOW they look.
+   Selectors therefore match the renderer's own attributes (as the pager did in
+   card 23c) — Chip/ChipRow above draw the same markup so both families share
+   exactly one stylesheet. */
+@layer yadad.components {
+  /* Chip row: a wrappable row of toggles. At 320px a full set folds to a
+     second line instead of side-scrolling the page. */
+  :where([data-yadad-saved-filters]) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--yadad-composer-chip-gap, var(--yadad-space-2));
+  }
+
+  /* A chip is the Button read as a chip: pill shape (half the tap height —
+     the definition of a pill), snug horizontal padding. The thumb minimum
+     stays (button.css) — a chip is still a tap target. */
+  :where([data-yadad-saved-filters]) :where([data-yadad="button"][data-part="root"]) {
+    border-radius: var(--yadad-composer-chip-radius, calc((var(--yadad-space-4) * 2 + var(--yadad-space-3)) / 2));
+    padding-inline: var(--yadad-composer-chip-padding-inline, var(--yadad-space-4));
+  }
+
+  /* Batch composer (repeat: "batch"): rows of the same form, separated by a
+     token hairline, the "+ another" controls under the last row. DOM order is
+     already top-to-bottom, so keyboard order comes free. */
+  :where([data-yadad-batch-row]) + :where([data-yadad-batch-row]) {
+    border-block-start: var(--yadad-composer-row-border-width, 1px) solid var(--yadad-composer-row-border, var(--yadad-color-border));
+    margin-block-start: var(--yadad-composer-row-gap, var(--yadad-space-3));
+    padding-block-start: var(--yadad-composer-row-gap, var(--yadad-space-3));
+  }
+
+  :where([data-yadad-batch-controls]) {
+    display: flex;
+    align-items: center;
+    gap: var(--yadad-composer-controls-gap, var(--yadad-space-3));
+    margin-block-start: var(--yadad-composer-row-gap, var(--yadad-space-3));
+  }
+
+  /* Checklist (sub-record sections): the add-step lays its input beside the
+     add button; the status line reads as one. */
+  :where([data-yadad-sub-record-add]) {
+    display: flex;
+    align-items: center;
+    gap: var(--yadad-composer-controls-gap, var(--yadad-space-3));
+    margin-block-start: var(--yadad-composer-row-gap, var(--yadad-space-3));
+  }
+
+  :where([data-yadad-sub-records-status], [data-yadad-batch-status]) {
+    color: var(--yadad-composer-status-color, var(--yadad-color-text-muted));
+    font-size: var(--yadad-font-size-sm);
+  }
+
+  /* Completed checklist rows strike through — Decision: the set had no
+     completed treatment to reuse, so this is the token-based one: muted
+     text plus line-through, scoped to sub-record tables so a boolean column
+     in a main table never inherits it. :has() reads the set's own checkbox;
+     the state stays visible as the tick, never the strikethrough alone. */
+  :where([data-yadad-sub-records]) :where([data-yadad="table"]) :where([data-part="row"]):has(:where([data-yadad="boolean"][data-part="input"]):checked) {
+    color: var(--yadad-composer-completed-color, var(--yadad-color-text-muted));
+    text-decoration: line-through;
+    text-decoration-thickness: from-font;
+  }
+}

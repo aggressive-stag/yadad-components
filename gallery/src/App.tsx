@@ -60,6 +60,8 @@ import { Board as BoardComponent } from "../../sets/base/board/v1/index.js";
 // component instead of the registry slot, the way DialogComponent does.
 import { Table as TableComponent } from "../../sets/base/table/v1/index.js";
 import { Pager, TablePager } from "../../sets/base/pager/v1/index.js";
+import { Chip, ChipRow } from "../../sets/base/composer/v1/index.js";
+import { BooleanInput } from "../../sets/base/boolean/v1/index.js";
 const TextEntry = baseRegistry.fields.text;
 
 /**
@@ -399,6 +401,42 @@ function PagerRegistryStates(): ReactNode {
       {state("pager-registry-ends", "registry pager: first page disables Previous, last disables Next", <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}><TablePager {...{ ...pagerProps(1, 5), label: "Sessions pages (first)" }} /><TablePager {...{ ...pagerProps(5, 5), label: "Sessions pages (last)" }} /></div>)}
       {state("pager-registry-cursor", "registry pager: cursor mode (no total) reads “Page 4”", <TablePager label="Sessions pages" hasPrevious hasNext page={4} onPrevious={() => {}} onNext={() => {}} />)}
       {state("pager-registry-phone", "phone frame (390px container, 320px content): the pager does not overflow", <div className="phone-frame" style={{ inlineSize: "320px" }}><div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}><TableComponent caption="Sessions (phone)" columns={columns("g-regpager-ph")} rows={pagerTableRows(2, 5)} onSort={() => {}} empty="No sessions" /><TablePager {...pagerProps(2, 5)} /></div></div>)}
+    </>
+  );
+}
+
+/**
+ * Card 23d (RFC 0009 items 3–5): the saved-filter chip row, the batch
+ * composer's repeat-row chrome, and the checklist. Chip/ChipRow draw the
+ * renderer's exact markup; the batch rows and checklist reproduce the
+ * renderer-owned attributes (engine 47f) so composer.css is checked against
+ * what hosts actually render, not a paraphrase of it.
+ */
+function ComposerStates(): ReactNode {
+  const chips = ["Active sessions", "This week", "Heavy", "Deload", "Missed", "Competition block", "Unlogged only"];
+  const batchField = (rowId: string, label: string) => (
+    <FieldFrame inputId={rowId} errorId={`${rowId}-errors`} label={label} required={false} errors={[]}>
+      <input id={rowId} data-yadad="text" data-part="input" type="text" defaultValue="" />
+    </FieldFrame>
+  );
+  const checklistColumns = [
+    { id: "done", headerId: "g-checklist-col-done", label: "Done", sortable: false },
+    { id: "title", headerId: "g-checklist-col-title", label: "Set", sortable: false },
+  ];
+  const checklistRow = (n: number, done: boolean) => ({
+    id: `set-${n}`,
+    cells: [
+      <BooleanInput key="done" inputId={`g-checklist-done-${n}`} field={{ id: "done", type: "boolean", label: "Done" } as never} value={done} onChange={() => {}} invalid={false} labelledBy="g-checklist-col-done" />,
+      <span key="title">{`Set ${n} — 5 × 5 @ 80 kg`}</span>,
+    ] as [ReactNode, ReactNode],
+  });
+  return (
+    <>
+      {state("chips-row", "saved-filter chips: one lit (aria-pressed), the rest open", <ChipRow label="Saved filters">{chips.slice(0, 4).map((c, i) => <Chip key={c} label={c} pressed={i === 1} onPress={() => {}} />)}</ChipRow>)}
+      {state("chips-row-all-lit", "every chip lit — the selected look must hold side by side", <ChipRow label="Saved filters (all lit)">{chips.slice(0, 3).map((c) => <Chip key={c} label={c} pressed onPress={() => {}} />)}</ChipRow>)}
+      {state("chips-row-phone", "phone frame (320px content): the chip row wraps, it never side-scrolls", <div className="phone-frame" style={{ inlineSize: "320px" }}><ChipRow label="Saved filters (phone)">{chips.map((c, i) => <Chip key={c} label={c} pressed={i === 0} onPress={() => {}} />)}</ChipRow></div>)}
+      {state("batch-composer", "repeat: batch — two rows on a token hairline, each with its Remove, then “+ another” and the row count", <div><div data-yadad-batch-row="">{batchField("g-batch-0", "Exercise")}<Button label="Remove row" type="button" variant="secondary" disabled={false} onPress={() => {}} /></div><div data-yadad-batch-row="">{batchField("g-batch-1", "Exercise")}<Button label="Remove row" type="button" variant="secondary" disabled={false} onPress={() => {}} /></div><div data-yadad-batch-controls=""><Button label="+ another" type="button" variant="secondary" disabled={false} onPress={() => {}} /><span data-yadad-batch-count="" role="status">2 rows</span></div></div>)}
+      {state("checklist-rows", "sub-record checklist: a ticked row strikes through (never the tick alone), a pending row does not; the add-step sits under the table", <div data-yadad-sub-records="session_set"><p role="status" data-yadad-sub-records-status="">Set 2: done.</p><TableComponent caption="session_set rows" columns={checklistColumns} rows={[checklistRow(1, true), checklistRow(2, false)]} onSort={() => {}} empty={<span>No rows yet.</span>} actionsLabel="Actions" /><div data-yadad-sub-record-add=""><input data-testid="sub-record-input-session_set" type="text" placeholder="Next set" aria-label="Next set" /><Button label="Add" type="submit" variant="primary" disabled={false} onPress={() => {}} /></div></div>)}
     </>
   );
 }
@@ -1074,6 +1112,11 @@ const LAYOUT_ANCHORS = [
   "pager-registry-ends",
   "pager-registry-cursor",
   "pager-registry-phone",
+  "chips-row",
+  "chips-row-all-lit",
+  "chips-row-phone",
+  "batch-composer",
+  "checklist-rows",
 ] as const;
 
 const FIELD_STATES = ["empty", "filled", "required", "invalid", "display-value", "display-empty"] as const;
@@ -1449,6 +1492,7 @@ export default function App(): ReactNode {
             </div>,
           )}
           <PagerRegistryStates />
+          <ComposerStates />
         </section>
 
         <section id="group-calendar">
