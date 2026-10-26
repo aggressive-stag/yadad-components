@@ -1,5 +1,18 @@
 # @yadad/components
 
+## 0.29.0
+
+### Minor Changes
+
+- d2b3105: A text field with `multiline: true` now renders a native `<textarea>` (four rows, vertical resize) with the same label wiring, ARIA, `maxLength` and `data-part="input"` as the single-line input, and its display keeps line breaks (`white-space: pre-line`, `data-multiline`). New variables: `--yadad-text-multiline-min-height`, `--yadad-text-multiline-line-height`.
+
+### Patch Changes
+
+- 7009ed6: A board column heading now paints the column's `color` hint (RFC 0008 item 5, an option's `#RRGGBB`) as a token-derived dot beside the label, `aria-hidden`, for a colour in the documented 8-hex vocabulary; a colour outside it paints no dot, as on the select.
+- 4109390: The calendar now reads each day's `overflow` from the renderer (the view's `maxEntriesPerDay`, RFC 0008 item 7) instead of a fixed three: a day shows `overflow.shown` entries and a "+N more" button for the rest. A day with no `overflow` shows every entry, so an engine that predates the prop no longer caps busy days at three.
+- 7ed34d8: The reference display now paints the `color` the renderer passes for a reference field with `colorFrom` (RFC 0008 item 8): a token-derived dot beside the label, `aria-hidden`, drawn only for a found record and only for a colour in the documented 8-hex vocabulary, as the select does. The vocabulary lookup moves to a shared internal helper. New host variables `--yadad-swatch-slot-0` to `-7`, `--yadad-swatch-border`, `--yadad-swatch-radius-full`.
+- add9f5d: The count and series widget labels are now `<h2>` headings (RFC 0008 item 12). The dashboard renderer gives a widget no panel title, so these labels are the widget titles and the page had no headings; the visual style is unchanged (UA heading margins and weight are reset in the stylesheets).
+
 ## 0.28.1
 
 ### Patch Changes
