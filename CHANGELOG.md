@@ -1,5 +1,11 @@
 # @yadad/components
 
+## 0.31.0
+
+### Minor Changes
+
+- 4879a9f: The text input renders a quick filter's `placeholder`, and the table stylesheet styles the page notice (`[data-yadad-page-notice]`, `data-tone` info and warning) with theme tokens. Unsortable headers stay plain text.
+
 ## 0.30.0
 
 ### Minor Changes
