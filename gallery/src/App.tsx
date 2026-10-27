@@ -322,6 +322,7 @@ function TextMaxLengthStates(): ReactNode {
     <section id="group-text-maxlength">
       <h2>text: maxLength</h2>
       {state("text-maxlength", "input: maxLength 10, the browser stops typing at the limit", <Input inputId="g-text-maxlength" field={{ ...field, maxLength: 10 }} value={value} onChange={setValue} invalid={false} />)}
+      {state("text-placeholder", "input: a quick filter's placeholder hints at a substring match (RFC 0010 item 5)", <Input inputId="g-text-placeholder" field={field} value={undefined} onChange={() => {}} invalid={false} placeholder="Contains..." />)}
       {state("text-multiline", "input: multiline textarea, maxLength 4000", <Input inputId="g-text-multiline" field={{ ...field, multiline: true, maxLength: 4000 }} value={area} onChange={setArea} invalid={false} />)}
       {state("text-multiline-invalid", "input: multiline, invalid", <Input inputId="g-text-multiline-invalid" field={{ ...field, multiline: true }} value={"Line one\nLine two"} onChange={() => {}} invalid />)}
       {state("text-multiline-display", "display: multiline keeps line breaks", <Display field={{ ...field, multiline: true }} value={"First line\nSecond line\n\nAfter a blank line"} />)}
@@ -512,6 +513,9 @@ function TableSortStates(): ReactNode {
       {state("table-sort-none", "sortable headers: no sort", <Table caption="Sets (unsorted)" columns={[...columns("g-sort-none")]} rows={rows} onSort={() => {}} empty="No sets" />)}
       {state("table-sort-asc", "sortable headers: ascending", <Table caption="Sets (ascending)" columns={[...columns("g-sort-asc", "asc")]} rows={rows} onSort={() => {}} empty="No sets" />)}
       {state("table-sort-desc", "sortable headers: descending", <Table caption="Sets (descending)" columns={[...columns("g-sort-desc", "desc")]} rows={rows} onSort={() => {}} empty="No sets" />)}
+      {state("table-unsortable", "unsortable headers (sortable: false) are plain text: no button, no arrow, no pointer", <Table caption="Sets (always newest first)" columns={[{ id: "day", headerId: "g-unsort-col-day", label: "Day", sortable: false }, { id: "weight", headerId: "g-unsort-col-weight", label: "Weight", sortable: false }, { id: "actions", headerId: "g-unsort-col-actions", label: "Actions", sortable: false }]} rows={rows} onSort={() => {}} empty="No sets" />)}
+      {state("page-notice-info", "page notice, info: a polite status region above the table", <div><p role="status" data-yadad-page-notice="" data-tone="info">Showing results from the last 90 days.</p><Table caption="Sets (info notice)" columns={[...columns("g-notice-info")]} rows={rows} onSort={() => {}} empty="No sets" /></div>)}
+      {state("page-notice-warning", "page notice, warning: thicker bar and outline, not colour alone", <div><p role="status" data-yadad-page-notice="" data-tone="warning">Served without vector search; results are ordered by date and may be incomplete.</p><Table caption="Sets (warning notice)" columns={[...columns("g-notice-warn")]} rows={rows} onSort={() => {}} empty="No sets" /></div>)}
     </>
   );
 }

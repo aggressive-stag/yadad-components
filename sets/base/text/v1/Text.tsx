@@ -1,4 +1,4 @@
-import type { DiffSegment, DisplayProps, InputProps, TextField } from "@yadad/core";
+import type { DiffSegment, DisplayProps, FieldInputProps, TextField } from "@yadad/core";
 import type { ReactNode } from "react";
 
 /**
@@ -6,10 +6,11 @@ import type { ReactNode } from "react";
  * `multiline` (RFC 0008 item 13a). Both emit undefined when emptied (no value)
  * and carry the same label wiring, ARIA and `data-part="input"`. A field's
  * `maxLength` (13c) is set as the native attribute so the browser stops typing
- * at the limit; absent when the field declares none. The contract has no
+ * at the limit; absent when the field declares none. A quick filter's
+ * `placeholder` (RFC 0010 item 5) is the single-line input's native placeholder. The contract has no
  * disabled or read-only input state, so neither control draws one.
  */
-export function TextInput({ inputId, field, value, onChange, invalid, describedBy, labelledBy }: InputProps<TextField, string>): ReactNode {
+export function TextInput({ inputId, field, value, onChange, invalid, describedBy, labelledBy, placeholder }: FieldInputProps<"text">): ReactNode {
   if (field.multiline === true) {
     return (
       <textarea
@@ -35,6 +36,7 @@ export function TextInput({ inputId, field, value, onChange, invalid, describedB
       name={field.id}
       type="text"
       maxLength={field.maxLength}
+      placeholder={placeholder}
       data-yadad="text"
       data-part="input"
       value={value ?? ""}

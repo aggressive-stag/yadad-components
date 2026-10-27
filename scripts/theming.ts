@@ -592,6 +592,7 @@ const VAR_DESCRIPTION: Record<string, string> = {
   // select
   "select-padding": "inner padding", "select-tap": "minimum tap-target height (phone)",
   // table
+  "table-notice-spacing": "page notice outer spacing", "table-notice-padding": "page notice padding", "table-notice-bar-width": "page notice leading bar width", "table-notice-bar": "page notice leading bar color", "table-notice-radius": "page notice corner radius", "table-notice-background": "page notice background", "table-notice-color": "page notice text color", "table-notice-font-size": "page notice font size",
   "table-spacing": "space after the table", "table-font-size": "cell font size",
   "table-color": "text color", "table-caption-size": "caption font size",
   "cell-padding": "cell padding", "table-border": "row border color",

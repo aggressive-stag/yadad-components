@@ -222,4 +222,27 @@
       flex: 1 1 100%;
     }
   }
+
+  /* The page notice the renderer draws above a table (RFC 0010 item 7):
+     <p role="status" data-yadad-page-notice data-tone="info|warning">. Text
+     stays on the surface colour pair (contrast comes from the theme); the
+     tone is carried by the bar and a text prefix is the host's copy, so the
+     tone never relies on colour alone: warning also thickens the bar. */
+  :where([data-yadad-page-notice]) {
+    margin-block: var(--yadad-table-notice-spacing, var(--yadad-space-3));
+    padding: var(--yadad-table-notice-padding, var(--yadad-space-2) var(--yadad-space-3));
+    border-inline-start: var(--yadad-table-notice-bar-width, var(--yadad-space-1)) solid var(--yadad-table-notice-bar, var(--yadad-color-accent));
+    border-radius: var(--yadad-table-notice-radius, var(--yadad-radius-sm));
+    background: var(--yadad-table-notice-background, var(--yadad-color-surface));
+    color: var(--yadad-table-notice-color, var(--yadad-color-text));
+    font-family: var(--yadad-table-font-family, var(--yadad-font-family));
+    font-size: var(--yadad-table-notice-font-size, var(--yadad-font-size-sm));
+    overflow-wrap: anywhere;
+  }
+
+  :where([data-yadad-page-notice][data-tone="warning"]) {
+    --yadad-table-notice-bar: var(--yadad-color-category-3);
+    border-inline-start-width: calc(var(--yadad-table-notice-bar-width, var(--yadad-space-1)) * 2);
+    border-block: 1px solid var(--yadad-table-notice-bar);
+  }
 }

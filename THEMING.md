@@ -794,8 +794,16 @@ A data table with sortable headers and an empty state.
 - `--yadad-table-disabled-opacity` — opacity of a disabled (pending) action button; default: `0.6`
 - `--yadad-table-card-radius` — corner radius of a stacked row card (phone); default: token `--yadad-radius-md` (medium corner radius (cards, panels, sections))
 - `--yadad-table-label-color` — stacked cell label color (phone); default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
+- `--yadad-table-notice-spacing` — page notice outer spacing; default: token `--yadad-space-3` (spacing scale, step 3)
+- `--yadad-table-notice-padding` — page notice padding; default: `var(--yadad-space-2) var(--yadad-space-3)` (token-derived: `--yadad-space-2`, `--yadad-space-3`)
+- `--yadad-table-notice-bar-width` — page notice leading bar width; default: token `--yadad-space-1` (spacing scale, step 1 (tightest))
+- `--yadad-table-notice-bar` — page notice leading bar color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-table-notice-radius` — page notice corner radius; default: token `--yadad-radius-sm` (small corner radius (inputs, buttons, chips))
+- `--yadad-table-notice-background` — page notice background; default: token `--yadad-color-surface` (raised surface (sections, panels, table headers))
+- `--yadad-table-notice-color` — page notice text color; default: token `--yadad-color-text` (main text color)
+- `--yadad-table-notice-font-size` — page notice font size; default: token `--yadad-font-size-sm` (small text (labels, secondary, table cells))
 
-**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-md`, `--yadad-radius-sm`, `--yadad-space-1`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-border`, `--yadad-color-category-3`, `--yadad-color-danger`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-md`, `--yadad-radius-sm`, `--yadad-space-1`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 
 ### tabs
 

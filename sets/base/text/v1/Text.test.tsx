@@ -92,6 +92,13 @@ describe("TextInput maxLength", () => {
     expect(container.querySelector("input")?.hasAttribute("maxlength")).toBe(false);
   });
 
+  it("renders a quick filter's placeholder, and none when absent", () => {
+    const { container, rerender } = render(<TextInput {...props} field={field} placeholder="Contains..." />);
+    expect(container.querySelector("input")?.getAttribute("placeholder")).toBe("Contains...");
+    rerender(<TextInput {...props} field={field} />);
+    expect(container.querySelector("input")?.hasAttribute("placeholder")).toBe(false);
+  });
+
 });
 
 describe("TextInput multiline", () => {
