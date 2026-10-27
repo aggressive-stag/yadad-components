@@ -1,5 +1,11 @@
 # @yadad/components
 
+## 0.33.0
+
+### Minor Changes
+
+- 1cc5bd9: Style the confirm dialog's subject line (`[data-yadad-confirm-subject]`, with `--yadad-dialog-subject-*` variables), and widen the `@yadad/core` peer range to 0.17.
+
 ## 0.32.1
 
 ### Patch Changes
