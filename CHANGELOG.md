@@ -1,5 +1,11 @@
 # @yadad/components
 
+## 0.32.0
+
+### Minor Changes
+
+- a9a85bf: The tags input commits a non-empty draft on blur through `onChange` (a quick filter and a form both take it), the calendar legend paints each entry's palette `color`, and the datetime input takes its native `min`/`max` from `minLocal`/`maxLocal`.
+
 ## 0.31.0
 
 ### Minor Changes
