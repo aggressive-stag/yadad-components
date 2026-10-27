@@ -96,6 +96,8 @@ body {
   box-sizing: border-box;
   /* 390px of content on a wide page; never wider than the page itself. */
   inline-size: min(100%, calc(390px + var(--yadad-space-2) * 2 + 2px));
+  /* states that set their own inline-size (a 320px content frame) still never outgrow a 320px phone */
+  max-inline-size: 100%;
   border: 1px dashed var(--yadad-color-border);
   padding: var(--yadad-space-2);
 }

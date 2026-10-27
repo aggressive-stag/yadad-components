@@ -129,6 +129,8 @@ for (const vp of VIEWPORTS) {
           const r = e.getBoundingClientRect();
           if (r.right <= vw + 1 || r.width <= 5) continue;
           if (getComputedStyle(e).overflow !== "visible" || inHScroll(e)) continue;
+          // an <svg> clips its own drawing (overflow: hidden), so what sticks out of it never widens the page
+          if (e.parentElement?.closest("svg")) continue;
           const type = (e as HTMLInputElement).type || "";
           const stateId = e.closest(".state")?.id || "chrome";
           const k = e.tagName + type + stateId;
@@ -260,6 +262,11 @@ for (const vp of VIEWPORTS) {
           }
           return false;
         };
+        // the chart widgets keep their data table as a clipped 1px box for assistive tech
+        const visuallyHidden = (el: Element): boolean => {
+          for (let n: Element | null = el; n; n = n.parentElement) if (getComputedStyle(n).clipPath !== "none") return true;
+          return false;
+        };
         for (const st of document.querySelectorAll(".state")) {
           const inputs = [...st.querySelectorAll<HTMLInputElement | HTMLSelectElement>("input,select")].filter((e) => e.type !== "hidden");
           const labels = [...st.querySelectorAll<HTMLLabelElement>("label,[data-part=label]")];
@@ -267,7 +274,8 @@ for (const vp of VIEWPORTS) {
           for (const inp of inputs) {
             const ir = inp.getBoundingClientRect();
             const forLabel = labels.find((l) => l.htmlFor === inp.id || l.contains(inp));
-            if (forLabel) {
+            // a label that wraps its input (a checkbox row) overlaps it by construction
+            if (forLabel && !forLabel.contains(inp)) {
               const lr = forLabel.getBoundingClientRect();
               if (lr.bottom > ir.top + 2 && lr.top < ir.bottom && lr.left < ir.right - 2 && lr.right > ir.left + 2) issues.push(`${st.id}: label overlaps input`);
             }
@@ -279,7 +287,7 @@ for (const vp of VIEWPORTS) {
           }
           for (const e of st.querySelectorAll("*")) {
             const r = e.getBoundingClientRect();
-            if (r.width > 5 && r.right > window.innerWidth + 1 && getComputedStyle(e).overflow === "visible" && !inHScroll(e)) {
+            if (r.width > 5 && r.right > window.innerWidth + 1 && getComputedStyle(e).overflow === "visible" && !inHScroll(e) && !e.parentElement?.closest("svg") && !visuallyHidden(e)) {
               issues.push(`${st.id}: element overflows right (${e.tagName} "${(e.textContent || "").trim().slice(0, 20)}")`);
               break;
             }

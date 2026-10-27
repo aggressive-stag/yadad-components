@@ -4,6 +4,9 @@
   :where([data-yadad="tags"][data-part="input"]) {
     display: flex;
     flex-direction: column;
+    /* a flex/grid item defaults to min-width: auto, so the add input's intrinsic
+       width (it grows with 200% text) would widen the whole field past the phone. */
+    min-inline-size: 0;
     gap: var(--yadad-tags-gap, var(--yadad-space-2));
   }
 

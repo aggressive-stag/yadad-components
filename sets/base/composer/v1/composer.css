@@ -47,6 +47,14 @@
     margin-block-start: var(--yadad-composer-row-gap, var(--yadad-space-3));
   }
 
+  /* A bare input is as wide as its size attribute (more at 200% text) and a
+     flex item will not shrink below that, so it pushed the Add button off a
+     320px phone. Let it take the spare room and shrink instead. */
+  :where([data-yadad-sub-record-add]) > :where(input) {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+  }
+
   :where([data-yadad-sub-records-status], [data-yadad-batch-status]) {
     color: var(--yadad-composer-status-color, var(--yadad-color-text-muted));
     font-size: var(--yadad-font-size-sm);
