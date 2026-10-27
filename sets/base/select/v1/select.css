@@ -32,20 +32,24 @@
      owned variables on the display (the calendar slot precedent — the base
      theme has no categorical palette; defaults are composed from the theme's
      own tokens via color-mix(), no hard-coded colors, never the only signal:
-     the dot sits beside the label text). */
+     the dot sits beside the label text). The theme has only a blue accent and
+     a red danger, so the other hues come from walking the OKLCH hue wheel
+     between them: the long way round passes through teal, green, yellow and
+     orange, the short way through purple and pink. Lightness and chroma follow
+     the theme, so each hue is light on a dark theme and dark on a light one. */
   :where([data-yadad="select"][data-part="display"]) {
     display: inline-flex;
     align-items: center;
     gap: var(--yadad-space-2);
 
     --yadad-select-slot-0: var(--yadad-color-accent);
-    --yadad-select-slot-1: color-mix(in srgb, var(--yadad-color-accent) 35%, var(--yadad-color-danger) 65%);
-    --yadad-select-slot-2: color-mix(in srgb, var(--yadad-color-danger) 75%, var(--yadad-color-text) 25%);
-    --yadad-select-slot-3: color-mix(in srgb, var(--yadad-color-accent) 50%, var(--yadad-color-text-muted) 50%);
-    --yadad-select-slot-4: color-mix(in srgb, var(--yadad-color-accent) 70%, var(--yadad-color-text) 30%);
-    --yadad-select-slot-5: color-mix(in srgb, var(--yadad-color-danger) 45%, var(--yadad-color-text-muted) 55%);
-    --yadad-select-slot-6: color-mix(in srgb, var(--yadad-color-accent) 60%, var(--yadad-color-danger) 40%);
-    --yadad-select-slot-7: var(--yadad-color-text-muted);
+    --yadad-select-slot-1: var(--yadad-color-danger);
+    --yadad-select-slot-2: color-mix(in oklch longer hue, var(--yadad-color-accent) 11%, var(--yadad-color-danger) 89%);
+    --yadad-select-slot-3: color-mix(in oklch longer hue, var(--yadad-color-accent) 29%, var(--yadad-color-danger) 71%);
+    --yadad-select-slot-4: color-mix(in oklch longer hue, var(--yadad-color-accent) 50%, var(--yadad-color-danger) 50%);
+    --yadad-select-slot-5: color-mix(in oklch longer hue, var(--yadad-color-accent) 69%, var(--yadad-color-danger) 31%);
+    --yadad-select-slot-6: color-mix(in oklch, var(--yadad-color-accent) 66%, var(--yadad-color-danger) 34%);
+    --yadad-select-slot-7: color-mix(in oklch, var(--yadad-color-accent) 38%, var(--yadad-color-danger) 62%);
   }
 
   :where([data-yadad="select"]) :where([data-part="swatch"]) {
