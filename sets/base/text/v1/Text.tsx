@@ -56,7 +56,8 @@ export function TextInput({ inputId, field, value, onChange, invalid, describedB
  * runs in `<ins>`, each prefixed by visually hidden "removed:" / "added:" text
  * so the change never relies on colour alone (text.css: strike-through and
  * underline carry the marks, colours come from theme tokens). Runs of one kind
- * are already merged by the engine. Without `diff` the markup is unchanged.
+ * are already merged by the engine. The root carries `data-raw-before` and
+ * `data-raw-after`, the unsplit old and new text, for tests and tooling. Without `diff` the markup is unchanged.
  */
 export function TextDisplay({ field, value, diff }: DisplayProps<TextField, string> & { diff?: readonly DiffSegment[] }): ReactNode {
   const multiline = field.multiline === true ? "true" : undefined;
@@ -67,8 +68,17 @@ export function TextDisplay({ field, value, diff }: DisplayProps<TextField, stri
       </span>
     );
   }
+  const rawBefore = diff.filter((s) => s.kind !== "added").map((s) => s.text).join("");
+  const rawAfter = diff.filter((s) => s.kind !== "removed").map((s) => s.text).join("");
   return (
-    <span data-yadad="text" data-part="display" data-diff="words" data-multiline={multiline}>
+    <span
+      data-yadad="text"
+      data-part="display"
+      data-diff="words"
+      data-raw-before={rawBefore}
+      data-raw-after={rawAfter}
+      data-multiline={multiline}
+    >
       {diff.map((segment, i) =>
         segment.kind === "same" ? (
           <span key={i} data-part="diff-same">

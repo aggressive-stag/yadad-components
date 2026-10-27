@@ -44,6 +44,13 @@ describe("TextDisplay with diff", () => {
     expect(container.querySelector('[data-part="diff-same"]')?.textContent).toBe("Ada ");
   });
 
+  it("carries the unsplit before and after text, whitespace included", () => {
+    const { container } = render(<TextDisplay field={field} value="Ada Lovelace" diff={diff} />);
+    const root = container.querySelector('[data-part="display"]');
+    expect(root?.getAttribute("data-raw-before")).toBe("Alice Ada ");
+    expect(root?.getAttribute("data-raw-after")).toBe("Ada Lovelace");
+  });
+
   it("prefixes each run with visually hidden kind text (meaning never rests on colour alone)", () => {
     const { container } = render(<TextDisplay field={field} value="Ada Lovelace" diff={diff} />);
     const labels = [...container.querySelectorAll<HTMLElement>('[data-part="diff-label"]')];
