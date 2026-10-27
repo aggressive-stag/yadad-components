@@ -444,6 +444,8 @@ const VAR_DESCRIPTION: Record<string, string> = {
   "dialog-title-font-size": "title font size", "dialog-close-color": "close control colour",
   "dialog-close-focus": "close control focus-ring colour", "dialog-close-font-size": "close control glyph size",
   "dialog-close-radius": "close control corner radius", "dialog-body-padding": "body padding",
+  "dialog-subject-margin": "margin around the confirm subject line", "dialog-subject-color": "confirm subject line text color",
+  "dialog-subject-font-size": "confirm subject line font size", "dialog-subject-font-weight": "confirm subject line font weight",
   "dialog-backdrop": "backdrop colour (top layer only)", "dialog-backdrop-opacity": "backdrop opacity (top layer only)",
   "dialog-shadow": "drop shadow under the dialog box", "dialog-close-tap": "close control tap target (width and height)",
   // board

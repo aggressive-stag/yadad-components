@@ -432,6 +432,10 @@ A modal dialog: the renderer builds the content, the component owns the modal be
 - `--yadad-dialog-close-radius` — close control corner radius; default: token `--yadad-radius-sm` (small corner radius (inputs, buttons, chips))
 - `--yadad-dialog-close-focus` — close control focus-ring colour; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-dialog-body-padding` — body padding; default: token `--yadad-space-3` (spacing scale, step 3)
+- `--yadad-dialog-subject-margin` — margin around the confirm subject line; default: `var(--yadad-space-2) 0` (token-derived: `--yadad-space-2`)
+- `--yadad-dialog-subject-color` — confirm subject line text color; default: token `--yadad-color-text` (main text color)
+- `--yadad-dialog-subject-font-size` — confirm subject line font size; default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
+- `--yadad-dialog-subject-font-weight` — confirm subject line font weight; default: `600`
 
 **Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-border`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-md`, `--yadad-radius-sm`, `--yadad-shadow-md`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 

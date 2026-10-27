@@ -87,6 +87,18 @@
     padding: var(--yadad-dialog-body-padding, var(--yadad-space-3));
   }
 
+  /* The confirm dialog's subject line: the renderer names the record under
+     the message as <p data-yadad-confirm-subject>. One emphasised line that
+     wraps instead of overflowing, even for an unbroken long name. */
+  :where([data-yadad="dialog"]) :where([data-yadad-confirm-subject]) {
+    margin: var(--yadad-dialog-subject-margin, var(--yadad-space-2) 0);
+    color: var(--yadad-dialog-subject-color, var(--yadad-color-text));
+    font-size: var(--yadad-dialog-subject-font-size, var(--yadad-font-size-md));
+    font-weight: var(--yadad-dialog-subject-font-weight, 600);
+    overflow-wrap: anywhere;
+    min-inline-size: 0;
+  }
+
   /* Windows High Contrast: system colors replace every token color, the
      shadow is dropped, and a translucent backdrop is not a boundary — so
      the scrim gets a high-alpha Canvas wash, and the panel an explicit

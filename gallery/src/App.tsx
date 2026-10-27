@@ -410,6 +410,7 @@ function SelectStates(): ReactNode {
     <section id="group-select-states">
       <h2>select: labels, colours, form-item label</h2>
       {state("select-options-labelled", "options with labels (picker shows label, not value)", <FieldFrame inputId="g-select-labelled" errorId="g-select-labelled-errors" label="List" required={false} errors={[]}><Host component={entry.Input as unknown as (props: FieldInputProps<"select">) => ReactNode} props={{ inputId: "g-select-labelled", field: coloured, value: "#D13438", onChange: () => {}, invalid: false }} /></FieldFrame>)}
+      {state("select-quick-filter", "reference quick filter: the select slot fed with reference choices (labels from another entity)", <FieldFrame inputId="g-select-quick" errorId="g-select-quick-errors" label="Exercise" required={false} errors={[]}><Host component={entry.Input as unknown as (props: FieldInputProps<"select">) => ReactNode} props={{ inputId: "g-select-quick", field: { id: "exercise", type: "select", label: "Exercise", options: { source: "static", values: referenceOptions.map((o) => ({ value: o.id, label: o.label })) } } as SelectField, value: "e4", onChange: () => {}, invalid: false }} /></FieldFrame>)}
       {state("select-display-labelled", "display: label plus the vocabulary dot", <Display field={coloured} value="#D13438" />)}
       {state("select-display-all-colours", "display: the full vocabulary", <span style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>{coloured.options.values.map((o) => <Display key={optionValue(o)} field={coloured} value={optionValue(o)} />)}</span>)}
       {state("select-display-no-dot", "display: colour outside the vocabulary paints no dot", <Display field={outside} value="hot" />)}
@@ -1206,7 +1207,7 @@ const FIELD_TYPES: readonly FieldType[] = ["text", "number", "boolean", "select"
  * Plays the renderer for the confirmation state: message plus the two
  * Buttons; the component under test supplies only the modal behaviour.
  */
-function DialogConfirmDemo(): ReactNode {
+function DialogConfirmDemo({ subject }: { subject?: string } = {}): ReactNode {
   const [open, setOpen] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   return (
@@ -1218,6 +1219,7 @@ function DialogConfirmDemo(): ReactNode {
       {open ? (
         <Dialog label="Delete record?" onClose={() => { setResult("dismissed"); setOpen(false); }}>
           <p>Deleting is permanent. The record and its comments go with it.</p>
+          {subject === undefined ? null : <p data-yadad-confirm-subject="">{subject}</p>}
           <p>
             <Button label="Cancel" type="button" variant="secondary" disabled={false} onPress={() => { setResult("Cancel"); setOpen(false); }} />{" "}
             <Button label="Confirm" type="button" variant="primary" disabled={false} onPress={() => { setResult("Confirm"); setOpen(false); }} />
@@ -1723,6 +1725,11 @@ export default function App(): ReactNode {
             "dialog-confirm",
             "a confirmation dialog: the renderer composes the message, Cancel (secondary) and Confirm (primary)",
             <DialogConfirmDemo />,
+          )}
+          {state(
+            "dialog-confirm-subject",
+            "a confirmation dialog that names its record: the renderer draws <p data-yadad-confirm-subject> under the message (long, unbroken name wraps)",
+            <DialogConfirmDemo subject="Overhead press, strict, from the rack, with a pause at the bottom of every repetition (Unbroken_name_that_has_no_spaces_at_all_to_wrap_on)" />,
           )}
           {state(
             "dialog-static",
