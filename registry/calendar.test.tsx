@@ -376,3 +376,30 @@ describe("busy-day cutoff comes from the renderer (RFC 0008 item 7)", () => {
     expect(container.querySelector('[data-part="overflow"]')).toBeNull();
   });
 });
+
+describe("Calendar legend colour", () => {
+  it("paints a legend swatch from its palette colour, else its slot", async () => {
+    const { COLOR_PALETTE } = await import("@yadad/core");
+    const view = render(
+      <Calendar
+        label="Training"
+        title="October 2026"
+        mode="week"
+        modes={[{ mode: "week", label: "Week" }]}
+        weekdays={calendarWeekdays}
+        days={[]}
+        legend={[
+          { slot: 0, label: "Coloured", color: COLOR_PALETTE[3]!.hex },
+          { slot: 2, label: "Plain" },
+        ]}
+        loading={false}
+        onModeChange={() => {}}
+        onPrevious={() => {}}
+        onNext={() => {}}
+        onToday={() => {}}
+      />,
+    );
+    const slots = [...view.container.querySelectorAll('[data-part="legend-swatch"]')].map((e) => e.getAttribute("data-slot"));
+    expect(slots).toEqual(["3", "2"]);
+  });
+});

@@ -35,6 +35,18 @@ function Input({
   );
 }
 
+describe("DatetimeInput limits", () => {
+  it("sets the native min and max from the local limits", () => {
+    render(<DatetimeInput inputId="g" field={field} value={undefined} onChange={() => {}} invalid={false} minLocal="2026-10-01T08:00" maxLocal="2026-10-31T18:30" />);
+    const el = document.querySelector("input")!;
+    expect(el.getAttribute("min")).toBe("2026-10-01T08:00");
+    expect(el.getAttribute("max")).toBe("2026-10-31T18:30");
+    cleanup();
+    render(<DatetimeInput inputId="g" field={field} value={undefined} onChange={() => {}} invalid={false} />);
+    expect(document.querySelector("input")!.hasAttribute("min")).toBe(false);
+  });
+});
+
 describe("DatetimeInput", () => {
   it("renders a native datetime-local control named after the field", () => {
     render(<Input value="2026-10-04T12:30" onChange={() => {}} />);

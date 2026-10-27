@@ -4,6 +4,7 @@ import type { CalendarDayProps, CalendarEntry, CalendarMode, CalendarProps } fro
 import type { KeyboardEvent, ReactNode } from "react";
 import { useEffect, useId, useRef, useState } from "react";
 import { Menu } from "../../../internal/menu/v1/index.js";
+import { paletteSlot } from "../../../internal/swatch/v1/index.js";
 import { useTouchDrag } from "../../../internal/touch-drag/v1/index.js";
 
 /** How many entries show before a day collapses the rest behind "+N more" (card 11 issue 3: unbounded growth). */
@@ -526,7 +527,7 @@ export function Calendar({
         <ul aria-label={strings.legendAriaLabel ?? "Colours"} data-part="legend">
           {legend.map((l) => (
             <li key={l.label} data-part="legend-item">
-              <span data-part="legend-swatch" data-slot={l.slot} aria-hidden="true" />
+              <span data-part="legend-swatch" data-slot={paletteSlot(l.color) ?? l.slot} aria-hidden="true" />
               <span data-part="legend-label">{l.label}</span>
             </li>
           ))}

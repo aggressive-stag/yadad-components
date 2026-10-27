@@ -52,6 +52,21 @@ describe("TagsInput", () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
+  it("commits a non-empty draft on blur through onChange and not a duplicate", () => {
+    const onChange = vi.fn();
+    render(<Input value={["squat"]} onChange={onChange} />);
+    fireEvent.change(addInput(), { target: { value: " row " } });
+    fireEvent.blur(addInput());
+    expect(onChange).toHaveBeenCalledWith(["squat", "row"]);
+    onChange.mockClear();
+    cleanup();
+    render(<Input value={["squat"]} onChange={onChange} />);
+    fireEvent.change(addInput(), { target: { value: "Squat" } });
+    fireEvent.blur(addInput());
+    fireEvent.blur(addInput());
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   it("collapses interior runs of spaces when adding", () => {
     const onChange = vi.fn();
     render(<Input value={undefined} onChange={onChange} />);

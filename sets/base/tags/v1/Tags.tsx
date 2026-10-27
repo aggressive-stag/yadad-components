@@ -49,6 +49,7 @@ export function TagsInput({ inputId, field, value, onChange, invalid, describedB
           type="text"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
+          onBlur={add}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();

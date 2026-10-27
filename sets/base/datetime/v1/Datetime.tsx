@@ -1,4 +1,4 @@
-import type { DatetimeField, DisplayProps, InputProps } from "@yadad/core";
+import type { DatetimeField, DatetimeInputExtras, DisplayProps, InputProps } from "@yadad/core";
 import type { ReactNode } from "react";
 
 /**
@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
  * the stored UTC instant, RFC 0007); the component only shows and returns it.
  * Emptying it emits undefined.
  */
-export function DatetimeInput({ inputId, field, value, onChange, invalid, describedBy, labelledBy }: InputProps<DatetimeField, string>): ReactNode {
+export function DatetimeInput({ inputId, field, value, onChange, invalid, describedBy, labelledBy, minLocal, maxLocal }: InputProps<DatetimeField, string> & DatetimeInputExtras): ReactNode {
   return (
     <input
       id={inputId}
@@ -15,8 +15,8 @@ export function DatetimeInput({ inputId, field, value, onChange, invalid, descri
       type="datetime-local"
       data-yadad="datetime"
       data-part="input"
-      min={field.min}
-      max={field.max}
+      min={minLocal}
+      max={maxLocal}
       value={value ?? ""}
       onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value)}
       aria-invalid={invalid}
