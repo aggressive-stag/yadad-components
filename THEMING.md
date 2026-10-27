@@ -47,6 +47,14 @@ Set these on `:root` (or any scope). Each is `--yadad-<name>`.
 | `--yadad-color-border` | borders and dividers |
 | `--yadad-color-accent` | brand / primary accent — links, focus ring, selected state |
 | `--yadad-color-danger` | error / danger text and borders |
+| `--yadad-color-category-0` | undefined |
+| `--yadad-color-category-1` | undefined |
+| `--yadad-color-category-2` | undefined |
+| `--yadad-color-category-3` | undefined |
+| `--yadad-color-category-4` | undefined |
+| `--yadad-color-category-5` | undefined |
+| `--yadad-color-category-6` | undefined |
+| `--yadad-color-category-7` | undefined |
 | `--yadad-space-1` | spacing scale, step 1 (tightest) |
 | `--yadad-space-2` | spacing scale, step 2 |
 | `--yadad-space-3` | spacing scale, step 3 |
@@ -646,7 +654,7 @@ A single-choice field, rendered as a native picker; the display shows `label ?? 
 - `--yadad-select-slot-6` — colour slot 6 (categorical entry/legend color); default: no default — the host must set it
 - `--yadad-select-slot-7` — colour slot 7 (categorical entry/legend color); default: no default — the host must set it
 
-**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-category-0`, `--yadad-color-category-1`, `--yadad-color-category-2`, `--yadad-color-category-3`, `--yadad-color-category-4`, `--yadad-color-category-5`, `--yadad-color-category-6`, `--yadad-color-category-7`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 
 ### series
 
@@ -730,16 +738,16 @@ One measure per group of a table view, drawn as a compact captioned table, a bar
 
 - `--yadad-swatch-radius-full` — colour dot corner radius on a reference display and a board column heading (circular); default: `50%`
 - `--yadad-swatch-border` — colour dot border; default: token `--yadad-color-border` (borders and dividers)
-- `--yadad-swatch-slot-0` — colour of vocabulary slot 0 on a reference display and a board column heading dot; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
-- `--yadad-swatch-slot-1` — colour of vocabulary slot 1 on a reference display and a board column heading dot; default: token `--yadad-color-danger` (error / danger text and borders)
-- `--yadad-swatch-slot-2` — colour of vocabulary slot 2 on a reference display and a board column heading dot; default: `color-mix(in oklch longer hue, var(--yadad-color-accent) 11%, var(--yadad-color-danger) 89%)` (token-derived: `--yadad-color-accent`, `--yadad-color-danger`)
-- `--yadad-swatch-slot-3` — colour of vocabulary slot 3 on a reference display and a board column heading dot; default: `color-mix(in oklch longer hue, var(--yadad-color-accent) 29%, var(--yadad-color-danger) 71%)` (token-derived: `--yadad-color-accent`, `--yadad-color-danger`)
-- `--yadad-swatch-slot-4` — colour of vocabulary slot 4 on a reference display and a board column heading dot; default: `color-mix(in oklch longer hue, var(--yadad-color-accent) 50%, var(--yadad-color-danger) 50%)` (token-derived: `--yadad-color-accent`, `--yadad-color-danger`)
-- `--yadad-swatch-slot-5` — colour of vocabulary slot 5 on a reference display and a board column heading dot; default: `color-mix(in oklch longer hue, var(--yadad-color-accent) 69%, var(--yadad-color-danger) 31%)` (token-derived: `--yadad-color-accent`, `--yadad-color-danger`)
-- `--yadad-swatch-slot-6` — colour of vocabulary slot 6 on a reference display and a board column heading dot; default: `color-mix(in oklch, var(--yadad-color-accent) 66%, var(--yadad-color-danger) 34%)` (token-derived: `--yadad-color-accent`, `--yadad-color-danger`)
-- `--yadad-swatch-slot-7` — colour of vocabulary slot 7 on a reference display and a board column heading dot; default: `color-mix(in oklch, var(--yadad-color-accent) 38%, var(--yadad-color-danger) 62%)` (token-derived: `--yadad-color-accent`, `--yadad-color-danger`)
+- `--yadad-swatch-slot-0` — colour of vocabulary slot 0 on a reference display and a board column heading dot; default: token `--yadad-color-category-0` (color-category-0)
+- `--yadad-swatch-slot-1` — colour of vocabulary slot 1 on a reference display and a board column heading dot; default: token `--yadad-color-category-1` (color-category-1)
+- `--yadad-swatch-slot-2` — colour of vocabulary slot 2 on a reference display and a board column heading dot; default: token `--yadad-color-category-2` (color-category-2)
+- `--yadad-swatch-slot-3` — colour of vocabulary slot 3 on a reference display and a board column heading dot; default: token `--yadad-color-category-3` (color-category-3)
+- `--yadad-swatch-slot-4` — colour of vocabulary slot 4 on a reference display and a board column heading dot; default: token `--yadad-color-category-4` (color-category-4)
+- `--yadad-swatch-slot-5` — colour of vocabulary slot 5 on a reference display and a board column heading dot; default: token `--yadad-color-category-5` (color-category-5)
+- `--yadad-swatch-slot-6` — colour of vocabulary slot 6 on a reference display and a board column heading dot; default: token `--yadad-color-category-6` (color-category-6)
+- `--yadad-swatch-slot-7` — colour of vocabulary slot 7 on a reference display and a board column heading dot; default: token `--yadad-color-category-7` (color-category-7)
 
-**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-font-size-md`
+**Theme tokens it reads:** `--yadad-color-border`, `--yadad-color-category-0`, `--yadad-color-category-1`, `--yadad-color-category-2`, `--yadad-color-category-3`, `--yadad-color-category-4`, `--yadad-color-category-5`, `--yadad-color-category-6`, `--yadad-color-category-7`, `--yadad-font-size-md`
 
 ### table
 

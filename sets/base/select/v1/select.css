@@ -28,28 +28,24 @@
     border-color: var(--yadad-select-border-invalid, var(--yadad-color-danger));
   }
 
-  /* RFC 0008 item 5 (card 23b): the option-colour vocabulary, as component-
-     owned variables on the display (the calendar slot precedent — the base
-     theme has no categorical palette; defaults are composed from the theme's
-     own tokens via color-mix(), no hard-coded colors, never the only signal:
-     the dot sits beside the label text). The theme has only a blue accent and
-     a red danger, so the other hues come from walking the OKLCH hue wheel
-     between them: the long way round passes through teal, green, yellow and
-     orange, the short way through purple and pink. Lightness and chroma follow
-     the theme, so each hue is light on a dark theme and dark on a light one. */
+  /* RFC 0008 item 5 / RFC 0010: the option-colour vocabulary, as component-
+     owned variables on the display. Defaults are the theme's categorical
+     tokens --yadad-color-category-0..7 (light and dark values come from the
+     theme); a host may override --yadad-select-slot-0..7. Never the only
+     signal: the dot sits beside the label text. */
   :where([data-yadad="select"][data-part="display"]) {
     display: inline-flex;
     align-items: center;
     gap: var(--yadad-space-2);
 
-    --yadad-select-slot-0: var(--yadad-color-accent);
-    --yadad-select-slot-1: var(--yadad-color-danger);
-    --yadad-select-slot-2: color-mix(in oklch longer hue, var(--yadad-color-accent) 11%, var(--yadad-color-danger) 89%);
-    --yadad-select-slot-3: color-mix(in oklch longer hue, var(--yadad-color-accent) 29%, var(--yadad-color-danger) 71%);
-    --yadad-select-slot-4: color-mix(in oklch longer hue, var(--yadad-color-accent) 50%, var(--yadad-color-danger) 50%);
-    --yadad-select-slot-5: color-mix(in oklch longer hue, var(--yadad-color-accent) 69%, var(--yadad-color-danger) 31%);
-    --yadad-select-slot-6: color-mix(in oklch, var(--yadad-color-accent) 66%, var(--yadad-color-danger) 34%);
-    --yadad-select-slot-7: color-mix(in oklch, var(--yadad-color-accent) 38%, var(--yadad-color-danger) 62%);
+    --yadad-select-slot-0: var(--yadad-color-category-0);
+    --yadad-select-slot-1: var(--yadad-color-category-1);
+    --yadad-select-slot-2: var(--yadad-color-category-2);
+    --yadad-select-slot-3: var(--yadad-color-category-3);
+    --yadad-select-slot-4: var(--yadad-color-category-4);
+    --yadad-select-slot-5: var(--yadad-color-category-5);
+    --yadad-select-slot-6: var(--yadad-color-category-6);
+    --yadad-select-slot-7: var(--yadad-color-category-7);
   }
 
   :where([data-yadad="select"]) :where([data-part="swatch"]) {

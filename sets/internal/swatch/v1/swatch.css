@@ -1,6 +1,6 @@
 /* internal/swatch/v1 — the RFC 0008 colour dot on a reference display and a
    board column heading. Same construction as the select's dot: slot colours
-   composed from theme tokens (no hard-coded colours; the hues come from the OKLCH wheel between the accent and danger tokens, see select.css), never the only signal
+   read from the theme's --yadad-color-category-0..7 tokens, never the only signal
    (the label text sits beside it). Scoped to the components that use it, so
    it cannot restyle a swatch elsewhere. Override --yadad-swatch-slot-0..7. */
 @layer yadad.components {
@@ -11,15 +11,15 @@
     block-size: calc(var(--yadad-font-size-md) * 0.7);
     border-radius: var(--yadad-swatch-radius-full, 50%);
     border: 1px solid var(--yadad-swatch-border, var(--yadad-color-border));
-    background: var(--yadad-swatch-slot-0, var(--yadad-color-accent));
+    background: var(--yadad-swatch-slot-0, var(--yadad-color-category-0));
   }
 
-  :where([data-yadad="reference"], [data-yadad="board"]) :where([data-part="swatch"][data-slot="0"]) { background: var(--yadad-swatch-slot-0, var(--yadad-color-accent)); }
-  :where([data-yadad="reference"], [data-yadad="board"]) :where([data-part="swatch"][data-slot="1"]) { background: var(--yadad-swatch-slot-1, var(--yadad-color-danger)); }
-  :where([data-yadad="reference"], [data-yadad="board"]) :where([data-part="swatch"][data-slot="2"]) { background: var(--yadad-swatch-slot-2, color-mix(in oklch longer hue, var(--yadad-color-accent) 11%, var(--yadad-color-danger) 89%)); }
-  :where([data-yadad="reference"], [data-yadad="board"]) :where([data-part="swatch"][data-slot="3"]) { background: var(--yadad-swatch-slot-3, color-mix(in oklch longer hue, var(--yadad-color-accent) 29%, var(--yadad-color-danger) 71%)); }
-  :where([data-yadad="reference"], [data-yadad="board"]) :where([data-part="swatch"][data-slot="4"]) { background: var(--yadad-swatch-slot-4, color-mix(in oklch longer hue, var(--yadad-color-accent) 50%, var(--yadad-color-danger) 50%)); }
-  :where([data-yadad="reference"], [data-yadad="board"]) :where([data-part="swatch"][data-slot="5"]) { background: var(--yadad-swatch-slot-5, color-mix(in oklch longer hue, var(--yadad-color-accent) 69%, var(--yadad-color-danger) 31%)); }
-  :where([data-yadad="reference"], [data-yadad="board"]) :where([data-part="swatch"][data-slot="6"]) { background: var(--yadad-swatch-slot-6, color-mix(in oklch, var(--yadad-color-accent) 66%, var(--yadad-color-danger) 34%)); }
-  :where([data-yadad="reference"], [data-yadad="board"]) :where([data-part="swatch"][data-slot="7"]) { background: var(--yadad-swatch-slot-7, color-mix(in oklch, var(--yadad-color-accent) 38%, var(--yadad-color-danger) 62%)); }
+  :where([data-yadad="reference"], [data-yadad="board"]) :where([data-part="swatch"][data-slot="0"]) { background: var(--yadad-swatch-slot-0, var(--yadad-color-category-0)); }
+  :where([data-yadad="reference"], [data-yadad="board"]) :where([data-part="swatch"][data-slot="1"]) { background: var(--yadad-swatch-slot-1, var(--yadad-color-category-1)); }
+  :where([data-yadad="reference"], [data-yadad="board"]) :where([data-part="swatch"][data-slot="2"]) { background: var(--yadad-swatch-slot-2, var(--yadad-color-category-2)); }
+  :where([data-yadad="reference"], [data-yadad="board"]) :where([data-part="swatch"][data-slot="3"]) { background: var(--yadad-swatch-slot-3, var(--yadad-color-category-3)); }
+  :where([data-yadad="reference"], [data-yadad="board"]) :where([data-part="swatch"][data-slot="4"]) { background: var(--yadad-swatch-slot-4, var(--yadad-color-category-4)); }
+  :where([data-yadad="reference"], [data-yadad="board"]) :where([data-part="swatch"][data-slot="5"]) { background: var(--yadad-swatch-slot-5, var(--yadad-color-category-5)); }
+  :where([data-yadad="reference"], [data-yadad="board"]) :where([data-part="swatch"][data-slot="6"]) { background: var(--yadad-swatch-slot-6, var(--yadad-color-category-6)); }
+  :where([data-yadad="reference"], [data-yadad="board"]) :where([data-part="swatch"][data-slot="7"]) { background: var(--yadad-swatch-slot-7, var(--yadad-color-category-7)); }
 }
