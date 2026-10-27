@@ -93,7 +93,7 @@ pnpm test        # contract kit, axe, theming guardrails
 pnpm build       # type declarations and dist/yadad-components.css
 ```
 
-Contribution rules, releasing and the browser checks are in [AGENTS.md](./AGENTS.md); attribution for adapted code is in [UPSTREAM.md](./UPSTREAM.md); versions are listed in [CHANGELOG.md](./CHANGELOG.md).
+How the set is put together is in [ARCHITECTURE.md](./ARCHITECTURE.md) and its security notes in [docs/security.md](./docs/security.md). Contribution rules, releasing and the browser checks are in [AGENTS.md](./AGENTS.md); attribution for adapted code is in [UPSTREAM.md](./UPSTREAM.md); versions are listed in [CHANGELOG.md](./CHANGELOG.md).
 
 ## Links
 

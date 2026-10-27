@@ -7,7 +7,8 @@ run a real Chromium from `playwright-core` — pin the executable with
 Start the gallery, then from the **repo root**:
 
 ```bash
-(cd gallery && npx vite --port 5151) &
+pnpm gallery &   # serves on port 5199
+# or: (cd gallery && npx vite --port 5151) &
 GALLERY_URL=http://localhost:5151/ node --experimental-strip-types gallery/check/<name>.ts
 ```
 
@@ -16,6 +17,12 @@ GALLERY_URL=http://localhost:5151/ node --experimental-strip-types gallery/check
 | `phone-touch.ts` | 44px targets, no sideways scroll at 390/320, both themes, 200% text (card 4) |
 | `tabs-keyboard.ts` | tab keyboard nav + focus-ring clipping at 200% text (card 3) |
 | `contrast.ts` | forced-colors paint + reduced-motion guard (card 15c) |
+
+The table lists the original checks; every `gallery/check/*.ts` file states what
+it proves in its header comment. `token-fallback.ts` needs `pnpm build` and no
+dev server. The gallery and its checks are drawn in
+[ARCHITECTURE.md](../ARCHITECTURE.md#3-gallery-and-browser-checks); the
+gallery is dev tooling and is never published.
 
 ## Forced-colors (High Contrast) procedure
 

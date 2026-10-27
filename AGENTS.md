@@ -40,7 +40,7 @@ You land and release your own work. Nobody reviews or merges it for you.
 - `pnpm` may not be on `PATH`; use `corepack pnpm`. Node >= 22.18. `@yadad/core`, `@yadad/theme` and `@yadad/testing` are dev dependencies linked from a sibling `../yadad` checkout (`link:`); install there first, then here.
 - `pnpm build` is `tsc -p tsconfig.build.json` plus `scripts/build-css.ts` (emits `dist/yadad-components.css`, exported as `./styles.css`).
 - To release, add a changeset (`pnpm changeset`; patch for fixes, minor for features while pre-1.0), then run `pnpm changeset version` to bump the version and write `CHANGELOG.md`, and commit and push. The GitLab mirror's CI publishes any version the registry does not have yet (`scripts/release/publish.sh`) and skips publishing while changesets are pending.
-- When the engine releases a new `@yadad/core` minor, widen the `@yadad/core` peer range to include it, check the gate, and release, so consumers never need an `overrides` workaround.
+- The `@yadad/core` peer range is `>=0.10.0 <1.0.0`. A new core minor needs no components release unless a feature needs it. When one does, add the engine minimum for that feature to the README Compatibility section and release.
 
 ## Styling guardrails
 
@@ -67,17 +67,18 @@ If the machine's Chromium differs from the one `playwright-core` ships, set `PLA
 
 ## Keeping up with engine releases
 
-`peerDependencies` declares which `@yadad/core` versions this set works with. Pre-1.0, every new core minor falls outside a `^0.x.0` range, so hosts on the newest engine would get a peer conflict. Check with:
+`peerDependencies` declares which `@yadad/core` versions this set works with: `>=0.10.0 <1.0.0`, the whole 0.x line from the first version the set supports. A new core minor is already covered, so hosts never get a peer conflict and nothing needs widening. Compatibility is per feature: the README Compatibility section lists the engine minimum each newer feature needs, and an older engine simply does not show that feature. Check with:
 
 ```sh
 corepack pnpm check:engine
 ```
 
-It asks the registry for every published `@yadad/core` and `@yadad/testing` version, reports the newest, and exits non-zero if the declared range does not cover it (or if the newest testing kit cannot run the kit against that core).
+It asks the registry for every published `@yadad/core` and `@yadad/testing` version, reports the newest, and exits non-zero if the declared range does not cover it (a core 1.0, say) or if the newest testing kit cannot run the kit against that core.
 
-- The engine registry is LAN-internal, so GitHub's public runners cannot reach it. From there the script skips loudly (`SKIP ... This is NOT a pass.`) and exits 0; the GitHub `engine-range` job is a documented no-op. A reachable-but-stale range still fails.
-- The verdict comes from the `engine-range` job in `.gitlab-ci.yml`: `k8s` runner, default-branch pushes, `.post` stage after `release`, `allow_failure: true`, using only CI variables (`CI_API_V4_URL`, `CI_JOB_TOKEN`, `CI_SERVER_URL`) and `pnpm check:engine --install`. A stale range shows as a pipeline warning.
-- Widening needs proof: `corepack pnpm check:engine --install` copies the repo to a temp dir, swaps the `link:` dev dependencies for the newest published `@yadad/core`/`@yadad/testing`, installs, and runs the full gate. Only a passing run justifies adding the minor to `peerDependencies` (existing `^0.1.0 || ^0.2.0 || ...` style) plus a patch changeset. If it fails, the range stays: it is a component bug to fix or a contract change to report.
+- The engine registry is LAN-internal, so GitHub's public runners cannot reach it. From there the script skips loudly (`SKIP ... This is NOT a pass.`) and exits 0; the GitHub `engine-range` job is a documented no-op.
+- The verdict comes from the `engine-range` job in `.gitlab-ci.yml`: `k8s` runner, default-branch pushes, `.post` stage after `release`, `allow_failure: true`, using only CI variables (`CI_API_V4_URL`, `CI_JOB_TOKEN`, `CI_SERVER_URL`) and `pnpm check:engine --install`. A failing range or gate shows as a pipeline warning.
+- `corepack pnpm check:engine --install` copies the repo to a temp dir, swaps the `link:` dev dependencies for the newest published `@yadad/core`/`@yadad/testing`, installs, and runs the full gate. A failure there is a component bug to fix or a contract change to report; do not narrow the range to hide it.
+- Raise the floor (`>=0.10.0`) only when the set drops support for an old engine, and say so in a changeset. A core 1.0 needs the ceiling changed after that gate passes.
 
 ## Commit messages
 
