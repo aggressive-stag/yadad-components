@@ -82,7 +82,7 @@ serves a page that renders every component in every state, with light, dark, str
 
 ## Compatibility
 
-Works with the `@yadad/core` versions in the package's `peerDependencies` range (currently `^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^0.14.0 || ^0.15.0`), which is widened as the engine releases new minors. The newest features ask for their engine: `time`/`tags` fields, the `layout.Pager` key and the pressed saved-filter chip need `@yadad/core` / `@yadad/renderer` 0.15 / 0.14 (specVersion 8). React 19 is required. Node 22.18 or newer is needed to build from source (the build scripts are TypeScript that Node runs directly).
+Works with the `@yadad/core` versions in the package's `peerDependencies` range (`^0.10.0` through `^0.16.0`), which is widened as the engine releases new minors. The newest features ask for their engine: `time`/`tags` fields, the `layout.Pager` key and the pressed saved-filter chip need `@yadad/core` / `@yadad/renderer` 0.15 / 0.14 (specVersion 8). The option and column colour palette, the calendar legend colours, the quick-filter text placeholder, the page notice and the datetime `minLocal`/`maxLocal` limits come with `@yadad/core` / `@yadad/renderer` 0.16 (RFC 0010); on an older engine they simply do not appear. React 19 is required. Node 22.18 or newer is needed to build from source (the build scripts are TypeScript that Node runs directly).
 
 ## Development
 
