@@ -1,5 +1,11 @@
 # @yadad/components
 
+## 0.33.1
+
+### Patch Changes
+
+- 79d9989: Peer `@yadad/core` on the whole 0.x line (`>=0.10.0 <1.0.0`), so a new core minor no longer needs a components release.
+
 ## 0.33.0
 
 ### Minor Changes
