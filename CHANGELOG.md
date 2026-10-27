@@ -1,5 +1,11 @@
 # @yadad/components
 
+## 0.32.1
+
+### Patch Changes
+
+- 057fab8: Text diff cells carry `data-raw-before` and `data-raw-after` on the display root: the unsplit old and new text, so tests can compare against the source strings.
+
 ## 0.32.0
 
 ### Minor Changes
