@@ -1,5 +1,11 @@
 # @yadad/components
 
+## 0.30.0
+
+### Minor Changes
+
+- 57e6133: Read the option and column colour palette from `@yadad/core`'s `COLOR_PALETTE` and paint the dots with the theme's `--yadad-color-category-0..7` tokens. The `@yadad/core` peer range now includes `^0.16.0`.
+
 ## 0.29.1
 
 ### Patch Changes
