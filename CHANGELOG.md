@@ -1,5 +1,11 @@
 # @yadad/components
 
+## 0.37.1
+
+### Patch Changes
+
+- d982cf2: Board: after a card is moved, focus returns to its "Move to…" trigger inside the board that moved it. The lookup used to search the whole page, so with two boards showing the same card a move in the second board focused the first board's copy.
+
 ## 0.37.0
 
 ### Minor Changes
