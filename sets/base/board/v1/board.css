@@ -409,4 +409,31 @@
       flex: 1 1 auto;
     }
   }
+
+  :where([data-yadad="board"]) :where([data-part="move-label"]) {
+    overflow-wrap: anywhere;
+  }
+
+  :where([data-yadad="board"]) :where([data-part="move-select"]) {
+    box-sizing: border-box;
+    max-inline-size: 100%;
+    min-inline-size: 0;
+  }
+
+  /* The column has a fixed height; a move panel taller than that scrolls inside
+     itself so Cancel stays reachable, and it never outgrows the column's width. */
+  :where([data-yadad="board"]) :where([data-part="move-panel"]) {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+    overflow-y: auto;
+    max-block-size: var(--yadad-board-move-panel-max-height, calc(var(--yadad-space-4) * 20));
+  }
+
+  /* Touch: no iOS focus zoom on the move select. */
+  @media (pointer: coarse) {
+    :where([data-yadad="board"]) :where([data-part="move-select"]) {
+      font-size: var(--yadad-board-touch-font-size, var(--yadad-font-size-md));
+      min-block-size: var(--yadad-board-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    }
+  }
 }

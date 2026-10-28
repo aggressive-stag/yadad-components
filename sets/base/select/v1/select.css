@@ -64,4 +64,10 @@
   :where([data-yadad="select"]) :where([data-part="swatch"][data-slot="5"]) { background: var(--yadad-select-slot-5); }
   :where([data-yadad="select"]) :where([data-part="swatch"][data-slot="6"]) { background: var(--yadad-select-slot-6); }
   :where([data-yadad="select"]) :where([data-part="swatch"][data-slot="7"]) { background: var(--yadad-select-slot-7); }
+
+  @media (pointer: coarse) {
+    :where([data-yadad="select"][data-part="input"]) {
+      font-size: max(var(--yadad-select-touch-font-size, var(--yadad-font-size-md)), var(--yadad-select-font-size, var(--yadad-font-size-md)));
+    }
+  }
 }

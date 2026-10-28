@@ -479,4 +479,12 @@
       display: none;
     }
   }
+
+  /* Touch: the move date input stays at 16px or larger (no iOS focus zoom) and 44px tall. */
+  @media (pointer: coarse) {
+    :where([data-yadad="calendar"]) :where([data-part="move-input"]) {
+      font-size: var(--yadad-calendar-touch-font-size, var(--yadad-font-size-md));
+      min-block-size: var(--yadad-calendar-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    }
+  }
 }

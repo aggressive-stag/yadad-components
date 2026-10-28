@@ -149,6 +149,8 @@ Cards in columns, one column per value of a field, with a group-by picker; colum
 - `--yadad-board-drop-target` — outline color of the column a dragged card can drop on; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-board-drop-background` — background of the column a dragged card is over; default: token `--yadad-color-background` (page and control background)
 - `--yadad-board-phone-column-max-height` — tallest a column's card list gets before it scrolls on a phone; default: `calc(var(--yadad-space-4) * 24)` (token-derived: `--yadad-space-4`)
+- `--yadad-board-move-panel-max-height` — tallest the "Move to…" panel gets before it scrolls inside the column (keeps Cancel reachable); default: `calc(var(--yadad-space-4) * 20)` (token-derived: `--yadad-space-4`)
+- `--yadad-board-touch-font-size` — input font size floor under a coarse pointer (16px-class, stops iOS focus zoom); default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
 
 **Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-md`, `--yadad-shadow-md`, `--yadad-shadow-sm`, `--yadad-space-1`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 
@@ -297,6 +299,7 @@ A month/week grid of entries with navigation, a colour-slot legend, and a keyboa
 - `--yadad-calendar-actions-danger` — danger-tone record-action text and border color; default: token `--yadad-color-danger` (error / danger text and borders)
 - `--yadad-calendar-actions-disabled-opacity` — disabled (action in flight) record-action opacity; default: `0.6`
 - `--yadad-calendar-link` — move-trigger / overflow button text color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-calendar-touch-font-size` — input font size floor under a coarse pointer (16px-class, stops iOS focus zoom); default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
 
 **Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-md`, `--yadad-shadow-md`, `--yadad-shadow-sm`, `--yadad-space-1`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 
@@ -365,8 +368,10 @@ A date field, rendered as a native date input.
 - `--yadad-date-radius` — corner radius; default: token `--yadad-radius-sm` (small corner radius (inputs, buttons, chips))
 - `--yadad-date-focus` — focus-ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-date-border-invalid` — border color when invalid; default: token `--yadad-color-danger` (error / danger text and borders)
+- `--yadad-date-touch-font-size` — input font size floor under a coarse pointer (16px-class, stops iOS focus zoom); default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
+- `--yadad-date-tap` — minimum input height under a coarse pointer (the tap target on a phone); default: `calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))` (token-derived: `--yadad-space-3`, `--yadad-space-4`)
 
-**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 
 ### datetime
 
@@ -390,8 +395,10 @@ A date-and-time field, rendered as a native datetime-local input.
 - `--yadad-datetime-radius` — corner radius; default: token `--yadad-radius-sm` (small corner radius (inputs, buttons, chips))
 - `--yadad-datetime-focus` — focus-ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-datetime-border-invalid` — border color when invalid; default: token `--yadad-color-danger` (error / danger text and borders)
+- `--yadad-datetime-touch-font-size` — input font size floor under a coarse pointer (16px-class, stops iOS focus zoom); default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
+- `--yadad-datetime-tap` — minimum input height under a coarse pointer (the tap target on a phone); default: `calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))` (token-derived: `--yadad-space-3`, `--yadad-space-4`)
 
-**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 
 ### dialog
 
@@ -518,8 +525,10 @@ A numeric field with an optional unit suffix.
 - `--yadad-number-border-invalid` — border color when invalid; default: token `--yadad-color-danger` (error / danger text and borders)
 - `--yadad-number-unit-size` — unit font size; default: token `--yadad-font-size-sm` (small text (labels, secondary, table cells))
 - `--yadad-number-unit-color` — unit color; default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
+- `--yadad-number-touch-font-size` — input font size floor under a coarse pointer (16px-class, stops iOS focus zoom); default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
+- `--yadad-number-tap` — minimum input height under a coarse pointer (the tap target on a phone); default: `calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))` (token-derived: `--yadad-space-3`, `--yadad-space-4`)
 
-**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 
 ### pager
 
@@ -657,6 +666,7 @@ A single-choice field, rendered as a native picker; the display shows `label ?? 
 - `--yadad-select-slot-5` — colour slot 5 (categorical entry/legend color); default: no default — the host must set it
 - `--yadad-select-slot-6` — colour slot 6 (categorical entry/legend color); default: no default — the host must set it
 - `--yadad-select-slot-7` — colour slot 7 (categorical entry/legend color); default: no default — the host must set it
+- `--yadad-select-touch-font-size` — input font size floor under a coarse pointer (16px-class, stops iOS focus zoom); default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
 
 **Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-category-0`, `--yadad-color-category-1`, `--yadad-color-category-2`, `--yadad-color-category-3`, `--yadad-color-category-4`, `--yadad-color-category-5`, `--yadad-color-category-6`, `--yadad-color-category-7`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 
@@ -883,8 +893,10 @@ A free-text tag list (RFC 0008 item 15): chips with remove buttons, an add row, 
 - `--yadad-tags-add-color` — add-button text colour; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-tags-add-disabled-opacity` — opacity of the add button while the draft is empty; default: `0.5`
 - `--yadad-tags-display-color-empty` — colour of the empty marker (em-dash) in the read-only display; default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
+- `--yadad-tags-touch-font-size` — input font size floor under a coarse pointer (16px-class, stops iOS focus zoom); default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
+- `--yadad-tags-tap` — minimum input height under a coarse pointer (the tap target on a phone); default: `calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))` (token-derived: `--yadad-space-3`, `--yadad-space-4`)
 
-**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-sm`, `--yadad-space-1`, `--yadad-space-2`, `--yadad-space-3`
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-sm`, `--yadad-space-1`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 
 ### text
 
@@ -918,8 +930,10 @@ A text field: a single-line input, or a textarea when the field is `multiline`.
 - `--yadad-text-diff-added-background` — background of an added word-diff run; default: `color-mix(in srgb, var(--yadad-color-accent) 18%, transparent)` (token-derived: `--yadad-color-accent`)
 - `--yadad-text-diff-removed-color` — strike-through colour of a removed word-diff run; default: token `--yadad-color-danger` (error / danger text and borders)
 - `--yadad-text-diff-removed-background` — background of a removed word-diff run; default: `color-mix(in srgb, var(--yadad-color-danger) 14%, transparent)` (token-derived: `--yadad-color-danger`)
+- `--yadad-text-touch-font-size` — input font size floor under a coarse pointer (16px-class, stops iOS focus zoom); default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
+- `--yadad-text-tap` — minimum input height under a coarse pointer (the tap target on a phone); default: `calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))` (token-derived: `--yadad-space-3`, `--yadad-space-4`)
 
-**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 
 ### time
 
@@ -944,6 +958,8 @@ A time-of-day field (RFC 0008 item 14), rendered as a native time input.
 - `--yadad-time-focus` — focus-ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-time-border-invalid` — border color when invalid; default: token `--yadad-color-danger` (error / danger text and borders)
 - `--yadad-time-display-color-empty` — colour of the empty marker (em-dash) in the read-only display; default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))
+- `--yadad-time-touch-font-size` — input font size floor under a coarse pointer (16px-class, stops iOS focus zoom); default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
+- `--yadad-time-tap` — minimum input height under a coarse pointer (the tap target on a phone); default: `calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))` (token-derived: `--yadad-space-3`, `--yadad-space-4`)
 
-**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
 

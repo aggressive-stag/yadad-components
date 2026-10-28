@@ -28,4 +28,12 @@
   :where([data-yadad="datetime"][data-part="input"][aria-invalid="true"]) {
     border-color: var(--yadad-datetime-border-invalid, var(--yadad-color-danger));
   }
+
+  /* Touch: iOS Safari zooms on any input under 16px, and small controls miss taps. */
+  @media (pointer: coarse) {
+    :where([data-yadad="datetime"][data-part="input"]) {
+      font-size: max(var(--yadad-datetime-touch-font-size, var(--yadad-font-size-md)), var(--yadad-datetime-font-size, var(--yadad-font-size-md)));
+    min-block-size: var(--yadad-datetime-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    }
+  }
 }

@@ -31,4 +31,12 @@
     font-size: var(--yadad-number-unit-size, var(--yadad-font-size-sm));
     color: var(--yadad-number-unit-color, var(--yadad-color-text-muted));
   }
+
+  /* Touch: iOS Safari zooms on any input under 16px, and small controls miss taps. */
+  @media (pointer: coarse) {
+    :where([data-yadad="number"]) :where([data-part="input"]) {
+      font-size: max(var(--yadad-number-touch-font-size, var(--yadad-font-size-md)), var(--yadad-number-font-size, var(--yadad-font-size-md)));
+    min-block-size: var(--yadad-number-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    }
+  }
 }

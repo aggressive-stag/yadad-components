@@ -115,4 +115,26 @@
   :where([data-yadad="tags"][data-part="display"][data-empty="true"]) {
     color: var(--yadad-tags-display-color-empty, var(--yadad-color-text-muted));
   }
+
+  @media (pointer: coarse) {
+    :where([data-yadad="tags"]) :where([data-part="add-input"], [data-part="add"]) {
+      font-size: max(var(--yadad-tags-touch-font-size, var(--yadad-font-size-md)), var(--yadad-tags-font-size, var(--yadad-font-size-md)));
+      min-block-size: var(--yadad-tags-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    }
+
+    /* The remove glyph keeps its look; a pseudo-element grows the hit area. */
+    :where([data-yadad="tags"] [data-part="remove"]) {
+      position: relative;
+    }
+
+    :where([data-yadad="tags"] [data-part="remove"])::after {
+      content: "";
+      position: absolute;
+      inset-block: 50%;
+      inset-inline: 50%;
+      min-inline-size: var(--yadad-tags-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+      min-block-size: var(--yadad-tags-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+      transform: translate(-50%, -50%);
+    }
+  }
 }

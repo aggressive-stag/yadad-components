@@ -882,7 +882,7 @@ function BoardHarness({
  * movable, and a move into "Done" is refused with a live-announced message.
  * `readOnly` withholds `onMove`, as the renderer does for a viewer who may not edit.
  */
-function MovableBoardHarness({ id, readOnly, doneable }: { id: string; readOnly?: boolean; doneable?: boolean }): ReactNode {
+function MovableBoardHarness({ id, readOnly, doneable, longTitle }: { id: string; readOnly?: boolean; doneable?: boolean; longTitle?: boolean }): ReactNode {
   const [doneIds, setDoneIds] = useState<ReadonlySet<number>>(new Set());
   const [rows, setRows] = useState(() =>
     Array.from({ length: 9 }, (_, i) => ({ n: i + 1, status: STATUS_NAMES[i % 3] as string })),
@@ -900,7 +900,7 @@ function MovableBoardHarness({ id, readOnly, doneable }: { id: string; readOnly?
       rows
         .filter((r) => r.status === name)
         .map((r) => ({
-          ...boardCard(r.n, `Task ${r.n}`, r.n % 3 === 0 ? "Locked" : undefined),
+          ...boardCard(r.n, longTitle ? `Task_${r.n}_with_a_very_long_title_that_has_no_spaces_to_wrap_on_at_all_not_even_one` : `Task ${r.n}`, r.n % 3 === 0 ? "Locked" : undefined),
           movable: r.n % 3 !== 0,
           ...(doneable
             ? {
@@ -1184,6 +1184,7 @@ const LAYOUT_ANCHORS = [
   "board-actions",
   "board-done",
   "board-phone",
+  "board-move-long-title",
   "board-read-only",
   "pager-middle",
   "pager-first",
@@ -1714,6 +1715,13 @@ export default function App(): ReactNode {
             "phone layout (390px container): one column at a time, swipe to the next",
             <div className="phone-frame">
               <MovableBoardHarness id="Tasks (phone)" />
+            </div>,
+          )}
+          {state(
+            "board-move-long-title",
+            "phone layout, very long unbroken card title: the Move to… panel wraps it, stays inside the column and keeps Cancel reachable",
+            <div className="phone-frame">
+              <MovableBoardHarness id="Tasks (long title)" longTitle />
             </div>,
           )}
           {state("board-read-only", "no onMove (viewer may not edit): no drag, no Move to…", <MovableBoardHarness id="Tasks (read only)" readOnly />)}
