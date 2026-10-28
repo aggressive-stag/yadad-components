@@ -453,6 +453,8 @@ const VAR_DESCRIPTION: Record<string, string> = {
   "board-column-max-height": "tallest a column's card list gets before it scrolls",
   "board-phone-column-max-height": "tallest a column's card list gets before it scrolls on a phone",
   "board-drop-target": "outline color of the column a dragged card can drop on",
+  "board-hidden-column-width": "width of the slim drop target for the hidden no-value column shown while a card is dragged",
+  "board-hidden-column-height": "minimum height of that drop target",
   "board-drop-background": "background of the column a dragged card is over",
   "board-column-background": "column background",
   "board-card-background": "card background",

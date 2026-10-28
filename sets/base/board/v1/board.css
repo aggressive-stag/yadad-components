@@ -410,6 +410,18 @@
     }
   }
 
+  /* A hidden column (no value) shown only while a card is dragged: a slim drop target at the end of the row, on every width. */
+  :where([data-yadad="board"]) :where([data-part="column"][data-hidden-target="true"]) {
+    flex: 0 0 var(--yadad-board-hidden-column-width, calc(var(--yadad-space-4) * 8));
+    min-block-size: var(--yadad-board-hidden-column-height, calc(var(--yadad-space-4) * 6));
+    scroll-snap-align: end;
+    border-style: dashed;
+  }
+
+  :where([data-yadad="board"]) :where([data-part="column"][data-hidden-target="true"]) :where([data-part="column-heading"]) {
+    border-block-end: 0;
+  }
+
   :where([data-yadad="board"]) :where([data-part="move-label"]) {
     overflow-wrap: anywhere;
   }

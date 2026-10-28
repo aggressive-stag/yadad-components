@@ -64,6 +64,7 @@ function MoveControl({
   card,
   columnId,
   columns,
+  hiddenColumns,
   onMove,
   onMoved,
   strings,
@@ -71,12 +72,15 @@ function MoveControl({
   card: BoardCard<ReactNode>;
   columnId: string;
   columns: readonly BoardColumn<ReactNode>[];
+  hiddenColumns?: readonly BoardColumn<ReactNode>[];
   onMove: (id: string, columnId: string) => void;
   onMoved: (id: string) => void;
   strings: BoardStrings;
 }): ReactNode {
   const [target, setTarget] = useState("");
   const selectId = useId();
+  // The hidden no-value column (if the renderer passed it) is a target too, though it is not in `columns`.
+  const targets = [...columns, ...(hiddenColumns ?? [])];
 
   // Trigger unmounts while the panel is open; the primitive refocuses it
   // through a ref after the remount commit (14b's contract, now shared).
@@ -114,7 +118,7 @@ function MoveControl({
               <option value="" disabled>
                 {strings.chooseColumnLabel ?? "Choose a column"}
               </option>
-              {columns
+              {targets
                 .filter((c) => c.droppable && c.id !== columnId)
                 .map((c) => (
                   <option key={c.id} value={c.id}>
@@ -249,19 +253,23 @@ function CardView({
   card,
   columnId,
   columns,
+  hiddenColumns,
   onOpenCard,
   onMove,
   onMoved,
   onTouchOver,
+  onDragging,
   strings,
 }: {
   card: BoardCard<ReactNode>;
   columnId: string;
   columns: readonly BoardColumn<ReactNode>[];
+  hiddenColumns?: readonly BoardColumn<ReactNode>[];
   onOpenCard?: (id: string) => void;
   onMove?: (id: string, columnId: string) => void;
   onMoved: (id: string) => void;
   onTouchOver: (columnId: string | undefined) => void;
+  onDragging: (dragging: boolean) => void;
   strings: BoardStrings;
 }): ReactNode {
   const [dragging, setDragging] = useState(false);
@@ -277,6 +285,13 @@ function CardView({
     onDrop: (target) => onMove?.(card.id, target),
     scroller: columnRail,
   });
+  // Tell the board while this card is being dragged (mouse or touch), so it can show the hidden columns as drop targets.
+  const lifted = dragging || touch.dragging;
+  useEffect(() => {
+    if (!lifted) return;
+    onDragging(true);
+    return () => onDragging(false);
+  }, [lifted, onDragging]);
   return (
     <li
       data-part="card"
@@ -316,7 +331,7 @@ function CardView({
         </span>
       )}
       <DoneToggle card={card} strings={strings} />
-      {canMove ? <MoveControl card={card} columnId={columnId} columns={columns} onMove={onMove} onMoved={onMoved} strings={strings} /> : null}
+      {canMove ? <MoveControl card={card} columnId={columnId} columns={columns} {...(hiddenColumns ? { hiddenColumns } : {})} onMove={onMove} onMoved={onMoved} strings={strings} /> : null}
       <CardActions card={card} strings={strings} />
     </li>
   );
@@ -331,9 +346,12 @@ function ColumnView({
   column,
   loading,
   columns,
+  hiddenColumns,
   scrollFocusable,
   touchOver,
   onTouchOver,
+  onDragging,
+  slim,
   onOpenCard,
   onMove,
   onMoved,
@@ -342,9 +360,13 @@ function ColumnView({
   column: BoardColumn<ReactNode>;
   loading: boolean;
   columns: readonly BoardColumn<ReactNode>[];
+  hiddenColumns?: readonly BoardColumn<ReactNode>[];
   scrollFocusable: boolean;
   touchOver: boolean;
   onTouchOver: (columnId: string | undefined) => void;
+  onDragging: (dragging: boolean) => void;
+  /** A hidden column shown only as a drop target during a drag: heading only, no cards, no count. */
+  slim?: boolean;
   onOpenCard?: (id: string) => void;
   onMove?: (id: string, columnId: string) => void;
   onMoved: (id: string) => void;
@@ -360,6 +382,7 @@ function ColumnView({
       data-part="column"
       data-column-id={column.id}
       data-droppable={column.droppable}
+      data-hidden-target={slim ? "true" : undefined}
       data-drag-over={over || touchOver ? "true" : undefined}
       aria-label={`${column.label}, ${(strings.columnCountLabel ?? ((count: number) => `${count} ${count === 1 ? "card" : "cards"}`))(column.count)}`}
       {...(dropTarget
@@ -392,10 +415,13 @@ function ColumnView({
           {paletteSlot(column.color) !== undefined && <span data-part="swatch" data-slot={paletteSlot(column.color)} aria-hidden="true" />}
           {column.label}
         </span>
-        <span data-part="column-count" aria-label={(strings.columnCountLabel ?? ((count: number) => `${count} ${count === 1 ? "card" : "cards"}`))(column.count)}>
-          {column.count}
-        </span>
+        {slim ? null : (
+          <span data-part="column-count" aria-label={(strings.columnCountLabel ?? ((count: number) => `${count} ${count === 1 ? "card" : "cards"}`))(column.count)}>
+            {column.count}
+          </span>
+        )}
       </h2>
+      {slim ? null : (
       <ul data-part="cards" aria-labelledby={headingId} {...(scrollFocusable ? { tabIndex: 0 } : {})}>
         {column.cards.length === 0 && loading ? (
           // Loading holds the shape (card 15e): bars where the cards will
@@ -424,8 +450,10 @@ function ColumnView({
               card={card}
               columnId={column.id}
               columns={columns}
+              {...(hiddenColumns ? { hiddenColumns } : {})}
               onMoved={onMoved}
               onTouchOver={onTouchOver}
+              onDragging={onDragging}
               strings={strings}
               {...(onOpenCard ? { onOpenCard } : {})}
               {...(onMove ? { onMove } : {})}
@@ -433,6 +461,7 @@ function ColumnView({
           ))
         )}
       </ul>
+      )}
     </section>
   );
 }
@@ -446,10 +475,12 @@ function ColumnView({
  * call `onMove` and nothing else: the engine moves it and reverts refusals.
  * At phone widths the board shows one column at a time, with scroll snap.
  */
-export function Board({ label, groupChoices, groupField, columns, loading, notice, announcement, onGroupBy, onOpenCard, onMove, strings = {} }: BoardProps<ReactNode> & { strings?: BoardStrings }): ReactNode {
+export function Board({ label, groupChoices, groupField, columns, hiddenColumns, loading, notice, announcement, onGroupBy, onOpenCard, onMove, strings = {} }: BoardProps<ReactNode> & { strings?: BoardStrings }): ReactNode {
   const groupId = useId();
   // The column a finger-drag is currently over; mouse drags keep their own state per column.
   const [touchOver, setTouchOver] = useState<string | undefined>(undefined);
+  // True while any card is being dragged; the hidden columns are drop targets only for that long.
+  const [dragActive, setDragActive] = useState(false);
   // A scroll container must be reachable by keyboard. Open-card buttons already are; without them the lists take the tab stop.
   const scrollFocusable = onOpenCard === undefined && onMove === undefined;
   // A moved card is rebuilt in its new column, so its "Move to…" trigger is focused again when focus was lost.
@@ -504,15 +535,37 @@ export function Board({ label, groupChoices, groupField, columns, loading, notic
             column={column}
             loading={loading}
             columns={columns}
+            {...(hiddenColumns ? { hiddenColumns } : {})}
             scrollFocusable={scrollFocusable}
             touchOver={touchOver === column.id}
             onTouchOver={setTouchOver}
+            onDragging={setDragActive}
             onMoved={(id) => (movedCard.current = id)}
             strings={strings}
             {...(onOpenCard ? { onOpenCard } : {})}
             {...(onMove ? { onMove } : {})}
           />
         ))}
+        {dragActive && onMove !== undefined
+          ? (hiddenColumns ?? [])
+              .filter((column) => column.droppable)
+              .map((column) => (
+                <ColumnView
+                  key={column.id}
+                  slim
+                  column={column}
+                  loading={false}
+                  columns={columns}
+                  scrollFocusable={false}
+                  touchOver={touchOver === column.id}
+                  onTouchOver={setTouchOver}
+                  onDragging={setDragActive}
+                  onMoved={(id) => (movedCard.current = id)}
+                  strings={strings}
+                  onMove={onMove}
+                />
+              ))
+          : null}
       </div>
     </section>
   );

@@ -74,6 +74,92 @@ describe("board drag", () => {
   });
 });
 
+describe("board hiddenColumns (the hidden no-value column)", () => {
+  const none = col("none", []);
+  function withHidden(onMove?: (id: string, columnId: string) => void, hiddenColumns: readonly BoardColumn<ReactNode>[] | null = [none]) {
+    const view = render(
+      <Board
+        label="Tasks"
+        groupChoices={[{ field: "s", label: "S" }]}
+        groupField="s"
+        columns={columns}
+        loading={false}
+        onGroupBy={() => {}}
+        {...(hiddenColumns ? { hiddenColumns } : {})}
+        {...(onMove ? { onMove } : {})}
+      />,
+    );
+    const q = (sel: string): HTMLElement | null => view.container.querySelector(sel);
+    return { ...view, q };
+  }
+  const options = (q: (s: string) => HTMLElement | null): string[] => {
+    fireEvent.click(q('[data-card-id="r1"] [data-part="move-trigger"]') as HTMLElement);
+    return [...(q('[data-card-id="r1"] [data-part="move-select"]') as HTMLSelectElement).options].map((o) => o.value).filter((v) => v !== "");
+  };
+
+  it("lists the hidden column in Move to…, after the visible ones and without the card's own", () => {
+    const { q } = withHidden(() => {});
+    expect(options(q)).toEqual(["b", "none"]);
+  });
+
+  it("moves a card to the hidden column from the menu", () => {
+    const onMove = vi.fn();
+    const { q } = withHidden(onMove);
+    options(q);
+    fireEvent.change(q('[data-card-id="r1"] [data-part="move-select"]') as HTMLElement, { target: { value: "none" } });
+    fireEvent.submit(q('[data-card-id="r1"] [data-part="move-panel"]') as HTMLElement);
+    expect(onMove).toHaveBeenCalledWith("r1", "none");
+  });
+
+  it("offers only the visible columns when hiddenColumns is absent or empty", () => {
+    const absent = withHidden(() => {}, null);
+    expect(options(absent.q)).toEqual(["b"]);
+    cleanup();
+    const empty = withHidden(() => {}, []);
+    expect(options(empty.q)).toEqual(["b"]);
+  });
+
+  it("shows no drop target at rest, one while a card is dragged, and removes it at drag end", () => {
+    const { q } = withHidden(() => {});
+    expect(q('[data-column-id="none"]')).toBeNull();
+    const dt = transfer();
+    fireEvent.dragStart(q('[data-card-id="r1"]') as HTMLElement, { dataTransfer: dt });
+    const target = q('[data-column-id="none"]');
+    expect(target).not.toBeNull();
+    expect(target?.getAttribute("data-hidden-target")).toBe("true");
+    expect(target?.getAttribute("data-droppable")).toBe("true");
+    expect(target?.textContent).toBe("none");
+    fireEvent.dragEnd(q('[data-card-id="r1"]') as HTMLElement);
+    expect(q('[data-column-id="none"]')).toBeNull();
+  });
+
+  it("calls onMove when a card is dropped on the hidden column, and the target goes away", () => {
+    const onMove = vi.fn();
+    const { q } = withHidden(onMove);
+    const dt = transfer();
+    fireEvent.dragStart(q('[data-card-id="r1"]') as HTMLElement, { dataTransfer: dt });
+    const target = q('[data-column-id="none"]') as HTMLElement;
+    const over = createEvent.dragOver(target, { dataTransfer: dt });
+    fireEvent(target, over);
+    expect(over.defaultPrevented).toBe(true);
+    fireEvent.drop(target, { dataTransfer: dt });
+    expect(onMove).toHaveBeenCalledWith("r1", "none");
+    fireEvent.dragEnd(q('[data-card-id="r1"]') as HTMLElement);
+    expect(q('[data-column-id="none"]')).toBeNull();
+  });
+
+  it("makes a hidden column that is not droppable no target, and shows none without onMove or hiddenColumns", () => {
+    const locked = withHidden(() => {}, [col("none", [], false)]);
+    fireEvent.dragStart(locked.q('[data-card-id="r1"]') as HTMLElement, { dataTransfer: transfer() });
+    expect(locked.q('[data-column-id="none"]')).toBeNull();
+    cleanup();
+    const absent = withHidden(() => {}, null);
+    fireEvent.dragStart(absent.q('[data-card-id="r1"]') as HTMLElement, { dataTransfer: transfer() });
+    expect(absent.container.querySelectorAll('[data-hidden-target]').length).toBe(0);
+  });
+
+});
+
 const action = (over: Partial<RecordActionItem> = {}): RecordActionItem => ({
   id: "a1",
   label: "Open",
@@ -271,6 +357,33 @@ describe("board touch drag", () => {
     expect(onMove).toHaveBeenCalledTimes(1);
     expect(onMove).toHaveBeenCalledWith("r1", "b");
     expect(q('[data-column-id="b"]').getAttribute("data-drag-over")).toBeNull();
+  });
+
+  it("shows the hidden-column target during a touch drag and lands the card in it", () => {
+    const onMove = vi.fn();
+    const view = render(
+      <Board
+        label="Tasks"
+        groupChoices={[{ field: "s", label: "S" }]}
+        groupField="s"
+        columns={columns}
+        hiddenColumns={[col("none", [])]}
+        loading={false}
+        onGroupBy={() => {}}
+        onMove={onMove}
+      />,
+    );
+    const q = (sel: string): HTMLElement => view.container.querySelector(sel) as HTMLElement;
+    expect(view.container.querySelector('[data-column-id="none"]')).toBeNull();
+    fire(q('[data-card-id="r1"]'), "pointerdown", "touch", { clientX: 5, clientY: 5 });
+    act(() => void vi.advanceTimersByTime(350));
+    under = q('[data-column-id="none"]');
+    expect(under).not.toBeNull();
+    fire(document, "pointermove", "touch", { clientX: 200, clientY: 5 });
+    expect(q('[data-column-id="none"]').getAttribute("data-drag-over")).toBe("true");
+    fire(document, "pointerup", "touch", { clientX: 200, clientY: 5 });
+    expect(onMove).toHaveBeenCalledWith("r1", "none");
+    expect(view.container.querySelector('[data-column-id="none"]')).toBeNull();
   });
 
   it("never calls onMove for a swipe, a cancel, the own column, a locked column or a mouse", () => {

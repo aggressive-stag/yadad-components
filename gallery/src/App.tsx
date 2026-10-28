@@ -882,7 +882,7 @@ function BoardHarness({
  * movable, and a move into "Done" is refused with a live-announced message.
  * `readOnly` withholds `onMove`, as the renderer does for a viewer who may not edit.
  */
-function MovableBoardHarness({ id, readOnly, doneable, longTitle }: { id: string; readOnly?: boolean; doneable?: boolean; longTitle?: boolean }): ReactNode {
+function MovableBoardHarness({ id, readOnly, doneable, longTitle, noValue }: { id: string; readOnly?: boolean; doneable?: boolean; longTitle?: boolean; noValue?: boolean }): ReactNode {
   const [doneIds, setDoneIds] = useState<ReadonlySet<number>>(new Set());
   const [rows, setRows] = useState(() =>
     Array.from({ length: 9 }, (_, i) => ({ n: i + 1, status: STATUS_NAMES[i % 3] as string })),
@@ -893,12 +893,12 @@ function MovableBoardHarness({ id, readOnly, doneable, longTitle }: { id: string
     seq.current += 1;
     setAnnouncement({ seq: seq.current, text });
   };
-  const columns = STATUS_NAMES.map((name) =>
+  const makeColumn = (value: string, name: string): BoardColumn<ReactNode> =>
     boardColumn(
-      `v:${name}`,
+      `v:${value}`,
       name,
       rows
-        .filter((r) => r.status === name)
+        .filter((r) => r.status === value)
         .map((r) => ({
           ...boardCard(r.n, longTitle ? `Task_${r.n}_with_a_very_long_title_that_has_no_spaces_to_wrap_on_at_all_not_even_one` : `Task ${r.n}`, r.n % 3 === 0 ? "Locked" : undefined),
           movable: r.n % 3 !== 0,
@@ -912,14 +912,20 @@ function MovableBoardHarness({ id, readOnly, doneable, longTitle }: { id: string
               }
             : {}),
         })),
-    ),
-  );
+    );
+  const columns = STATUS_NAMES.map((name) => makeColumn(name, name));
+  // With `noValue`, the empty "No status" column is hidden like the renderer hides it (engine 56a), and handed over as
+  // `hiddenColumns` while empty (56b). Once a card is in it, it is an ordinary column.
+  const noValueColumn = noValue ? makeColumn("", "No status") : undefined;
+  const noValueHidden = noValueColumn !== undefined && noValueColumn.cards.length === 0;
+  if (noValueColumn && !noValueHidden) columns.push(noValueColumn);
   return (
     <Board
       label={id}
       groupChoices={[{ field: "status", label: "Status" }]}
       groupField="status"
       columns={columns}
+      {...(noValueColumn && noValueHidden ? { hiddenColumns: [noValueColumn] } : {})}
       loading={false}
       {...(announcement ? { announcement } : {})}
       onGroupBy={() => undefined}
@@ -935,7 +941,7 @@ function MovableBoardHarness({ id, readOnly, doneable, longTitle }: { id: string
                 return;
               }
               setRows((rs) => rs.map((r) => (r.n === n ? { ...r, status: name } : r)));
-              say(`Moved Task ${n} to ${name}.`);
+              say(`Moved Task ${n} to ${name === "" ? "No status" : name}.`);
             },
           })}
     />
@@ -1722,6 +1728,18 @@ export default function App(): ReactNode {
             "phone layout, very long unbroken card title: the Move to… panel wraps it, stays inside the column and keeps Cancel reachable",
             <div className="phone-frame">
               <MovableBoardHarness id="Tasks (long title)" longTitle />
+            </div>,
+          )}
+          {state(
+            "board-hidden-column",
+            "hiddenColumns (engine 56b): the empty No status column is hidden, listed in Move to…, and appears as a slim drop target only while a card is dragged",
+            <MovableBoardHarness id="Tasks (no-value column)" noValue />,
+          )}
+          {state(
+            "board-hidden-column-phone",
+            "phone layout: the hidden No status column appears as a drop target during a touch drag",
+            <div className="phone-frame">
+              <MovableBoardHarness id="Tasks (no-value column, phone)" noValue />
             </div>,
           )}
           {state("board-read-only", "no onMove (viewer may not edit): no drag, no Move to…", <MovableBoardHarness id="Tasks (read only)" readOnly />)}

@@ -149,6 +149,8 @@ Cards in columns, one column per value of a field, with a group-by picker; colum
 - `--yadad-board-drop-target` — outline color of the column a dragged card can drop on; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-board-drop-background` — background of the column a dragged card is over; default: token `--yadad-color-background` (page and control background)
 - `--yadad-board-phone-column-max-height` — tallest a column's card list gets before it scrolls on a phone; default: `calc(var(--yadad-space-4) * 24)` (token-derived: `--yadad-space-4`)
+- `--yadad-board-hidden-column-width` — width of the slim drop target for the hidden no-value column shown while a card is dragged; default: `calc(var(--yadad-space-4) * 8)` (token-derived: `--yadad-space-4`)
+- `--yadad-board-hidden-column-height` — minimum height of that drop target; default: `calc(var(--yadad-space-4) * 6)` (token-derived: `--yadad-space-4`)
 - `--yadad-board-move-panel-max-height` — tallest the "Move to…" panel gets before it scrolls inside the column (keeps Cancel reachable); default: `calc(var(--yadad-space-4) * 20)` (token-derived: `--yadad-space-4`)
 - `--yadad-board-touch-font-size` — input font size floor under a coarse pointer (16px-class, stops iOS focus zoom); default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
 
