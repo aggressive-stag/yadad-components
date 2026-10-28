@@ -480,10 +480,25 @@
     }
   }
 
-  /* Touch: the move date input stays at 16px or larger (no iOS focus zoom) and 44px tall. */
+  /* Touch: the move date input stays at 16px or larger (no iOS focus zoom) and 44px tall.
+     The text-style links ("Move to day...", "+N more") grow to a 44px target, and the
+     done checkbox box draws at 20px (its label is already the 44px target). */
   @media (pointer: coarse) {
+    :where([data-yadad="calendar"]) :where([data-part="move-trigger"], [data-part="overflow"]) {
+      min-block-size: var(--yadad-calendar-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    }
+
+    :where([data-yadad="calendar"]) :where([data-part="entry-open"]) {
+      min-block-size: var(--yadad-calendar-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    }
+
+    :where([data-yadad="calendar"]) :where([data-part="done-input"]) {
+      inline-size: var(--yadad-calendar-checkbox-size, calc(var(--yadad-space-4) + var(--yadad-space-1)));
+      block-size: var(--yadad-calendar-checkbox-size, calc(var(--yadad-space-4) + var(--yadad-space-1)));
+    }
+
     :where([data-yadad="calendar"]) :where([data-part="move-input"]) {
-      font-size: var(--yadad-calendar-touch-font-size, var(--yadad-font-size-md));
+      font-size: var(--yadad-calendar-touch-font-size, max(var(--yadad-space-4), var(--yadad-font-size-md)));
       min-block-size: var(--yadad-calendar-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
     }
   }

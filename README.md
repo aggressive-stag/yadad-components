@@ -69,7 +69,7 @@ All component CSS is in `@layer yadad.components`, so unlayered host CSS always 
 - Each registry entry is checked with axe and the engine's contract test kit (renders with fixture options, emits the correct JSON type on change, shows its error).
 - Tabs are keyboard operable, and a long tab list scrolls inside its own container.
 - On a phone, buttons, the checkbox label, sortable headers, tabs and pickers have a tap target of at least 44x44 CSS px, tied to your spacing tokens so it scales with text size. Each has a `--yadad-*-tap` variable you can override.
-- Inputs render at 16px or larger so iOS Safari does not zoom on focus.
+- On a touch device (`pointer: coarse`) every text-entry control (text, number, date, datetime, time, select, tags, the calendar and board inline inputs) renders at 16px or larger whatever your theme's `--yadad-font-size-md` is, so iOS Safari does not zoom on focus. A larger theme size is kept. To go smaller you must override the control's `--yadad-*-touch-font-size` variable on purpose, and iOS will then zoom on focus. The calendar's "Move to day..." and "+N more" links, its entries, and every other button measure at least 44px tall, and the done checkbox box draws at 20px with its label as the 44px target. Desktop (`pointer: fine`) sizes are unchanged.
 - The page does not scroll sideways: tables scroll or stack inside their container and long text wraps. The one exception is a browser's native date control, whose minimum width CSS cannot shrink.
 
 ## Gallery

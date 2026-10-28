@@ -21,6 +21,14 @@ describe.each(files)("%s", (file) => {
     expect(body.match(/\b(?!1px\b)\d*\.?\d+(px|rem|em)\b/g) ?? []).toEqual([]);
   });
 
+  test("a touch font size default never falls below the 16px floor", () => {
+    // iOS zooms into inputs under 16px; the theme's font-size-md can be 15px.
+    // Every --yadad-*-touch-font-size default must be max(space-4, font-size-md).
+    for (const m of body.matchAll(/--yadad-[a-z-]+-touch-font-size,\s*([^;]*);/g)) {
+      expect(m[1]).toMatch(/max\(var\(--yadad-space-4\),\s*var\(--yadad-font-size-md\)\)/);
+    }
+  });
+
   test("the table sort button is border-box so its stacked padding cannot overflow", () => {
     // all: unset resets box-sizing to content-box; the card layout adds inline
     // padding to a 100%-wide button, which overflowed its container (found in

@@ -441,10 +441,16 @@
     max-block-size: var(--yadad-board-move-panel-max-height, calc(var(--yadad-space-4) * 20));
   }
 
-  /* Touch: no iOS focus zoom on the move select. */
+  /* Touch: no iOS focus zoom on the move select; the done checkbox box draws at 20px
+     (its label is already the 44px target). */
   @media (pointer: coarse) {
+    :where([data-yadad="board"]) :where([data-part="done-input"]) {
+      inline-size: var(--yadad-board-checkbox-size, calc(var(--yadad-space-4) + var(--yadad-space-1)));
+      block-size: var(--yadad-board-checkbox-size, calc(var(--yadad-space-4) + var(--yadad-space-1)));
+    }
+
     :where([data-yadad="board"]) :where([data-part="move-select"]) {
-      font-size: var(--yadad-board-touch-font-size, var(--yadad-font-size-md));
+      font-size: var(--yadad-board-touch-font-size, max(var(--yadad-space-4), var(--yadad-font-size-md)));
       min-block-size: var(--yadad-board-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
     }
   }
