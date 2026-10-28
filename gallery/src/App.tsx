@@ -1187,6 +1187,7 @@ const LAYOUT_ANCHORS = [
   "board-one-grouping",
   "board-loading",
   "board-movable",
+  "board-two-boards",
   "board-actions",
   "board-done",
   "board-phone",
@@ -1695,6 +1696,14 @@ export default function App(): ReactNode {
               loading
               onGroupBy={() => undefined}
             />,
+          )}
+          {state(
+            "board-two-boards",
+            "two boards on one page showing the same cards: a move in the second focuses the second board's card",
+            <>
+              <MovableBoardHarness id="Tasks (first board)" />
+              <MovableBoardHarness id="Tasks (second board)" />
+            </>,
           )}
           {state(
             "board-movable",

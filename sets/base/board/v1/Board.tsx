@@ -491,15 +491,18 @@ export function Board({ label, groupChoices, groupField, columns, hiddenColumns,
   // A scroll container must be reachable by keyboard. Open-card buttons already are; without them the lists take the tab stop.
   const scrollFocusable = onOpenCard === undefined && onMove === undefined;
   // A moved card is rebuilt in its new column, so its "Move to…" trigger is focused again when focus was lost.
+  // The lookup is scoped to this board's own root: another board on the page may show the same card id.
   const movedCard = useRef<string | undefined>(undefined);
+  const rootRef = useRef<HTMLElement>(null);
   useEffect(() => {
     if (movedCard.current === undefined) return;
     const active = document.activeElement;
     if (active !== null && active !== document.body) return;
-    document.querySelector<HTMLElement>(`[data-card-id="${movedCard.current}"] [data-part="move-trigger"]`)?.focus();
+    rootRef.current?.querySelector<HTMLElement>(`[data-card-id="${CSS.escape(movedCard.current)}"] [data-part="move-trigger"]`)?.focus();
   });
   return (
     <section
+      ref={rootRef}
       aria-label={label}
       aria-busy={loading}
       data-yadad="board"

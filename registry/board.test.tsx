@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import type { BoardCard, BoardColumn, RecordActionItem } from "@yadad/core";
 import { act, cleanup, createEvent, fireEvent, render } from "@testing-library/react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Board } from "../sets/base/board/v1/Board.js";
 
@@ -335,6 +335,47 @@ describe("focus return markers and panel focus", () => {
   });
 });
 
+describe("focus after a move stays inside the board that moved the card", () => {
+  /** A board that really moves its card: the card is rebuilt in column b, so focus on its old trigger is lost. */
+  function Moving({ name }: { name: string }): ReactNode {
+    const [inB, setInB] = useState(false);
+    const cols = [col("a", inB ? [] : [card("r1", true)]), col("b", inB ? [card("r1", true)] : [])];
+    return (
+      <div data-testid={name}>
+        <Board label={name} groupChoices={[{ field: "s", label: "S" }]} groupField="s" columns={cols} loading={false} onGroupBy={() => {}} onMove={() => setInB(true)} />
+      </div>
+    );
+  }
+  const moveInBoard = (root: HTMLElement): void => {
+    fireEvent.click(root.querySelector('[data-card-id="r1"] [data-part="move-trigger"]') as HTMLElement);
+    fireEvent.change(root.querySelector('[data-part="move-select"]') as HTMLSelectElement, { target: { value: "b" } });
+    fireEvent.click(root.querySelector('[data-part="move-confirm"]') as HTMLElement);
+  };
+
+  it("single board: focus returns to the moved card's trigger in its new column", () => {
+    const { getByTestId } = render(<Moving name="One" />);
+    const root = getByTestId("One");
+    moveInBoard(root);
+    const trigger = root.querySelector('[data-column-id="b"] [data-card-id="r1"] [data-part="move-trigger"]');
+    expect(trigger).not.toBeNull();
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it("two boards showing the same card id: a move in the second focuses the second board's card", () => {
+    const { getByTestId } = render(
+      <>
+        <Moving name="First" />
+        <Moving name="Second" />
+      </>,
+    );
+    const first = getByTestId("First");
+    const second = getByTestId("Second");
+    moveInBoard(second);
+    expect(document.activeElement).toBe(second.querySelector('[data-column-id="b"] [data-card-id="r1"] [data-part="move-trigger"]'));
+    expect(first.contains(document.activeElement)).toBe(false);
+  });
+});
+
 describe("board touch drag", () => {
   class FakePointerEvent extends MouseEvent {
     pointerType: string;
@@ -349,6 +390,7 @@ describe("board touch drag", () => {
     act(() => void target.dispatchEvent(new FakePointerEvent(type, { pointerType, ...init })));
   };
   let under: Element | null = null;
+  const realElementFromPoint = document.elementFromPoint;
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -357,9 +399,15 @@ describe("board touch drag", () => {
     document.elementFromPoint = () => under;
   });
   afterEach(() => {
+    // Unmount while the fake clock is still installed. A gesture left open by a test (a press with no
+    // release) ends here, and the one-shot capture click eater a lifted drag adds is removed by a 0 ms
+    // timer: on real timers that timer would fire after the next test began and swallow its first click.
+    cleanup();
+    act(() => void vi.runOnlyPendingTimers());
     vi.useRealTimers();
     vi.unstubAllGlobals();
     under = null;
+    document.elementFromPoint = realElementFromPoint;
   });
 
   it("long-press, move and release over another column calls onMove once", () => {
