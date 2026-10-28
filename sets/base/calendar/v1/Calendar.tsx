@@ -71,6 +71,11 @@ function weekRows(days: readonly CalendarDayProps<ReactNode>[]): CalendarDayProp
   return rows;
 }
 
+/** callback ref (stable): focus the element the moment it mounts */
+const focusOnMount = (el: HTMLElement | null): void => {
+  el?.focus();
+};
+
 /**
  * The "Move to day…" control for one movable entry: a trigger, always in the
  * DOM and focusable, that opens a labelled date input defaulting to the
@@ -88,15 +93,15 @@ function MoveControl({ entry, day, onMove, strings }: { entry: CalendarEntry<Rea
     <Menu focusPanelOnOpen={false} onOpen={() => setValue(day)}>
       {({ open, openMenu, close, triggerRef, wrapperProps }) =>
         !open ? (
-          <button ref={triggerRef} type="button" data-part="move-trigger" onClick={openMenu}>
+          <button ref={triggerRef} type="button" data-part="move-trigger" data-yadad-focus-return="move" onClick={openMenu}>
             {strings.moveLabel ?? "Move to day…"}
           </button>
         ) : (
-          <span data-part="move-panel" role="group" aria-label={(strings.movePanelAriaLabel ?? ((label: string) => `Move ${label} to day`))(entry.label)} {...wrapperProps}>
+          <span data-part="move-panel" data-yadad-focus-return="move" role="group" aria-label={(strings.movePanelAriaLabel ?? ((label: string) => `Move ${label} to day`))(entry.label)} {...wrapperProps}>
             <label htmlFor={inputId} data-part="move-label">
               {(strings.moveToLabel ?? ((label: string) => `New day for ${label}`))(entry.label)}
             </label>
-            <input id={inputId} type="date" data-part="move-input" value={value} onChange={(e) => setValue(e.target.value)} />
+            <input id={inputId} type="date" data-part="move-input" ref={focusOnMount} value={value} onChange={(e) => setValue(e.target.value)} />
             <button type="button" data-part="move-confirm" onClick={() => { onMove(entry.id, value); close(); }}>
               {strings.moveConfirmLabel ?? "Move"}
             </button>
@@ -157,11 +162,11 @@ function EntryActions({ entry, strings }: { entry: CalendarEntry<ReactNode>; str
         <span data-part="actions" {...wrapperProps}>
           {status}
           {!open ? (
-            <button ref={triggerRef} type="button" data-part="actions-trigger" aria-label={(strings.menuAriaLabel ?? ((label: string) => `Actions ${label}`))(entry.label)} onClick={openMenu}>
+            <button ref={triggerRef} type="button" data-part="actions-trigger" data-yadad-focus-return="actions" aria-label={(strings.menuAriaLabel ?? ((label: string) => `Actions ${label}`))(entry.label)} onClick={openMenu}>
               {strings.menuLabel ?? "Actions…"}
             </button>
           ) : (
-            <span data-part="actions-panel" role="group" aria-label={(strings.menuPanelAriaLabel ?? ((label: string) => `Actions ${label}`))(entry.label)} tabIndex={-1} ref={panelRef}>
+            <span data-part="actions-panel" data-yadad-focus-return="actions" role="group" aria-label={(strings.menuPanelAriaLabel ?? ((label: string) => `Actions ${label}`))(entry.label)} tabIndex={-1} ref={panelRef}>
               {buttons}
               <button type="button" data-part="actions-cancel" onClick={close}>
                 {strings.cancelLabel ?? "Cancel"}

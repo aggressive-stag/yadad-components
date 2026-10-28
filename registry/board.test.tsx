@@ -317,6 +317,24 @@ describe("completion checkbox on cards (RFC 0008 item 3)", () => {
   });
 });
 
+describe("focus return markers and panel focus", () => {
+  it("marks the Actions and Move triggers and panels, and focuses the select when Move opens", () => {
+    const c: BoardCard<ReactNode> = { ...card("r1", true), actions: [action(), action({ id: "a2", label: "Duplicate" })] };
+    const view = render(
+      <Board label="Tasks" groupChoices={[{ field: "s", label: "S" }]} groupField="s" columns={[col("a", [c]), col("b", [])]} loading={false} onGroupBy={() => {}} onMove={() => {}} />,
+    );
+    const q = (sel: string): HTMLElement | null => view.container.querySelector(`[data-card-id="r1"] ${sel}`);
+    fireEvent.click(q('[data-part="actions-trigger"]') as HTMLElement);
+    expect(q('[data-part="actions-panel"]')?.getAttribute("data-yadad-focus-return")).toBe("actions");
+    fireEvent.click(q('[data-part="actions-cancel"]') as HTMLElement);
+    expect(q('[data-part="actions-trigger"]')?.getAttribute("data-yadad-focus-return")).toBe("actions");
+    expect(q('[data-part="move-trigger"]')?.getAttribute("data-yadad-focus-return")).toBe("move");
+    fireEvent.click(q('[data-part="move-trigger"]') as HTMLElement);
+    expect(q('[data-part="move-panel"]')?.getAttribute("data-yadad-focus-return")).toBe("move");
+    expect(document.activeElement).toBe(q('[data-part="move-select"]'));
+  });
+});
+
 describe("board touch drag", () => {
   class FakePointerEvent extends MouseEvent {
     pointerType: string;

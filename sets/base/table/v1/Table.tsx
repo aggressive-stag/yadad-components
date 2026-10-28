@@ -100,6 +100,7 @@ function RowActions({ actions, rowLabel, strings }: { actions: readonly RecordAc
               ref={triggerRef}
               type="button"
               data-part="actions-trigger"
+              data-yadad-focus-return="actions"
               aria-haspopup="true"
               aria-expanded={open}
               aria-label={(strings.menuAriaLabel ?? ((row: string) => `Actions (${row})`))(rowLabel)}
@@ -119,6 +120,7 @@ function RowActions({ actions, rowLabel, strings }: { actions: readonly RecordAc
               ref={panelRef}
               tabIndex={-1}
               data-part="actions-panel"
+              data-yadad-focus-return="actions"
               role="group"
               aria-label={(strings.menuPanelAriaLabel ?? ((row: string) => `Actions (${row})`))(rowLabel)}
             >

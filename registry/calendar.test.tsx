@@ -403,3 +403,20 @@ describe("Calendar legend colour", () => {
     expect(slots).toEqual(["3", "2"]);
   });
 });
+
+describe("focus return markers and panel focus", () => {
+  it("marks the Actions and Move triggers and their panels, and focuses the date input on open", () => {
+    const { q } = entryWithActions([action(), action({ id: "a2", label: "Duplicate" })], { movable: true, onMove: () => {} });
+    fireEvent.click(q('[data-part="actions-trigger"]') as HTMLElement);
+    expect(q('[data-part="actions-panel"]')?.getAttribute("data-yadad-focus-return")).toBe("actions");
+    fireEvent.click(q('[data-part="actions-cancel"]') as HTMLElement);
+    expect(q('[data-part="actions-trigger"]')?.getAttribute("data-yadad-focus-return")).toBe("actions");
+    const move = q('[data-part="move-trigger"]') as HTMLElement;
+    expect(move.getAttribute("data-yadad-focus-return")).toBe("move");
+    fireEvent.click(move);
+    expect(q('[data-part="move-panel"]')?.getAttribute("data-yadad-focus-return")).toBe("move");
+    expect(document.activeElement).toBe(q('[data-part="move-input"]'));
+    fireEvent.click(q('[data-part="move-cancel"]') as HTMLElement);
+    expect(document.activeElement).toBe(q('[data-part="move-trigger"]'));
+  });
+});

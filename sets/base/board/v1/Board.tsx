@@ -54,6 +54,11 @@ export interface BoardStrings {
   readonly columnCountLabel?: (count: number) => string;
 }
 
+/** callback ref (stable): focus the element the moment it mounts */
+const focusOnMount = (el: HTMLElement | null): void => {
+  el?.focus();
+};
+
 /**
  * The "Move to…" control for one movable card: a trigger, always in the DOM
  * and focusable, that opens a labelled list of the droppable columns other
@@ -92,6 +97,7 @@ function MoveControl({
             ref={triggerRef}
             type="button"
             data-part="move-trigger"
+            data-yadad-focus-return="move"
             aria-label={(strings.moveAriaLabel ?? ((label: string) => `Move to… ${label}`))(card.label)}
             onClick={openMenu}
           >
@@ -100,6 +106,7 @@ function MoveControl({
         ) : (
           <form
             data-part="move-panel"
+            data-yadad-focus-return="move"
             aria-label={(strings.movePanelAriaLabel ?? ((label: string) => `Move ${label}`))(card.label)}
             onSubmit={(e) => {
               e.preventDefault();
@@ -114,7 +121,7 @@ function MoveControl({
             <label htmlFor={selectId} data-part="move-label">
               {(strings.moveToLabel ?? ((label: string) => `Move ${label} to`))(card.label)}
             </label>
-            <select id={selectId} data-yadad="select" data-part="move-select" autoFocus value={target} onChange={(e) => setTarget(e.target.value)}>
+            <select id={selectId} data-yadad="select" data-part="move-select" ref={focusOnMount} value={target} onChange={(e) => setTarget(e.target.value)}>
               <option value="" disabled>
                 {strings.chooseColumnLabel ?? "Choose a column"}
               </option>
@@ -189,11 +196,11 @@ function CardActions({ card, strings }: { card: BoardCard<ReactNode>; strings: B
         <span data-part="actions" {...wrapperProps}>
           {status}
           {!open ? (
-            <button ref={triggerRef} type="button" data-part="actions-trigger" aria-label={(strings.menuAriaLabel ?? ((label: string) => `Actions ${label}`))(card.label)} onClick={openMenu}>
+            <button ref={triggerRef} type="button" data-part="actions-trigger" data-yadad-focus-return="actions" aria-label={(strings.menuAriaLabel ?? ((label: string) => `Actions ${label}`))(card.label)} onClick={openMenu}>
               {strings.menuLabel ?? "Actions…"}
             </button>
           ) : (
-            <span data-part="actions-panel" role="group" aria-label={(strings.menuPanelAriaLabel ?? ((label: string) => `Actions ${label}`))(card.label)} tabIndex={-1} ref={panelRef}>
+            <span data-part="actions-panel" data-yadad-focus-return="actions" role="group" aria-label={(strings.menuPanelAriaLabel ?? ((label: string) => `Actions ${label}`))(card.label)} tabIndex={-1} ref={panelRef}>
               {buttons}
               <button type="button" data-part="actions-cancel" onClick={close}>
                 {strings.cancelLabel ?? "Cancel"}
