@@ -493,13 +493,16 @@
       /* The renderer scrolls today into view with scrollIntoView({block:
          "nearest"}); without this the pinned head would cover it on load.
          --yadad-calendar-sticky-top is the host's own pinned-header height
-         (THEMING.md); the second term is the head band's own height. The
-         sticky-top fallback is 0 * 1px, not 0px (styles.test bans literal
-         lengths beyond hairlines) and not a bare 0 (a number in a length
-         calc is invalid at computed-value time). */
+         (THEMING.md); the rest is the head band's own height, derived from
+         the SAME --yadad-calendar-header-size the head reads (card 31f) so
+         a host that grows the header grows the clearance with it — the
+         1.5 covers normal line-height plus the band's padding and hairline.
+         The sticky-top fallback is 0 * 1px, not 0px (styles.test bans
+         literal lengths beyond hairlines) and not a bare 0 (a number in a
+         length calc is invalid at computed-value time). */
       scroll-margin-block-start: calc(
         var(--yadad-calendar-sticky-top, 0 * 1px) +
-        var(--yadad-font-size-md) * 1.5 +
+        var(--yadad-calendar-header-size, var(--yadad-font-size-md) * 1.125) * 1.5 +
         var(--yadad-space-1) * 2
       );
     }
@@ -556,6 +559,64 @@
 
     :where([data-yadad="calendar"]) :where([data-part="today-badge"]) {
       margin-inline-start: auto;
+    }
+
+    /* ---- Card 31f: deliberate list rhythm (M11) ------------------------
+       A phone list needs a designed rhythm, not an accident: a row height
+       band, a real gap between entries, and a three-step type ladder
+       (header > entry > meta), all as host-facing tokens. D6 is the
+       constraint: density here comes from the agenda reflow collapsing the
+       repeated month/year context — never from shrinking type. Every step
+       is at or above what the part rendered before this card (head and
+       entry step UP to 18/16 from the root's 14; the meta step lands on
+       the theme's small size, which raises the renderer's <small> detail
+       line from its UA 0.8em rather than pushing anything down). The
+       laptop grid is untouched: every rule below lives in this query. */
+
+    /* The gap is the entries list's own; 4px reads as a gap in a grid,
+       not as breathing room between list rows. */
+    :where([data-yadad="calendar"]) :where([data-part="entries"]) {
+      gap: var(--yadad-calendar-entry-gap, var(--yadad-space-2));
+    }
+
+    /* The row is entry-open/entry-static — the tappable line, not the
+       <li>, which grows a 44px actions/done cluster below the row in
+       those states and is legitimately taller there. The default is the
+       middle of the 44–56px band; the coarse-pointer audit floor (44px
+       hit targets) is covered twice over. */
+    :where([data-yadad="calendar"]) :where([data-part="entry-open"], [data-part="entry-static"]) {
+      min-block-size: var(--yadad-calendar-row-min, calc(var(--yadad-space-4) * 3));
+    }
+
+    /* Step 2 of the ladder: the entry line itself. */
+    :where([data-yadad="calendar"]) :where([data-part="entry-content"]) {
+      font-size: var(--yadad-calendar-entry-size, var(--yadad-font-size-md));
+    }
+
+    /* Step 3: the meta line. The calendar renderer emits detail fields as
+       <small> (UA 0.8em — too small next to a 16px entry, and D6 bars
+       going down); the gallery harness uses a plain span after the title.
+       Both render at the theme's small size, muted, so the entry reads
+       first and its fields second. */
+    :where([data-yadad="calendar"]) :where([data-part="entry-content"]) > :where(small),
+    :where([data-yadad="calendar"]) :where([data-part="entry-content"]) > :where(span):not(:first-child) {
+      font-size: var(--yadad-calendar-meta-size, var(--yadad-font-size-sm));
+      color: var(--yadad-color-text-muted);
+    }
+
+    /* Step 1: the day head is the section header of the list — the
+       largest type in the agenda. The 1.125 keeps the ladder 18/16/14 off
+       two real tokens; it is a multiplier, not a length (theming rule 4). */
+    :where([data-yadad="calendar"]) :where([data-part="day-head"]) {
+      font-size: calc(var(--yadad-calendar-header-size, var(--yadad-font-size-md) * 1.125));
+    }
+
+    /* Today in the agenda: the grid marks the day with a 2px outline,
+       which reads as a cell border here — nearly nothing on a list. The
+       "Today" word badge stays (G23's non-colour cue, unchanged) and the
+       day number picks up the accent colour beside it. */
+    :where([data-yadad="calendar"]) :where([data-part="day"][data-today="true"]) [data-part="day-number"] {
+      color: var(--yadad-calendar-today, var(--yadad-color-accent));
     }
   }
 

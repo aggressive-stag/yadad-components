@@ -90,6 +90,8 @@ for (const vp of [
     ["swap-date-parts", "agenda date parts swapped", "day-date"],
     ["clip-grid", "agenda grid clips again (sticky killer)", "grid must not clip"],
     ["clear-band", "pinned head goes translucent", "band must be opaque"],
+    ["flat-ladder", "pre-31f flat type + no row floor", "row height band"],
+    ["mute-today", "today's number loses its accent", "carries the accent"],
   ];
   for (const [seed, what, mustMention] of seeds) {
     const failures = await runAudit(page, [seed]);

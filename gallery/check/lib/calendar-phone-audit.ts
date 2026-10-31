@@ -43,6 +43,9 @@
  *                      hidden ancestor silently never sticks
  *   "clear-band"       makes the pinned head's background transparent, so
  *                      scrolled entries smear through the band
+ *   "flat-ladder"      the pre-31f agenda restored: one flat 0.875rem size
+ *                      for head and entry, no row floor, no entry gap
+ *   "mute-today"       today's day number loses its accent colour
  *
  * Usage (Playwright):
  *   const failures = await page.evaluate(auditCalendarPhone, { seeds: [] });
@@ -130,6 +133,22 @@ function auditCalendarPhone(options?: CalendarPhoneAuditOptions): CalendarPhoneF
   }
   if (seeds.includes("clear-band")) {
     seed('@container (max-width: 50ch) { [data-yadad="calendar"] [data-part="day-head"] { background: transparent !important; } }');
+  }
+  if (seeds.includes("flat-ladder")) {
+    // The pre-31f agenda restored: one flat 14px size everywhere and no
+    // row floor — the list has no header/entry/meta ladder and rows sit
+    // below the 44px band (M11's failure mode).
+    seed(
+      '@container (max-width: 50ch) { [data-yadad="calendar"] [data-part="day-head"], ' +
+      '[data-yadad="calendar"] [data-part="entry-content"] { font-size: 0.875rem !important; } ' +
+      '[data-yadad="calendar"] [data-part="entry-open"], [data-yadad="calendar"] [data-part="entry-static"] { min-block-size: 0 !important; } ' +
+      '[data-yadad="calendar"] [data-part="entries"] { gap: 0 !important; } }'
+    );
+  }
+  if (seeds.includes("mute-today")) {
+    // Today's accent treatment gone: the day number renders in the plain
+    // text colour again (the badge alone is not what the card asked for).
+    seed('@container (max-width: 50ch) { [data-yadad="calendar"] [data-part="day"][data-today="true"] [data-part="day-number"] { color: inherit !important; } }');
   }
 
   const roots = Array.from(document.querySelectorAll(rootSelector));
@@ -257,6 +276,87 @@ function auditCalendarPhone(options?: CalendarPhoneAuditOptions): CalendarPhoneF
       const anyDay = root.querySelector('[data-part="day"]');
       if (anyDay && parseFloat(getComputedStyle(anyDay).scrollMarginBlockStart) <= 0) {
         failures.push({ name: `${tag} day scroll-margin for the band`, expected: "> 0 (scroll-today clears the band)", actual: getComputedStyle(anyDay).scrollMarginBlockStart, detail: labelOf(anyDay) });
+      }
+      // (f) card 31f: the list rhythm — row band, entry gap, three-step
+      // ladder, today's accent number. All computed-style checks, so a
+      // host that re-tokens deliberately still passes; what fails is the
+      // pre-31f flat layout and anything that fell under the band.
+      const px = (v: string): number => parseFloat(v) || 0;
+      let rhythmChecked = 0;
+      for (const ulEl of root.querySelectorAll('[data-part="entries"]')) {
+        if (!rendered(ulEl) || !hasContent(ulEl)) continue;
+        if (px(getComputedStyle(ulEl).rowGap) < 4) {
+          failures.push({ name: `${tag} entries gap in the agenda`, expected: ">= 4px (var(--yadad-calendar-entry-gap))", actual: getComputedStyle(ulEl).rowGap, detail: labelOf(ulEl) });
+        }
+        for (const row of ulEl.querySelectorAll(':scope > [data-part="entry"] [data-part="entry-open"], :scope > [data-part="entry"] [data-part="entry-static"]')) {
+          if (!rendered(row)) continue;
+          rhythmChecked++;
+          const h = row.getBoundingClientRect().height;
+          // The band constrains the token floor, not the text volume: a
+          // row whose content wraps past title+meta is legitimately taller
+          // (the card's no-wrap guarantee is for a typical title at the
+          // 334px root, which the ladder run asserts separately).
+          const contentEl = row.querySelector('[data-part="entry-content"]');
+          const lines = contentEl
+            ? Array.from(contentEl.children).reduce((n, k) => {
+                const klh = parseFloat(getComputedStyle(k).lineHeight) || parseFloat(getComputedStyle(k).fontSize) * 1.2;
+                return n + Math.max(1, Math.round(k.getBoundingClientRect().height / klh));
+              }, 0)
+            : 0;
+          if (h < 44) {
+            failures.push({ name: `${tag} entry row height band`, expected: ">= 44px (var(--yadad-calendar-row-min))", actual: `${Math.round(h)}px`, detail: labelOf(ulEl) });
+          } else if (lines <= 2 && h > 56) {
+            failures.push({ name: `${tag} entry row height band`, expected: "<= 56px for a title+meta row", actual: `${Math.round(h)}px (${lines} lines)`, detail: labelOf(ulEl) });
+          }
+        }
+        const content = ulEl.querySelector('[data-part="entry-content"]');
+        if (content) {
+          const entryFs = px(getComputedStyle(content).fontSize);
+          if (entryFs < 16) {
+            failures.push({ name: `${tag} entry size (ladder step 2)`, expected: ">= 16px (var(--yadad-calendar-entry-size); D6 bars shrinking type)", actual: getComputedStyle(content).fontSize, detail: labelOf(content) });
+          }
+          const metas = content.querySelectorAll(':scope > small, :scope > span:not(:first-child)');
+          for (const meta of metas) {
+            if (!rendered(meta)) continue;
+            const mfs = px(getComputedStyle(meta).fontSize);
+            if (mfs < 14 || mfs >= entryFs) {
+              failures.push({ name: `${tag} meta size (ladder step 3)`, expected: "14px..entry-size (var(--yadad-calendar-meta-size))", actual: getComputedStyle(meta).fontSize, detail: labelOf(meta) });
+            }
+          }
+        }
+      }
+      // An empty calendar legitimately has no rows; the rhythm only applies
+      // where entries exist.
+      const anyEntry = Array.from(root.querySelectorAll('[data-part="entry"]')).some(rendered);
+      if (anyEntry && rhythmChecked === 0) {
+        failures.push({ name: `${tag} agenda has no rendered entry row`, expected: ">= 1", actual: "0", detail: labelOf(root) });
+      }
+      const headEls = Array.from(root.querySelectorAll('[data-part="day-head"]')).filter(rendered);
+      const headEl = headEls[0]; // non-empty whenever the 31e headChecked check passed
+      if (headEl) {
+        const headFs = px(getComputedStyle(headEl).fontSize);
+        const contentEl = root.querySelector('[data-part="entry-content"]');
+        const entryFs = contentEl ? px(getComputedStyle(contentEl).fontSize) : 0;
+        if (headFs < 18 || (entryFs > 0 && headFs <= entryFs)) {
+          failures.push({ name: `${tag} day-head size (ladder step 1)`, expected: ">= 18px and > entry-size (var(--yadad-calendar-header-size))", actual: `${getComputedStyle(headEl).fontSize} vs entry ${entryFs}px`, detail: labelOf(headEl) });
+        }
+      }
+      const todayCell = root.querySelector('[data-part="day"][data-today="true"]');
+      if (todayCell && rendered(todayCell)) {
+        const badge = todayCell.querySelector('[data-part="today-badge"]');
+        if (!badge || !rendered(badge) || !badge.textContent?.trim()) {
+          failures.push({ name: `${tag} today keeps its word badge (G23)`, expected: "rendered non-empty", actual: badge ? "empty/hidden" : "missing", detail: labelOf(todayCell) });
+        }
+        const num = todayCell.querySelector('[data-part="day-number"]');
+        const weekday = todayCell.querySelector('[data-part="day-weekday"]');
+        if (num && weekday && rendered(num) && rendered(weekday)) {
+          // The accent must differ from both the plain text colour and the
+          // weekday beside it (measured, not literal: holds in light and dark).
+          const nc = getComputedStyle(num).color;
+          if (nc === getComputedStyle(todayCell).color || nc === getComputedStyle(weekday).color) {
+            failures.push({ name: `${tag} today's number carries the accent`, expected: "a colour distinct from the text/weekday colour (var(--yadad-calendar-today))", actual: nc, detail: labelOf(num) });
+          }
+        }
       }
       for (const entries of root.querySelectorAll('[data-part="entries"]')) {
         if (!rendered(entries) || !hasContent(entries)) continue;
