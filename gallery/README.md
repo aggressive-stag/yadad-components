@@ -15,6 +15,7 @@ GALLERY_URL=http://localhost:5151/ node --experimental-strip-types gallery/check
 | check | what it proves |
 | --- | --- |
 | `phone-touch.ts` | 44px targets, no sideways scroll at 390/320, both themes, 200% text (card 4) |
+| `shared-touch-vars.ts` | one shared `--yadad-touch-font-size`/`--yadad-touch-tap` moves every text-entry control at 390 touch; per-component override still wins; desktop unchanged (card 30a) |
 | `tabs-keyboard.ts` | tab keyboard nav + focus-ring clipping at 200% text (card 3) |
 | `contrast.ts` | forced-colors paint + reduced-motion guard (card 15c) |
 

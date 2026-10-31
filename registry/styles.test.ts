@@ -29,6 +29,37 @@ describe.each(files)("%s", (file) => {
     }
   });
 
+  test("every touch variable defaults through the shared card-30a variable", () => {
+    // One app set ~10 per-component touch variables before 0.36.0 shipped.
+    // Since card 30a the per-component variables keep their names but their
+    // fallback is var(--yadad-touch-*, <the old default>), so setting the one
+    // shared variable moves every control while a per-component override
+    // still wins (it is the outer var()).
+    const shared: Array<[RegExp, string]> = [
+      [/--yadad-([a-z-]+)-touch-font-size,\s*([^;]*);/g, "--yadad-touch-font-size"],
+      [/--yadad-([a-z-]+)-(?:[a-z-]+-)?tap,\s*([^;]*);/g, "--yadad-touch-tap"],
+    ];
+    let sawAny = false;
+    for (const [re, sharedVar] of shared) {
+      for (const m of body.matchAll(re)) {
+        // Skip the shared variable's own appearance as the inner fallback
+        // (var(--yadad-touch-tap, calc(...))).
+        if (m[1] === "touch") continue;
+        sawAny = true;
+        const fallback = m[2]!;
+        expect(fallback, `${m[0]} defaults through ${sharedVar}`).toContain(
+          `var(${sharedVar}, `,
+        );
+        // The old literal default must survive inside the shared fallback so
+        // a host that never sets the shared variable sees no change.
+        expect(fallback).toMatch(/max\(var\(--yadad-space-4\)|calc\(var\(--yadad-space-4\)/);
+      }
+    }
+    // A file with no touch variables simply has no matches; the per-file
+    // loop above keeps this guard honest for the files that do.
+    if (!sawAny) expect(body).not.toMatch(/--yadad-[a-z-]+-touch-font-size,/);
+  });
+
   test("the table sort button is border-box so its stacked padding cannot overflow", () => {
     // all: unset resets box-sizing to content-box; the card layout adds inline
     // padding to a 100%-wide button, which overflowed its container (found in
@@ -69,6 +100,9 @@ describe.each(files)("%s", (file) => {
     // token-derived calc: two space-4 plus space-3 is 44px at the default
     // tokens, and it doubles with any host token rescale.
     const tapDefault = "calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))";
+    // Card 30a: the per-component variable's fallback is the shared
+    // --yadad-touch-tap, whose own fallback is the token-derived calc.
+    const sharedDefault = `var(--yadad-touch-tap, ${tapDefault})`;
     const byComponent: Record<string, { var: string; sel: string }> = {
       "/button/": { var: "--yadad-button-tap", sel: ':where([data-yadad="button"][data-part="root"])' },
       "/field-frame/": { var: "--yadad-field-frame-checkbox-tap", sel: ':has([data-yadad="boolean"])' },
@@ -80,9 +114,10 @@ describe.each(files)("%s", (file) => {
     if (!spec) return; // only the five tap-target components are guarded
     const [, { var: tapVar, sel }] = spec;
     // The rule that the variable is applied to exists and references the
-    // component's variable with the token-derived default.
+    // component's variable, whose fallback is the shared touch variable over
+    // the token-derived default.
     expect(body, `${tapVar} declaration`).toContain(
-      `min-block-size: var(${tapVar}, ${tapDefault});`
+      `min-block-size: var(${tapVar}, ${sharedDefault});`
     );
     // It is scoped to the control itself, not the whole component.
     expect(body, "scoped selector").toContain(sel);

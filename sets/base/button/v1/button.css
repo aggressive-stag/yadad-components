@@ -15,7 +15,7 @@
     cursor: pointer;
     /* Phone touch: a thumb needs a 44px target. Token-derived (2x space-4
        plus space-3) so a host token override rescales it with the theme. */
-    min-block-size: var(--yadad-button-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    min-block-size: var(--yadad-button-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
   }
 
   :where([data-yadad="button"][data-variant="primary"]) {

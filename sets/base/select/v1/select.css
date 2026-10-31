@@ -16,7 +16,7 @@
     border-radius: var(--yadad-select-radius, var(--yadad-radius-sm));
     /* Phone touch: opening a picker is a thumb action and needs a 44px
        target. Token-derived so it rescales with the theme. */
-    min-block-size: var(--yadad-select-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    min-block-size: var(--yadad-select-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
   }
 
   :where([data-yadad="select"][data-part="input"]):focus-visible {
@@ -67,7 +67,7 @@
 
   @media (pointer: coarse) {
     :where([data-yadad="select"][data-part="input"]) {
-      font-size: max(var(--yadad-select-touch-font-size, max(var(--yadad-space-4), var(--yadad-font-size-md))), var(--yadad-select-font-size, var(--yadad-font-size-md)));
+      font-size: max(var(--yadad-select-touch-font-size, var(--yadad-touch-font-size, max(var(--yadad-space-4), var(--yadad-font-size-md)))), var(--yadad-select-font-size, var(--yadad-font-size-md)));
     }
   }
 }

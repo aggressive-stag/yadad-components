@@ -61,10 +61,10 @@
 
   :where([data-yadad="dialog"]) :where([data-part="close"]) {
     box-sizing: border-box;
-    inline-size: var(--yadad-dialog-close-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
-    min-inline-size: var(--yadad-dialog-close-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
-    block-size: var(--yadad-dialog-close-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
-    min-block-size: var(--yadad-dialog-close-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    inline-size: var(--yadad-dialog-close-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
+    min-inline-size: var(--yadad-dialog-close-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
+    block-size: var(--yadad-dialog-close-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
+    min-block-size: var(--yadad-dialog-close-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
     flex-shrink: 0;
     border: 0;
     background: transparent;

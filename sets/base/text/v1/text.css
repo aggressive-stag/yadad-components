@@ -87,8 +87,8 @@
   /* Touch: iOS Safari zooms on any input under 16px, and small controls miss taps. */
   @media (pointer: coarse) {
     :where([data-yadad="text"]:is([data-part="input"], [data-part="search"])) {
-      font-size: max(var(--yadad-text-touch-font-size, max(var(--yadad-space-4), var(--yadad-font-size-md))), var(--yadad-text-font-size, var(--yadad-font-size-md)));
-      min-block-size: var(--yadad-text-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+      font-size: max(var(--yadad-text-touch-font-size, var(--yadad-touch-font-size, max(var(--yadad-space-4), var(--yadad-font-size-md)))), var(--yadad-text-font-size, var(--yadad-font-size-md)));
+      min-block-size: var(--yadad-text-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
     }
   }
 }

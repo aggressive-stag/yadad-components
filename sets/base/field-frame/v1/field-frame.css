@@ -23,7 +23,7 @@
      theme. */
   :where([data-yadad="field-frame"][data-part="root"]:has([data-yadad="boolean"]))
     > :where([data-part="label"]) {
-    min-block-size: var(--yadad-field-frame-checkbox-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    min-block-size: var(--yadad-field-frame-checkbox-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
     display: flex;
     align-items: center;
   }

@@ -47,7 +47,7 @@
     cursor: pointer;
     /* Phone touch: switching a tab is a thumb action and needs a 44px
        target. Token-derived so it rescales with the theme. */
-    min-block-size: var(--yadad-tabs-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    min-block-size: var(--yadad-tabs-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
   }
 
   :where([data-yadad="tabs"]) :where([data-part="tab"][aria-selected="true"]) {

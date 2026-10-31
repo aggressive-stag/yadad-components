@@ -904,6 +904,10 @@ export function generateThemingDoc(): string {
   push();
   push("A full, clearly-different look (rounded, high-contrast, a brand color) is exactly what the gallery's third theme demonstrates — it is built only from the tokens and variables documented below.");
   push();
+  push("### Shared touch variables");
+  push();
+  push("Every per-component touch variable — each `--yadad-<component>-touch-font-size` (the coarse-pointer input font floor, 16px at the default tokens) and each `--yadad-<component>-tap` (the 44px thumb target) — defaults through one of two shared variables before falling back to the token-derived size: `--yadad-touch-font-size` and `--yadad-touch-tap`. Set them once on `:root` to move every touch control in every component at once; a per-component variable still overrides just its component, because it is the outer `var()`. Both default to the same values the per-component variables had before they were shared: `max(var(--yadad-space-4), var(--yadad-font-size-md))` for the font and `calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))` (44px at the default tokens) for the tap target.");
+  push();
   push("## Theme tokens");
   push();
   push("Set these on `:root` (or any scope). Each is `--yadad-<name>`.");

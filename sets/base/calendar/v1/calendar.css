@@ -49,7 +49,7 @@
     align-items: center;
     justify-content: center;
     padding-inline: var(--yadad-space-3);
-    min-block-size: var(--yadad-calendar-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    min-block-size: var(--yadad-calendar-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
     border: 1px solid var(--yadad-calendar-border, var(--yadad-color-border));
     border-radius: var(--yadad-calendar-radius, var(--yadad-radius-md));
     cursor: pointer;
@@ -293,8 +293,8 @@
     align-items: center;
     gap: var(--yadad-space-2);
     padding-inline: var(--yadad-space-1);
-    min-block-size: var(--yadad-calendar-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
-    min-inline-size: var(--yadad-calendar-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    min-block-size: var(--yadad-calendar-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
+    min-inline-size: var(--yadad-calendar-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
     cursor: pointer;
     color: var(--yadad-calendar-done-color, var(--yadad-color-text));
     font-size: var(--yadad-font-size-sm);
@@ -339,7 +339,7 @@
     justify-content: center;
     padding-inline: var(--yadad-space-2);
     font-size: var(--yadad-font-size-sm);
-    min-block-size: var(--yadad-calendar-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    min-block-size: var(--yadad-calendar-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
     border: 1px solid var(--yadad-calendar-actions-border, var(--yadad-color-border));
     border-radius: var(--yadad-calendar-radius, var(--yadad-radius-md));
     color: var(--yadad-calendar-actions-link, var(--yadad-color-accent));
@@ -429,7 +429,7 @@
     all: unset;
     box-sizing: border-box;
     padding-inline: var(--yadad-space-2);
-    min-block-size: var(--yadad-calendar-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    min-block-size: var(--yadad-calendar-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
     border: 1px solid var(--yadad-calendar-border, var(--yadad-color-border));
     border-radius: var(--yadad-calendar-radius, var(--yadad-radius-md));
     cursor: pointer;
@@ -485,11 +485,11 @@
      done checkbox box draws at 20px (its label is already the 44px target). */
   @media (pointer: coarse) {
     :where([data-yadad="calendar"]) :where([data-part="move-trigger"], [data-part="overflow"]) {
-      min-block-size: var(--yadad-calendar-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+      min-block-size: var(--yadad-calendar-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
     }
 
     :where([data-yadad="calendar"]) :where([data-part="entry-open"]) {
-      min-block-size: var(--yadad-calendar-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+      min-block-size: var(--yadad-calendar-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
     }
 
     :where([data-yadad="calendar"]) :where([data-part="done-input"]) {
@@ -498,8 +498,8 @@
     }
 
     :where([data-yadad="calendar"]) :where([data-part="move-input"]) {
-      font-size: var(--yadad-calendar-touch-font-size, max(var(--yadad-space-4), var(--yadad-font-size-md)));
-      min-block-size: var(--yadad-calendar-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+      font-size: var(--yadad-calendar-touch-font-size, var(--yadad-touch-font-size, max(var(--yadad-space-4), var(--yadad-font-size-md))));
+      min-block-size: var(--yadad-calendar-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
     }
   }
 }

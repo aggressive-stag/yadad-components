@@ -59,7 +59,7 @@
     display: flex;
     align-items: center;
     box-sizing: border-box;
-    min-block-size: var(--yadad-reference-option-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)));
+    min-block-size: var(--yadad-reference-option-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
     padding: var(--yadad-reference-option-padding, var(--yadad-space-2) var(--yadad-space-3));
     overflow-wrap: anywhere;
     cursor: pointer;
