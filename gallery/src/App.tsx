@@ -12,7 +12,7 @@ import { darkTheme, lightTheme, themeToCss, type Theme } from "@yadad/theme";
 import { optionValue } from "@yadad/core";
 import type { BoardCard, BoardColumn, CalendarDayProps, CalendarEntry, DocumentError, FieldDisplayExtras, FieldDisplayProps, FieldInputExtras, FieldInputProps, FieldType, FieldValueTypes, SelectField } from "@yadad/core";
 import { useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { baseRegistry } from "../../registry/base.js";
 import { DatetimeDisplay } from "../../sets/base/datetime/v1/index.js";
 import {
@@ -1278,6 +1278,8 @@ const LAYOUT_ANCHORS = [
   "calendar-week",
   "calendar-one-mode",
   "calendar-phone-agenda",
+  "calendar-phone-sticky-agenda",
+  "calendar-phone-sticky-hosted",
   "calendar-movable",
   "calendar-actions",
   "calendar-done",
@@ -1734,6 +1736,27 @@ export default function App(): ReactNode {
             "phone agenda reflow (390px container)",
             <div className="phone-frame">
               <CalendarHarness id="Training (phone)" initialMode="month" initialAnchor={CALENDAR_TODAY} entries={calendarFixtureEntries} />
+            </div>,
+          )}
+          {state(
+            "calendar-phone-sticky-agenda",
+            "phone agenda in a 320px-tall scroll host: each day's head pins at the top as the list scrolls under it (card 31e)",
+            <div className="phone-frame">
+              <div data-yadad-test="cal31e" id="cal31e" className="scroll-host" style={{ blockSize: "320px", overflowY: "auto" }}>
+                <CalendarHarness id="Training (sticky agenda)" initialMode="month" initialAnchor={CALENDAR_TODAY} entries={calendarFixtureEntries} />
+              </div>
+            </div>,
+          )}
+          {state(
+            "calendar-phone-sticky-hosted",
+            "the same agenda under a fake 96px pinned host header: --yadad-calendar-sticky-top: 96px holds the day head below it (card 31e)",
+            <div className="phone-frame">
+              <div data-yadad-test="cal31e-hosted" id="cal31e-hosted" className="scroll-host" style={{ blockSize: "320px", overflowY: "auto", "--yadad-calendar-sticky-top": "96px" } as CSSProperties}>
+                <div data-yadad-test="fake-header" style={{ position: "sticky", insetBlockStart: 0, zIndex: 3, blockSize: "96px", display: "flex", alignItems: "center", paddingInline: "var(--yadad-space-2)", fontWeight: 700, background: "var(--yadad-color-surface)", borderBlockEnd: "1px solid var(--yadad-color-border)" }}>
+                  yadad
+                </div>
+                <CalendarHarness id="Training (sticky agenda, hosted header)" initialMode="month" initialAnchor={CALENDAR_TODAY} entries={calendarFixtureEntries} />
+              </div>
             </div>,
           )}
           {state(

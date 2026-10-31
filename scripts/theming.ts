@@ -507,6 +507,7 @@ const VAR_DESCRIPTION: Record<string, string> = {
   "calendar-status-accent": "live-region leading bar color",
   "calendar-status-background": "live-region background",
   "calendar-day-min": "minimum day-cell block size",
+  "calendar-sticky-top": "phone agenda only: how far below the top of the agenda's own scroll container a day's pinned head sits. Leave it unset (0) when nothing is pinned above the list; set it to the height of your own pinned header/app bar so the head pins below it instead of under it. The day cells get the matching scroll-margin, so the renderer's scroll-today-into-view on load lands the day clear of the band",
   "calendar-outside-color": "text color of a day outside the current month",
   "calendar-outside-background": "background of a day outside the current month",
   today: "today ring and badge color",

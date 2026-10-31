@@ -88,6 +88,8 @@ for (const vp of [
     ["drop-done-floor", "done label 44px floor", "tap target done"],
     ["zero-part", "entries forced to width 0", "entries"],
     ["swap-date-parts", "agenda date parts swapped", "day-date"],
+    ["clip-grid", "agenda grid clips again (sticky killer)", "grid must not clip"],
+    ["clear-band", "pinned head goes translucent", "band must be opaque"],
   ];
   for (const [seed, what, mustMention] of seeds) {
     const failures = await runAudit(page, [seed]);

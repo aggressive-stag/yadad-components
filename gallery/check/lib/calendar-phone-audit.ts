@@ -38,6 +38,11 @@
  *   "zero-part"        forces every entries list to width: 0
  *   "swap-date-parts"  puts the agenda back on the pre-31d date parts
  *                      (day-date shown, day-number hidden, weekday hidden)
+ *   "clip-grid"        restores the grid's overflow:hidden — the 31e
+ *                      sticky-killer: sticky inside a non-scroll overflow:
+ *                      hidden ancestor silently never sticks
+ *   "clear-band"       makes the pinned head's background transparent, so
+ *                      scrolled entries smear through the band
  *
  * Usage (Playwright):
  *   const failures = await page.evaluate(auditCalendarPhone, { seeds: [] });
@@ -116,6 +121,15 @@ function auditCalendarPhone(options?: CalendarPhoneAuditOptions): CalendarPhoneF
       '@container (max-width: 50ch) { [data-yadad="calendar"] [data-part="day-date"] { display: inline !important; } ' +
       '[data-yadad="calendar"] [data-part="day-number"], [data-yadad="calendar"] [data-part="day-weekday"] { display: none !important; } }'
     );
+  }
+
+  if (seeds.includes("clip-grid")) {
+    // The pre-31e grid restored: the agenda's sticky head inside an
+    // overflow:hidden grid silently never sticks (premise 1).
+    seed('[data-yadad="calendar"] [data-part="grid"] { overflow: hidden !important; }');
+  }
+  if (seeds.includes("clear-band")) {
+    seed('@container (max-width: 50ch) { [data-yadad="calendar"] [data-part="day-head"] { background: transparent !important; } }');
   }
 
   const roots = Array.from(document.querySelectorAll(rootSelector));
@@ -206,6 +220,44 @@ function auditCalendarPhone(options?: CalendarPhoneAuditOptions): CalendarPhoneF
 
     // (b) in agenda mode the entries list fills the root's inline size
     if (inAgenda) {
+      // (e) card 31e: the pinned day head. position:sticky alone is not
+      // enough — inside a non-scroll overflow:hidden ancestor it never
+      // sticks, so the grid's own clip must be gone; and the band must be
+      // opaque or scrolled entries smear through it.
+      const grid = root.querySelector('[data-part="grid"]');
+      if (grid) {
+        const gs = getComputedStyle(grid);
+        if (gs.overflowX !== "visible" || gs.overflowY !== "visible") {
+          failures.push({ name: `${tag} agenda grid must not clip (sticky needs it)`, expected: "overflow visible", actual: `${gs.overflowX}/${gs.overflowY}`, detail: labelOf(grid) });
+        }
+      }
+      let headChecked = 0;
+      for (const head of root.querySelectorAll('[data-part="day-head"]')) {
+        if (!rendered(head)) continue;
+        headChecked++;
+        const hs = getComputedStyle(head);
+        if (hs.position !== "sticky") {
+          failures.push({ name: `${tag} day-head must pin in the agenda`, expected: "sticky", actual: hs.position, detail: labelOf(head) });
+        }
+        if (parseFloat(hs.insetBlockStart) < 0 || Number.isNaN(parseFloat(hs.insetBlockStart))) {
+          failures.push({ name: `${tag} day-head inset-block-start`, expected: ">= 0 (var(--yadad-calendar-sticky-top, 0px))", actual: hs.insetBlockStart, detail: labelOf(head) });
+        }
+        const bg = hs.backgroundColor;
+        const alpha = bg.startsWith("rgba") ? parseFloat(bg.slice(bg.lastIndexOf(",") + 1, bg.lastIndexOf(")"))) : 1;
+        if (bg === "transparent" || bg === "rgba(0, 0, 0, 0)" || alpha < 1) {
+          failures.push({ name: `${tag} day-head band must be opaque`, expected: "surface background", actual: bg, detail: labelOf(head) });
+        }
+        if (parseFloat(hs.borderBottomWidth) < 1) {
+          failures.push({ name: `${tag} day-head carries the row hairline`, expected: ">= 1px bottom rule", actual: hs.borderBottomWidth, detail: labelOf(head) });
+        }
+      }
+      if (headChecked === 0) {
+        failures.push({ name: `${tag} agenda has no rendered day-head`, expected: ">= 1", actual: "0", detail: labelOf(grid ?? root) });
+      }
+      const anyDay = root.querySelector('[data-part="day"]');
+      if (anyDay && parseFloat(getComputedStyle(anyDay).scrollMarginBlockStart) <= 0) {
+        failures.push({ name: `${tag} day scroll-margin for the band`, expected: "> 0 (scroll-today clears the band)", actual: getComputedStyle(anyDay).scrollMarginBlockStart, detail: labelOf(anyDay) });
+      }
       for (const entries of root.querySelectorAll('[data-part="entries"]')) {
         if (!rendered(entries) || !hasContent(entries)) continue;
         const eb = entries.getBoundingClientRect();

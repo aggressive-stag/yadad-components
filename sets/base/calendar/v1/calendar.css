@@ -467,14 +467,41 @@
       display: block;
     }
 
+    /* Card 31e, premise 1: the base grid's overflow:hidden is the sticky
+       killer — a sticky element never sticks in an overflow:hidden ancestor
+       that is not a scroll container, it would stick to the page instead.
+       The agenda is a list, not a boxed grid: the clip has nothing to clip
+       there (day rows are block-flow and fill the root), so it goes to
+       visible inside the container query. At laptop width this block never
+       applies and the grid keeps its clipped rounded corners. */
+    :where([data-yadad="calendar"]) :where([data-part="grid"]) {
+      overflow: visible;
+    }
+
     :where([data-yadad="calendar"]) :where([data-part="day-row"]) + :where([data-part="day-row"]) {
       border-block-start: 0;
     }
 
+    /* Card 31e: an agenda is a list, not a stack of boxes. The box border
+       around every day goes away; rows are separated by a single hairline
+       under each day's head (the day-head rule below), which is also the
+       band's own rule when it is pinned. Two rules per row would double up
+       the moment the head pins, so the day itself draws none. */
     :where([data-yadad="calendar"]) :where([data-part="day"]) {
       min-block-size: 0;
-      border-inline-start: 0;
-      border-block-end: 1px solid var(--yadad-calendar-border, var(--yadad-color-border));
+      border: 0;
+      /* The renderer scrolls today into view with scrollIntoView({block:
+         "nearest"}); without this the pinned head would cover it on load.
+         --yadad-calendar-sticky-top is the host's own pinned-header height
+         (THEMING.md); the second term is the head band's own height. The
+         sticky-top fallback is 0 * 1px, not 0px (styles.test bans literal
+         lengths beyond hairlines) and not a bare 0 (a number in a length
+         calc is invalid at computed-value time). */
+      scroll-margin-block-start: calc(
+        var(--yadad-calendar-sticky-top, 0 * 1px) +
+        var(--yadad-font-size-md) * 1.5 +
+        var(--yadad-space-1) * 2
+      );
     }
 
     :where([data-yadad="calendar"]) :where([data-part="day"][data-in-month="false"]):not(:has([data-part="entries"] [data-part="entry"])) {
@@ -494,6 +521,27 @@
          the trailing edge, so every row aligns the same with or without a
          badge (seen in the 31d agenda screenshot on the today row). */
       justify-content: flex-start;
+    }
+
+    /* Card 31e: the day you are reading stays put. The head pins under the
+       host's own header (--yadad-calendar-sticky-top, 0 when the page has no
+       pinned chrome), on an opaque surface so scrolled text does not show
+       through, with the list's hairline as its bottom rule — the same rule
+       that separates the rows, since the day itself no longer draws one.
+       It has to be opaque: a translucent surface would smear the entries
+       behind it. */
+    :where([data-yadad="calendar"]) :where([data-part="day-head"]) {
+      position: sticky;
+      inset-block-start: var(--yadad-calendar-sticky-top, 0);
+      /* Above the entries' own stacking (the today outline, dot colours) so
+         the band reads as the top layer; unitless, not a length. */
+      z-index: 2;
+      background: var(--yadad-color-surface);
+      border-block-end: 1px solid var(--yadad-calendar-border, var(--yadad-color-border));
+      /* The band must not scroll its own text out of the box it just pinned
+         inside, and the head already carries the day's block padding. */
+      margin-block-end: 0;
+      padding-block-end: var(--yadad-space-1);
     }
 
     :where([data-yadad="calendar"]) :where([data-part="day-weekday"]) {
