@@ -36,7 +36,8 @@
  * Regression seeds (option `seeds`, for self-testing this check):
  *   "drop-done-floor"  removes the done label's 44px floor
  *   "zero-part"        forces every entries list to width: 0
- *   "swap-date-parts"  flips day-date/day-number visibility in the agenda
+ *   "swap-date-parts"  puts the agenda back on the pre-31d date parts
+ *                      (day-date shown, day-number hidden, weekday hidden)
  *
  * Usage (Playwright):
  *   const failures = await page.evaluate(auditCalendarPhone, { seeds: [] });
@@ -55,22 +56,24 @@ function auditCalendarPhone(options?: CalendarPhoneAuditOptions): CalendarPhoneF
   const rootSelector = (options && options.rootSelector) || '[data-yadad="calendar"]';
 
   // Which parts must be visible / hidden per mode. Agenda = the phone
-  // reflow: the weekday row and the compact day-number hide, the verbose
-  // day-date shows. Grid = the 7-column month: the reverse.
+  // reflow: the weekday row and the verbose full-date hide, the short
+  // weekday + the bold day number show — the head reads "Thu 29" (card 31d;
+  // before it, the agenda showed day-date and hid day-number). Grid = the
+  // 7-column month: the reverse.
   // `showWhenEntries` scopes a must-be-visible rule to days that contain an
   // entry — out-of-month days *without* entries are hidden by the reflow on
   // purpose and are not checked.
   const VISIBILITY: { agenda: VisibilityRow; grid: VisibilityRow } = {
     agenda: {
       agenda: true,
-      show: ["day-date", "grid"],
-      hide: ["weekday-row", "day-number"],
+      show: ["day-weekday", "day-number", "grid"],
+      hide: ["weekday-row", "day-date"],
       showWhenEntries: ["day"],
     },
     grid: {
       agenda: false,
       show: ["weekday-row", "day-number", "grid", "day"],
-      hide: ["day-date"],
+      hide: ["day-date", "day-weekday"],
     },
   };
 
@@ -105,9 +108,13 @@ function auditCalendarPhone(options?: CalendarPhoneAuditOptions): CalendarPhoneF
     seed('[data-yadad="calendar"] [data-part="entries"] { width: 0 !important; }');
   }
   if (seeds.includes("swap-date-parts")) {
+    // The pre-31d agenda restored: the verbose full-date shown, the compact
+    // number and the short weekday hidden. Every one of the three is wrong
+    // now — the agenda reads "Thu 29" from day-weekday + day-number and the
+    // full form lives only in the aria-label / entries list.
     seed(
-      '@container (max-width: 50ch) { [data-yadad="calendar"] [data-part="day-date"] { display: none !important; } ' +
-      '[data-yadad="calendar"] [data-part="day-number"] { display: inline !important; } }'
+      '@container (max-width: 50ch) { [data-yadad="calendar"] [data-part="day-date"] { display: inline !important; } ' +
+      '[data-yadad="calendar"] [data-part="day-number"], [data-yadad="calendar"] [data-part="day-weekday"] { display: none !important; } }'
     );
   }
 

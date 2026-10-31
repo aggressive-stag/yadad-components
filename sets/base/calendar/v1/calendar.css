@@ -234,9 +234,19 @@
     color: var(--yadad-calendar-today, var(--yadad-color-accent));
   }
 
+  /* Card 31d: the short weekday a day head carries for the phone agenda
+     (see the day-date rule — the agenda has no weekday column headers).
+     Hidden everywhere else: the grid's weekday row already prints it. */
+  :where([data-yadad="calendar"]) :where([data-part="day-weekday"]) {
+    display: none;
+  }
+
   /* Full-date heading: redundant with the weekday column headers in grid
-     mode (hidden there), the only day heading in the phone agenda (card 11
-     issue 4: a month grid is unreadable at 390px). */
+     mode (hidden there), and hidden in the phone agenda since card 31d —
+     it repeated the month/year once per day, and the agenda reads
+     "Thu 29" from day-weekday + day-number instead. The full form still
+     reaches assistive tech through the gridcell's aria-label and the
+     entries list (day.label verbatim, unchanged). */
   :where([data-yadad="calendar"]) :where([data-part="day-date"]) {
     display: none;
   }
@@ -471,13 +481,33 @@
       display: none;
     }
 
-    :where([data-yadad="calendar"]) :where([data-part="day-date"]) {
+    /* Card 31d: the agenda's day head reads "Thu 29" — the short weekday
+       (the set's own weekday names, its column header) next to the bold day
+       number. The verbose day-date is hidden here now: its full form was the
+       month/year 31 times over, and assistive tech still gets day.label
+       verbatim from the gridcell's aria-label and the entries list. */
+    :where([data-yadad="calendar"]) :where([data-part="day-head"]) {
+      /* The base head is a space-between flex, which with three children
+         (weekday, number, "Today" badge) drops the number in the middle of
+         the row on the today cell only. In the agenda the head is a heading,
+         not a toolbar: weekday + number hug the start, the badge is pushed to
+         the trailing edge, so every row aligns the same with or without a
+         badge (seen in the 31d agenda screenshot on the today row). */
+      justify-content: flex-start;
+    }
+
+    :where([data-yadad="calendar"]) :where([data-part="day-weekday"]) {
       display: inline;
       font-weight: 600;
     }
 
     :where([data-yadad="calendar"]) :where([data-part="day-number"]) {
-      display: none;
+      display: inline;
+      font-weight: 700;
+    }
+
+    :where([data-yadad="calendar"]) :where([data-part="today-badge"]) {
+      margin-inline-start: auto;
     }
   }
 

@@ -288,6 +288,7 @@ function EntryView({
 
 function DayCell({
   day,
+  weekday,
   focused,
   dragOver,
   registerCell,
@@ -302,6 +303,8 @@ function DayCell({
   strings,
 }: {
   day: CalendarDayProps<ReactNode>;
+  /** This day's column header short name (the weekday of its row index). */
+  weekday: { short: string; long: string } | undefined;
   focused: boolean;
   dragOver: boolean;
   registerCell: (date: string, el: HTMLDivElement | null) => void;
@@ -349,8 +352,17 @@ function DayCell({
       }
     >
       <div data-part="day-head">
+        {/* Card 31d: the short weekday (from the set's own weekday names) —
+            hidden by default, and in the phone agenda it is the day heading
+            next to the bold day number ("Thu 29"), where the weekday column
+            headers are gone. On a laptop the weekday row above the grid
+            already carries it, so this stays hidden. */}
+        <span data-part="day-weekday">{weekday?.short}</span>
         <span data-part="day-number">{day.dayOfMonth}</span>
-        {/* Visible only in the phone agenda reflow, where the weekday column headers are gone. */}
+        {/* Full-date heading: hidden by default, and hidden in the phone
+            agenda since 31d (it repeated the month/year 31 times). The full
+            form still reaches assistive tech: the gridcell's aria-label and
+            the entries list below carry day.label verbatim. */}
         <span data-part="day-date">{day.label}</span>
         {day.isToday ? <span data-part="today-badge">{strings.todayLabel ?? "Today"}</span> : null}
       </div>
@@ -549,10 +561,11 @@ export function Calendar({
         </div>
         {weekRows(days).map((row, r) => (
           <div key={row[0]?.date ?? r} role="row" data-part="day-row">
-            {row.map((day) => (
+            {row.map((day, column) => (
               <DayCell
                 key={day.date}
                 day={day}
+                weekday={weekdays[column]}
                 focused={day.date === focusedDate}
                 dragOver={day.date === dragOverDate}
                 registerCell={registerCell}
