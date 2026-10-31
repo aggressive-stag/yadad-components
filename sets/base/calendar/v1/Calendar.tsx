@@ -4,6 +4,7 @@ import type { CalendarDayProps, CalendarEntry, CalendarMode, CalendarProps } fro
 import type { KeyboardEvent, ReactNode } from "react";
 import { useEffect, useId, useRef, useState } from "react";
 import { Menu } from "../../../internal/menu/v1/index.js";
+import { Check } from "../../../internal/check/v1/index.js";
 import { paletteSlot } from "../../../internal/swatch/v1/index.js";
 import { useTouchDrag } from "../../../internal/touch-drag/v1/index.js";
 
@@ -191,8 +192,7 @@ function DoneToggle({ entry, strings }: { entry: CalendarEntry<ReactNode>; strin
   if (!done) return null;
   return (
     <label data-part="done" onPointerDown={(e) => e.stopPropagation()}>
-      <input
-        type="checkbox"
+      <Check
         data-part="done-input"
         aria-label={(strings.doneAriaLabel ?? ((label: string) => `Done: ${label}`))(entry.label)}
         checked={done.checked}

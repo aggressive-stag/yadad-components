@@ -300,19 +300,20 @@
     font-size: var(--yadad-font-size-sm);
   }
 
-  :where([data-yadad="calendar"]) :where([data-part="done-input"]) {
-    margin: 0;
-    accent-color: var(--yadad-calendar-done-accent, var(--yadad-color-accent));
+  /* Card 31b: the box is painted by internal/check (its sheet rides this
+     fragment via scripts/build-css.ts) — appearance:none, margin, the 22px
+     box, the focus ring and the `:disabled` cursor all come from there. The
+     deprecated calendar variables keep working as aliases for one minor
+     (THEMING.md) by re-pointing the primitive's private custom properties:
+     the public --yadad-check-* wins, the old calendar variable wins when it
+     is set, the token default wins when neither is. Specificity (0,1,0) —
+     one step above the primitive's :where rules — so fragment order never
+     decides, and none of these is a var() cycle. */
+  :where([data-yadad="calendar"]) [data-part="done-input"] {
+    --_yadad-check-size: var(--yadad-calendar-checkbox-size, var(--yadad-check-size, calc(var(--yadad-space-4) + var(--yadad-space-1) + var(--yadad-focus-ring-width))));
+    --_yadad-check-on: var(--yadad-calendar-done-accent, var(--yadad-check-on, var(--yadad-color-accent)));
+    --_yadad-check-focus: var(--yadad-calendar-focus, var(--yadad-check-focus, var(--yadad-color-accent)));
     cursor: inherit;
-  }
-
-  :where([data-yadad="calendar"]) :where([data-part="done-input"]):focus-visible {
-    outline: var(--yadad-focus-ring-width) solid var(--yadad-calendar-focus, var(--yadad-color-accent));
-    outline-offset: var(--yadad-focus-ring-width);
-  }
-
-  :where([data-yadad="calendar"]) :where([data-part="done-input"]):disabled {
-    cursor: not-allowed;
   }
 
   /* Record actions (RFC 0007): the calendar has no entry menu, so the
@@ -481,8 +482,8 @@
   }
 
   /* Touch: the move date input stays at 16px or larger (no iOS focus zoom) and 44px tall.
-     The text-style links ("Move to day...", "+N more") grow to a 44px target, and the
-     done checkbox box draws at 20px (its label is already the 44px target). */
+     The text-style links ("Move to day...", "+N more") grow to a 44px target; the done
+     checkbox draws at 22px from card 31b inside its 44px label. */
   @media (pointer: coarse) {
     :where([data-yadad="calendar"]) :where([data-part="move-trigger"], [data-part="overflow"]) {
       min-block-size: var(--yadad-calendar-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
@@ -492,10 +493,9 @@
       min-block-size: var(--yadad-calendar-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
     }
 
-    :where([data-yadad="calendar"]) :where([data-part="done-input"]) {
-      inline-size: var(--yadad-calendar-checkbox-size, calc(var(--yadad-space-4) + var(--yadad-space-1)));
-      block-size: var(--yadad-calendar-checkbox-size, calc(var(--yadad-space-4) + var(--yadad-space-1)));
-    }
+    /* Card 31b: the done box's size is the primitive's (--yadad-check-size,
+       aliased from --yadad-calendar-checkbox-size above) — 22px on touch
+       too, so it no longer needs a coarse-pointer bump. */
 
     :where([data-yadad="calendar"]) :where([data-part="move-input"]) {
       font-size: var(--yadad-calendar-touch-font-size, var(--yadad-touch-font-size, max(var(--yadad-space-4), var(--yadad-font-size-md))));
