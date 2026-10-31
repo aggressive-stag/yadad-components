@@ -247,6 +247,7 @@ A month/week grid of entries with navigation, a colour-slot legend, and a keyboa
 - `entries` — a day cell's entry list (target with `[data-yadad="calendar"] [data-part="entries"]`)
 - `overflow` — the "+N more" button that reveals entries hidden past the per-day cap (target with `[data-yadad="calendar"] [data-part="overflow"]`)
 - `navigator` — the phone-only week/month map above the agenda (hidden at base; shown in the phone container, card 32a); a role=group with its own roving tabindex, separate from the list grid's (target with `[data-yadad="calendar"] [data-part="navigator"]`)
+- `navigator-toggle` — the grabber that expands the pinned week strip to the month and back (aria-expanded + aria-controls on the rendered rows; week mode has none — one row is already a strip) (target with `[data-yadad="calendar"] [data-part="navigator-toggle"]`)
 - `navigator-weekday-row` — the navigator's weekday header row (target with `[data-yadad="calendar"] [data-part="navigator-weekday-row"]`)
 - `navigator-weekday` — one navigator column header — the single first grapheme of the weekday short name, named by its long form (target with `[data-yadad="calendar"] [data-part="navigator-weekday"]`)
 - `navigator-row` — one week's row of navigator day buttons (target with `[data-yadad="calendar"] [data-part="navigator-row"]`)
@@ -279,7 +280,7 @@ A month/week grid of entries with navigation, a colour-slot legend, and a keyboa
 - `--yadad-calendar-font-size` — font size; default: token `--yadad-font-size-sm` (small text (labels, secondary, table cells))
 - `--yadad-calendar-color` — foreground color; default: token `--yadad-color-text` (main text color)
 - `--yadad-calendar-title-size` — title font size; default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
-- `--yadad-calendar-tap` — minimum tap-target height (phone); default: `var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)))` (token-derived: `--yadad-space-3`, `--yadad-space-4`)
+- `--yadad-calendar-tap` — phone navigator only: the minimum height of the grabber (navigator-toggle). Default var(--yadad-touch-tap) (2.75rem / 44px). The day buttons read calendar-nav-tap; this is the grabber's own floor, so a host that wants a taller map and a slimmer grabber (or the reverse) has two knobs, not one; default: `var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)))` (token-derived: `--yadad-space-3`, `--yadad-space-4`)
 - `--yadad-calendar-border` — border color; default: token `--yadad-color-border` (borders and dividers)
 - `--yadad-calendar-radius` — corner radius; default: token `--yadad-radius-md` (medium corner radius (cards, panels, sections))
 - `--yadad-calendar-selected-background` — selected mode-switch button background; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
@@ -321,6 +322,13 @@ A month/week grid of entries with navigation, a colour-slot legend, and a keyboa
 - `--yadad-calendar-row-min` — phone agenda only: the minimum height of an entry row (the tappable line; the <li> grows past it when a done/actions cluster sits under the row). Default 3rem — the middle of the 44–56px list band; the touch audit still enforces 44px targets whatever you set; default: `calc(var(--yadad-space-4) * 3)` (token-derived: `--yadad-space-4`)
 - `--yadad-calendar-entry-size` — phone agenda only: the entry line's font size — step 2 of the ladder. At or above the theme's font-size-md (1rem) by default; D6 bars a host from buying density with type size, so treat below 1rem as a bug in your theme, not a knob; default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))
 - `--yadad-calendar-meta-size` — phone agenda only: the detail/meta line under an entry (the renderer's <small> detail fields, a gallery span) — step 3 of the ladder, default font-size-sm (0.875rem) muted. The smallest step: never set it below font-size-sm; default: token `--yadad-font-size-sm` (small text (labels, secondary, table cells))
+- `--yadad-calendar-strip-size` — phone navigator only: the block size the collapsed week strip occupies when pinned. Card 32b (D8): the day heads' inset-block-start and the day cells' scroll-margin-block-start both add sticky-top + this while the strip is pinned, so a host that grows the strip grows the heads' clearance with it. Default is the composed height — grabber (calendar-tap) + weekday row (1.5 × font-size-md + 2 × space-1) + one week row (calendar-nav-tap) + hairline ≈ 113px at default tokens; set it to the strip's REAL measured height if you re-token the navigator's type or tap floors, and the audit's occlusion check will tell you when you didn't; default: `calc(
+            var(--yadad-calendar-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)))) +
+            var(--yadad-font-size-md) * 1.5 +
+            var(--yadad-space-1) * 2 +
+            var(--yadad-calendar-nav-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)))) +
+            1px
+          )` (token-derived: `--yadad-font-size-md`, `--yadad-space-1`, `--yadad-space-3`, `--yadad-space-4`)
 - `--yadad-calendar-nav-tap` — phone navigator only: the minimum height of a navigator day button. Default 2.75rem (44px, the touch floor) at every width — width is the axis the seven columns constrain, height never is, so no narrow-width exception exists; set this only if you want a taller map; default: `var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)))` (token-derived: `--yadad-space-3`, `--yadad-space-4`)
 - `--yadad-calendar-touch-font-size` — input font size under a coarse pointer; defaults to the larger of 1rem and the theme's font-size-md, so it never drops below 16px. Set it smaller only on purpose: iOS then zooms on focus; default: `var(--yadad-touch-font-size, max(var(--yadad-space-4), var(--yadad-font-size-md)))` (token-derived: `--yadad-font-size-md`, `--yadad-space-4`)
 

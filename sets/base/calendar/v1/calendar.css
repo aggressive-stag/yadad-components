@@ -650,6 +650,91 @@
       scrollbar-width: thin;
     }
 
+    /* Card 32b (D9) — the strip form. Collapsed (the default) renders the
+       weekday header plus one week row, and THAT pins under the host's
+       header (--yadad-calendar-sticky-top). The expanded month deliberately
+       does NOT pin: six rows plus a header is a third of the viewport, and
+       a pinned block that size eats the list it exists to navigate. Sticky
+       works because no ancestor of the root is a scroll container (the 31e
+       clip check); the root's own container-type does not break it. */
+    :where([data-yadad="calendar"]) :where([data-part="navigator"][data-expanded="false"]) {
+      position: sticky;
+      inset-block-start: var(--yadad-calendar-sticky-top, 0 * 1px);
+      /* Above the day heads (z-index 2) — the strip is the top layer, the
+         heads pin beneath it. */
+      z-index: 3;
+      /* Opaque like the head band: scrolled entries must not smear through. */
+      background: var(--yadad-color-surface);
+      border-block-end: 1px solid var(--yadad-calendar-border, var(--yadad-color-border));
+    }
+
+    /* The grabber spans the seven tracks. all: unset like every other
+       calendar control — a real button, nothing in the paint until
+       :focus-visible says otherwise. */
+    :where([data-yadad="calendar"]) :where([data-part="navigator-toggle"]) {
+      all: unset;
+      box-sizing: border-box;
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* The card's own token pair: the calendar's tap floor falling back
+         to the global touch floor, both overridable by the host. */
+      min-block-size: var(--yadad-calendar-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
+      padding-inline: var(--yadad-space-2);
+      color: var(--yadad-calendar-link, var(--yadad-color-accent));
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    :where([data-yadad="calendar"]) :where([data-part="navigator-toggle"]):focus-visible {
+      outline: var(--yadad-focus-ring-width) solid var(--yadad-calendar-focus, var(--yadad-color-accent));
+      outline-offset: calc(var(--yadad-focus-ring-width) * -1);
+    }
+
+    /* D8: the strip is the new top chrome, so the day heads pin *below it*
+       and the scroll-into-view clearance includes it — both derive from
+       --yadad-calendar-strip-size, and only while the strip is actually the
+       pinned form. The default is the composed height, not a guess:
+       grabber (calendar-tap, 44) + weekday row (1.5 × md, 24) + one week
+       row (nav-tap, 44) + the hairline (1) = 113px at default tokens —
+       measured against a real render, because an earlier draft said 33 and
+       the heads pinned *behind* the strip (the probe caught it). Expanded
+       month: the strip scrolls away with the list, so the heads return to
+       pinning at the host's header alone (the 31e rule). */
+    :where([data-yadad="calendar"]:has([data-part="navigator"][data-expanded="false"])) :where([data-part="day-head"]) {
+      inset-block-start: calc(
+        var(--yadad-calendar-sticky-top, 0 * 1px) + var(
+          --yadad-calendar-strip-size,
+          calc(
+            var(--yadad-calendar-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)))) +
+            var(--yadad-font-size-md) * 1.5 +
+            var(--yadad-space-1) * 2 +
+            var(--yadad-calendar-nav-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)))) +
+            1px
+          )
+        )
+      );
+    }
+
+    :where([data-yadad="calendar"]:has([data-part="navigator"][data-expanded="false"])) :where([data-part="day"]) {
+      scroll-margin-block-start: calc(
+        var(--yadad-calendar-sticky-top, 0 * 1px) +
+        var(
+          --yadad-calendar-strip-size,
+          calc(
+            var(--yadad-calendar-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)))) +
+            var(--yadad-font-size-md) * 1.5 +
+            var(--yadad-space-1) * 2 +
+            var(--yadad-calendar-nav-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)))) +
+            1px
+          )
+        ) +
+        var(--yadad-calendar-header-size, var(--yadad-font-size-md) * 1.125) * 1.5 +
+        var(--yadad-space-1) * 2
+      );
+    }
+
     :where([data-yadad="calendar"]) :where([data-part="navigator-weekday-row"], [data-part="navigator-row"]) {
       display: grid;
       grid-column: 1 / -1;

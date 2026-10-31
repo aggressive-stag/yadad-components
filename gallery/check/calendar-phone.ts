@@ -59,6 +59,19 @@ for (const vp of [
     check(`${run}: pointer: coarse matches`, await page.evaluate(() => matchMedia("(pointer: coarse)").matches), "");
     const failures = await runAudit(page, []);
     check(`${run}: calendar audit clean`, failures.length === 0, failures.map((f) => `${f.name} (expected ${f.expected}, got ${f.actual}) ${f.detail}`).join(" | "));
+    // Card 32b: the same audit with every grabber clicked open. The audit
+    // reads each root's own data-expanded, so this pass flips the pinned
+    // checks: the expanded month must NOT pin (D9) and the grabber must
+    // announce true. Click via the DOM (React sees it); focus/scroll
+    // stability across the click is the 32b probe's job.
+    const toggled = await page.evaluate(() => {
+      const t = Array.from(document.querySelectorAll('[data-part="navigator-toggle"]'));
+      t.forEach((el) => (el as HTMLElement).click());
+      return t.length;
+    });
+    const expandedFailures = await runAudit(page, []);
+    check(`${run}: expanded-month audit clean (${toggled} grabbers clicked)`, expandedFailures.length === 0, expandedFailures.map((f) => `${f.name} (expected ${f.expected}, got ${f.actual}) ${f.detail}`).join(" | "));
+    await page.evaluate(() => document.querySelectorAll('[data-part="navigator-toggle"]').forEach((el) => (el as HTMLElement).click()));
     await ctx.close();
   }
 }
@@ -96,6 +109,10 @@ for (const vp of [
     ["no-nav-dots", "busy-day dots stop painting", "dot actually paints"],
     ["nav-flat-today", "navigator today loses its weight", "carries weight"],
     ["nav-ragged-box", "navigator day box grows with its state", "one box in every state"],
+    ["strip-unpinned", "the collapsed week strip stops pinning", "collapsed strip pins"],
+    ["strip-translucent", "the pinned strip goes see-through", "strip band is opaque"],
+    ["grabber-hidden", "the grabber disappears — collapsed is a dead end", "grabber is visible"],
+    ["head-under-strip", "day heads pin above the strip and hide under it (D8)", "pins below the strip"],
   ];
   for (const [seed, what, mustMention] of seeds) {
     const failures = await runAudit(page, [seed]);

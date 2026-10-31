@@ -51,6 +51,10 @@ export interface CalendarStrings {
   readonly navigatorDayAriaLabel?: (dayLabel: string, count: number) => string;
   /** Phone navigator group accessible name. Default: "Calendar navigator". */
   readonly navigatorAriaLabel?: string;
+  /** Navigator grabber that expands the collapsed week strip to the month. Default: "Show full month". */
+  readonly navigatorExpandLabel?: string;
+  /** Navigator grabber that collapses the month back to the selected day's week. Default: "Show week only". */
+  readonly navigatorCollapseLabel?: string;
   /** Nav button group accessible name. Default: `${calendarLabel} navigation`. */
   readonly navGroupAriaLabel?: (calendarLabel: string) => string;
   /** Previous nav button text. Default: "Previous". */
@@ -402,16 +406,24 @@ function Navigator({
   days,
   weekdays,
   strings,
+  mode,
 }: {
   days: readonly CalendarDayProps<ReactNode>[];
   weekdays: readonly { short: string; long: string }[];
   strings: CalendarStrings;
+  mode: "month" | "week";
 }): ReactNode {
   // Default: today if the period contains it, else the first in-month day
   // (a week period can legitimately sit away from today).
   const [selectedDate, setSelectedDate] = useState<string>(
     () => days.find((d) => d.isToday)?.date ?? days.find((d) => d.inMonth)?.date ?? days[0]?.date ?? ""
   );
+  // Card 32b (D9): collapsed is the DEFAULT — the pinned strip is a week,
+  // not a month. Six rows plus a header is over a third of an 844px screen
+  // to pin, so only the collapsed strip sticks and the expanded month
+  // scrolls away like any other content.
+  const [expanded, setExpanded] = useState(false);
+  const rowsId = useId();
   const buttonsRef = useRef<Map<string, HTMLButtonElement>>(new Map());
   const pendingFocusRef = useRef(false);
   const navRef = useRef<HTMLDivElement | null>(null);
@@ -472,8 +484,42 @@ function Navigator({
 
   const nameDay = strings.navigatorDayAriaLabel ?? ((dayLabel: string, count: number) => `${dayLabel}, ${count} entries`);
 
+  const rows = weekRows(days);
+  const selectedIndex = days.findIndex((d) => d.date === selectedDate);
+  // Collapsed shows exactly the selected day's week. A selection the host
+  // removed (period change mid-render) falls back to the first row rather
+  // than rendering an empty strip.
+  const selectedRow = selectedIndex >= 0 ? Math.floor(selectedIndex / 7) : 0;
+  const showAll = expanded || mode === "week";
+  const visibleRows = showAll ? rows : rows.slice(selectedRow, selectedRow + 1);
+  // aria-controls names exactly the row elements that render (collapsed:
+  // the one visible week, not all five — a stale id points at nothing).
+  const rowIds = visibleRows.map((row) => `${rowsId}-${rows.indexOf(row)}`);
+  const rowIdOf = (row: (typeof visibleRows)[number]): string =>
+    rowIds[visibleRows.indexOf(row)] ?? `${rowsId}-hidden`;
+
   return (
-    <div ref={navRef} role="group" aria-label={strings.navigatorAriaLabel ?? "Calendar navigator"} data-part="navigator">
+    <div
+      ref={navRef}
+      role="group"
+      aria-label={strings.navigatorAriaLabel ?? "Calendar navigator"}
+      data-part="navigator"
+      /* "false" = the pinned strip form (a collapsed month, or week mode's
+         single row — one row is a strip); CSS sticks it under the host's
+         header. "true" = expanded month, which per D9 scrolls away. */
+      data-expanded={expanded ? "true" : "false"}
+    >
+      {mode === "month" ? (
+        <button
+          type="button"
+          data-part="navigator-toggle"
+          aria-expanded={expanded}
+          aria-controls={rowIds.join(" ")}
+          onClick={() => setExpanded((e) => !e)}
+        >
+          {(expanded ? strings.navigatorCollapseLabel : strings.navigatorExpandLabel) ?? (expanded ? "Show week only" : "Show full month")}
+        </button>
+      ) : null}
       <div data-part="navigator-weekday-row">
         {weekdays.map((w, i) => (
           // Single letter (first grapheme, locale-safe — never a hard-coded
@@ -483,8 +529,8 @@ function Navigator({
           </span>
         ))}
       </div>
-      {weekRows(days).map((row, r) => (
-        <div key={row[0]?.date ?? r} data-part="navigator-row">
+      {visibleRows.map((row, r) => (
+        <div key={row[0]?.date ?? r} id={rowIdOf(row)} data-part="navigator-row">
           {row.map((day) => (
             <button
               key={day.date}
@@ -689,7 +735,7 @@ export function Calendar({
           base — the phone container query shows it. month/week only: a
           future period-less mode would have no days to map. */}
       {mode === "month" || mode === "week" ? (
-        <Navigator days={days} weekdays={weekdays} strings={strings} />
+        <Navigator days={days} weekdays={weekdays} strings={strings} mode={mode} />
       ) : null}
 
       <div role="grid" aria-labelledby={titleId} aria-busy={loading ? true : undefined} data-part="grid">

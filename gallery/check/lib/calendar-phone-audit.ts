@@ -74,14 +74,14 @@ function auditCalendarPhone(options?: CalendarPhoneAuditOptions): CalendarPhoneF
   const VISIBILITY: { agenda: VisibilityRow; grid: VisibilityRow } = {
     agenda: {
       agenda: true,
-      show: ["day-weekday", "day-number", "grid", "navigator"],
+      show: ["day-weekday", "day-number", "grid", "navigator", "navigator-toggle"],
       hide: ["weekday-row", "day-date"],
       showWhenEntries: ["day"],
     },
     grid: {
       agenda: false,
       show: ["weekday-row", "day-number", "grid", "day"],
-      hide: ["day-date", "day-weekday", "navigator"],
+      hide: ["day-date", "day-weekday", "navigator", "navigator-toggle"],
     },
   };
 
@@ -90,6 +90,7 @@ function auditCalendarPhone(options?: CalendarPhoneAuditOptions): CalendarPhoneF
     "nav-previous", "nav-today", "nav-next", "mode-button",
     "entry-open", "move-trigger", "overflow",
     "move-confirm", "move-cancel", "action", "actions-trigger", "actions-cancel",
+    "navigator-toggle",
   ];
 
   // A short human label for a failing element: nearest day/date + text.
@@ -172,6 +173,27 @@ function auditCalendarPhone(options?: CalendarPhoneAuditOptions): CalendarPhoneF
     // it is today than when it is not — subtle enough that a glance at a
     // screenshot never catches it.
     seed('[data-yadad="calendar"] [data-part="navigator-day-number"] { box-sizing: content-box !important; }');
+  }
+  if (seeds.includes("strip-unpinned")) {
+    // The pre-32b navigator restored: the strip scrolls away with the list
+    // and you lose your place by the third day of the agenda.
+    seed('@container (max-width: 50ch) { [data-yadad="calendar"] [data-part="navigator"][data-expanded="false"] { position: static !important; } }');
+  }
+  if (seeds.includes("strip-translucent")) {
+    // The pinned strip stops occluding: entries smear through the strip
+    // exactly as the pre-31e translucent head band did.
+    seed('@container (max-width: 50ch) { [data-yadad="calendar"] [data-part="navigator"][data-expanded="false"] { background: transparent !important; } }');
+  }
+  if (seeds.includes("grabber-hidden")) {
+    // The grabber disappears: with it gone, collapsed is a dead end — no
+    // keyboard or touch route to the month (the reference's affordance).
+    seed('@container (max-width: 50ch) { [data-yadad="calendar"] [data-part="navigator-toggle"] { display: none !important; } }');
+  }
+  if (seeds.includes("head-under-strip")) {
+    // D8 broken the classic way: the heads pin at the host header's offset
+    // only, so the pinned strip covers them mid-scroll. The check compares
+    // the two computed offsets (head must pin strictly below the strip).
+    seed('@container (max-width: 50ch) { [data-yadad="calendar"] [data-part="day-head"] { inset-block-start: 0 !important; } }');
   }
 
   const roots = Array.from(document.querySelectorAll(rootSelector));
@@ -431,6 +453,78 @@ function auditCalendarPhone(options?: CalendarPhoneAuditOptions): CalendarPhoneF
         const pressed = navButtons.filter((b) => b.getAttribute("aria-pressed") === "true");
         if (pressed.length !== 1) {
           failures.push({ name: `${tag} navigator has one selected day`, expected: "exactly 1 aria-pressed=true", actual: String(pressed.length), detail: labelOf(nav) });
+        }
+
+        // (g2) card 32b — the strip form. Collapsed pins, expanded does not
+        // (D9), the grabber announces and controls exactly the rows that
+        // render, and the pinned day heads clear the strip (D8). Measured
+        // against the state the component declares, so the same audit runs
+        // collapsed and expanded (the runner toggles the grabber between).
+        const rootMode = root.getAttribute("data-mode");
+        const navRows = Array.from(nav.querySelectorAll('[data-part="navigator-row"]')).filter(rendered);
+        const toggle = root.querySelector('[data-part="navigator-toggle"]');
+        // The pinned strip form: a collapsed month, or week mode's single
+        // row (no grabber there per the card — one row is already a strip).
+        const stripMode = rootMode === "week" || nav.getAttribute("data-expanded") === "false";
+        if (stripMode) {
+          const ns = getComputedStyle(nav);
+          if (ns.position !== "sticky") {
+            failures.push({ name: `${tag} collapsed strip pins`, expected: "position: sticky", actual: ns.position, detail: labelOf(nav) });
+          }
+          if (parseFloat(ns.insetBlockStart) < 0) {
+            failures.push({ name: `${tag} collapsed strip offset`, expected: ">= 0 (var(--yadad-calendar-sticky-top))", actual: ns.insetBlockStart, detail: labelOf(nav) });
+          }
+          const opaque = ns.backgroundColor !== "rgba(0, 0, 0, 0)" && ns.backgroundColor !== "transparent";
+          if (!opaque) {
+            failures.push({ name: `${tag} strip band is opaque`, expected: "a surface colour (scrolled text must not smear through)", actual: ns.backgroundColor, detail: labelOf(nav) });
+          }
+          if (navRows.length !== 1) {
+            failures.push({ name: `${tag} collapsed strip is one week`, expected: "1 rendered navigator-row", actual: String(navRows.length), detail: labelOf(nav) });
+          }
+          // D8: with the strip pinned, the heads must pin BELOW it and the
+          // scroll clearance must include it — both read greater than the
+          // strip-less 31e values, derived not hard-coded.
+          const head = root.querySelector('[data-part="day-head"]');
+          if (head) {
+            const hs = getComputedStyle(head);
+            if (hs.position !== "sticky") {
+              failures.push({ name: `${tag} day head still pins under the strip`, expected: "sticky", actual: hs.position, detail: labelOf(head) });
+            }
+            if (parseFloat(hs.insetBlockStart) <= parseFloat(ns.insetBlockStart)) {
+              failures.push({ name: `${tag} day head pins below the strip (D8)`, expected: `> strip offset ${ns.insetBlockStart}`, actual: hs.insetBlockStart, detail: labelOf(head) });
+            }
+            // Occlusion, not just ordering: a head pinned inside the strip's
+            // band hides behind it mid-scroll. The offsets must be composed
+            // (sticky-top + the strip's REAL height), so any pinned head's
+            // offset clears the strip's bottom edge. (This is the check the
+            // first 32b draft failed: a 33px strip-size default vs a 113px
+            // strip — the heads' inset beat the strip's, yet sat inside it.)
+            const stripHeight = nav.getBoundingClientRect().height;
+            if (parseFloat(hs.insetBlockStart) < parseFloat(ns.insetBlockStart) + stripHeight - 1) {
+              failures.push({ name: `${tag} pinned head clears the strip's band (D8)`, expected: `>= ${Math.round(parseFloat(ns.insetBlockStart) + stripHeight)}px (strip ${Math.round(stripHeight)} tall)`, actual: hs.insetBlockStart, detail: labelOf(head) });
+            }
+          }
+        } else {
+          const ns = getComputedStyle(nav);
+          if (ns.position !== "static") {
+            failures.push({ name: `${tag} expanded month does not pin (D9)`, expected: "static (scrolls away)", actual: ns.position, detail: labelOf(nav) });
+          }
+        }
+        if (toggle) {
+          const expandedAttr = toggle.getAttribute("aria-expanded");
+          if (expandedAttr !== String(!stripMode)) {
+            failures.push({ name: `${tag} grabber announces its state`, expected: `aria-expanded=${String(!stripMode)}`, actual: String(expandedAttr), detail: labelOf(toggle) });
+          }
+          const ctrl = (toggle.getAttribute("aria-controls") || "").split(/\s+/).filter(Boolean);
+          const ctrlEls = ctrl.map((id) => document.getElementById(id)).filter((el): el is HTMLElement => !!el);
+          if (ctrl.length === 0 || ctrlEls.length !== ctrl.length) {
+            failures.push({ name: `${tag} grabber controls the rendered rows`, expected: `${navRows.length} live row ids`, actual: `${ctrlEls.length}/${ctrl.length} resolve`, detail: labelOf(toggle) });
+          } else if (ctrlEls.length !== navRows.length) {
+            failures.push({ name: `${tag} grabber controls exactly the rendered rows`, expected: String(navRows.length), actual: String(ctrlEls.length), detail: labelOf(toggle) });
+          }
+          if (!rendered(toggle)) {
+            failures.push({ name: `${tag} grabber is visible`, expected: "visible", actual: "hidden", detail: labelOf(toggle) });
+          }
         }
       }
       // (f) card 31f: the list rhythm — row band, entry gap, three-step

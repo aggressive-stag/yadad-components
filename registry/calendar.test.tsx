@@ -557,3 +557,104 @@ describe("phone navigator (card 32a)", () => {
     expect(cells.filter((c) => c.tabIndex === 0)).toHaveLength(1);
   });
 });
+
+describe("navigator week strip (card 32b)", () => {
+  /** Five-week month fixture; selection starts on today (row 0). */
+  function stripRender(over: { strings?: import("../sets/base/calendar/v1/Calendar.js").CalendarStrings } = {}) {
+    const days: CalendarDayProps<ReactNode>[] = Array.from({ length: 35 }, (_, i) => ({
+      date: `2026-10-${String(1 + i).padStart(2, "0")}`,
+      dayOfMonth: 1 + i,
+      weekday: i % 7,
+      label: `Day ${1 + i} October 2026`,
+      inMonth: i >= 3,
+      isToday: i === 15, // row 2
+      entries: [],
+    }));
+    Element.prototype.scrollIntoView = vi.fn();
+    const view = render(
+      <Calendar
+        label="Training"
+        title="October 2026"
+        mode="month"
+        modes={[{ mode: "month", label: "Month" }]}
+        weekdays={calendarWeekdays}
+        days={days}
+        legend={[]}
+        loading={false}
+        onModeChange={() => {}}
+        onPrevious={() => {}}
+        onNext={() => {}}
+        onToday={() => {}}
+        {...(over.strings ? { strings: over.strings } : {})}
+      />,
+    );
+    const nav = view.container.querySelector('[data-part="navigator"]') as HTMLElement;
+    const toggle = view.container.querySelector('[data-part="navigator-toggle"]') as HTMLButtonElement;
+    const rows = () => Array.from(nav.querySelectorAll('[data-part="navigator-row"]'));
+    return { ...view, nav, toggle, rows };
+  }
+
+  it("collapses by default to the selected day's week, declared as the pinned strip", () => {
+    const { nav, toggle, rows } = stripRender();
+    expect(nav.getAttribute("data-expanded")).toBe("false");
+    expect(rows()).toHaveLength(1);
+    // selected day is today (row 2): the one visible row is week 2
+    expect(rows()[0]?.querySelectorAll("[data-part='navigator-day']")).toHaveLength(7);
+    expect(rows()[0]?.querySelector("[data-part='navigator-day'][data-today='true']")).toBeTruthy();
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("the grabber controls exactly the rendered rows", () => {
+    const { nav, toggle, rows } = stripRender();
+    const ids = (toggle.getAttribute("aria-controls") ?? "").split(/\s+/).filter(Boolean);
+    expect(ids.length).toBe(1);
+    const el = nav.ownerDocument.getElementById(ids[0] ?? "");
+    expect(el).toBe(rows()[0]);
+  });
+
+  it("expanding shows every week, announces it, and names all rows", () => {
+    const { toggle, rows } = stripRender();
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect(rows()).toHaveLength(5);
+    const ids = (toggle.getAttribute("aria-controls") ?? "").split(/\s+/).filter(Boolean);
+    expect(ids).toHaveLength(5);
+    for (const id of ids) expect(document.getElementById(id)).toBeTruthy();
+  });
+
+  it("expanding moves neither focus nor list scroll; collapsing returns to the selected week", () => {
+    const { nav, toggle, rows } = stripRender();
+    const scrollSpy = Element.prototype.scrollIntoView as ReturnType<typeof vi.fn>;
+    toggle.focus();
+    fireEvent.click(toggle); // expand
+    expect(document.activeElement).toBe(toggle);
+    expect(scrollSpy).not.toHaveBeenCalled();
+    // select a day in the last week while expanded
+    const late = nav.querySelector("[data-part='navigator-day'][data-date='2026-10-31']") as HTMLButtonElement;
+    fireEvent.click(late);
+    fireEvent.click(toggle); // collapse again
+    expect(rows()).toHaveLength(1);
+    const shown = Array.from(rows()[0]?.querySelectorAll("[data-part='navigator-day']") ?? []);
+    expect(shown.some((b) => b.getAttribute("data-date") === "2026-10-31")).toBe(true);
+  });
+
+  it("week mode is one pinned row with no grabber", () => {
+    const view = render(
+      <Calendar label="W" title="W" mode="week" modes={[{ mode: "week", label: "Week" }]}
+        weekdays={calendarWeekdays}
+        days={Array.from({ length: 7 }, (_, i) => ({ date: `2026-10-${14 + i}`, dayOfMonth: 14 + i, weekday: i, label: `d${i}`, inMonth: true, isToday: false, entries: [] }))}
+        legend={[]} loading={false} onModeChange={() => {}} onPrevious={() => {}} onNext={() => {}} onToday={() => {}} />,
+    );
+    const nav = view.container.querySelector('[data-part="navigator"]') as HTMLElement;
+    expect(view.container.querySelector('[data-part="navigator-toggle"]')).toBeNull();
+    expect(nav.getAttribute("data-expanded")).toBe("false"); // the strip form
+    expect(nav.querySelectorAll("[data-part='navigator-row']")).toHaveLength(1);
+  });
+
+  it("strings.navigatorExpandLabel / navigatorCollapseLabel replace the grabber's name", () => {
+    const { toggle } = stripRender({ strings: { navigatorExpandLabel: "Todo el mes", navigatorCollapseLabel: "Solo la semana" } });
+    expect(toggle.textContent).toBe("Todo el mes");
+    fireEvent.click(toggle);
+    expect(toggle.textContent).toBe("Solo la semana");
+  });
+});

@@ -1280,6 +1280,7 @@ const LAYOUT_ANCHORS = [
   "calendar-phone-agenda",
   "calendar-phone-sticky-agenda",
   "calendar-phone-sticky-hosted",
+  "calendar-phone-strip-hosted",
   "calendar-movable",
   "calendar-actions",
   "calendar-done",
@@ -1756,6 +1757,18 @@ export default function App(): ReactNode {
                   yadad
                 </div>
                 <CalendarHarness id="Training (sticky agenda, hosted header)" initialMode="month" initialAnchor={CALENDAR_TODAY} entries={calendarFixtureEntries} />
+              </div>
+            </div>,
+          )}
+          {state(
+            "calendar-phone-strip-hosted",
+            "the pinned week strip under a fake 96px host header: strip pins at sticky-top, each day's head pins below the strip (D8), and the grabber expands the month — which scrolls away (card 32b)",
+            <div className="phone-frame">
+              <div data-yadad-test="cal32b-hosted" id="cal32b-hosted" className="scroll-host" style={{ blockSize: "320px", overflowY: "auto", "--yadad-calendar-sticky-top": "96px" } as CSSProperties}>
+                <div data-yadad-test="fake-header" style={{ position: "sticky", insetBlockStart: 0, zIndex: 4, blockSize: "96px", display: "flex", alignItems: "center", paddingInline: "var(--yadad-space-2)", fontWeight: 700, background: "var(--yadad-color-surface)", borderBlockEnd: "1px solid var(--yadad-color-border)" }}>
+                  yadad
+                </div>
+                <CalendarHarness id="Training (week strip, hosted header)" initialMode="month" initialAnchor={CALENDAR_TODAY} entries={calendarFixtureEntries} />
               </div>
             </div>,
           )}
