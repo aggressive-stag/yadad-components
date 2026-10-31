@@ -1,0 +1,117 @@
+/* internal/check/v1 — the shared check primitive (card 31b / plan M01).
+   A native `<input type="checkbox">` painted by us: `appearance: none` keeps
+   keyboard (Space), form and accessible-name behaviour native and gives up
+   only the paint, which is drawn here from tokens (plan D7 — colors only
+   through tokens or system colors; the forced-colors block below is the one
+   place a system color is legal). The look follows the owner's SPA
+   reference (`todo-app/static/style.css` `.chk`, cited in the plan): a box
+   that fills with the accent and shows a tick. The tick is two 45° gradient
+   strokes (an `<input>` has no children and pseudo-elements on it are not
+   reliably painted across engines); the fill/border transition in and the
+   reduced-motion override below it live in this same file, which is exactly
+   what scripts/theming.ts (15c) checks for.
+   Override any --yadad-check-* variable or the underlying tokens. */
+@layer yadad.components {
+  :where([data-yadad="check"]) {
+    /* Private aliases (31b): each --yadad-check-* reads through an internal
+       custom property so a consumer set — the calendar adopts the primitive
+       in this release — can re-point one variable (its deprecated
+       --yadad-calendar-* aliases) from its own sheet without depending on
+       rule order and without a var() cycle. Defaults are tokens; the box is
+       the 22px the owner picked from the SPA reference (plan M01 — "a
+       21–22px circle that fills with the accent"): space-4 + space-1 +
+       focus-ring-width = 16+4+2 = 22px at the default theme. */
+    --_yadad-check-size: var(--yadad-check-size, calc(var(--yadad-space-4) + var(--yadad-space-1) + var(--yadad-focus-ring-width)));
+    --_yadad-check-radius: var(--yadad-check-radius, var(--yadad-radius-sm));
+    --_yadad-check-border-width: var(--yadad-check-border-width, var(--yadad-focus-ring-width));
+    --_yadad-check-border: var(--yadad-check-border, var(--yadad-color-border));
+    --_yadad-check-border-hover: var(--yadad-check-border-hover, var(--yadad-color-accent));
+    --_yadad-check-off: var(--yadad-check-off, var(--yadad-color-background));
+    --_yadad-check-on: var(--yadad-check-on, var(--yadad-color-accent));
+    --_yadad-check-focus: var(--yadad-check-focus, var(--yadad-color-accent));
+    --_yadad-check-tick: var(--yadad-check-tick-color, var(--yadad-color-background));
+    --_yadad-check-tick-width: var(--yadad-check-tick-width, var(--yadad-focus-ring-width));
+    appearance: none;
+    -webkit-appearance: none;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    margin: 0;
+    cursor: inherit;
+    inline-size: var(--_yadad-check-size);
+    block-size: var(--_yadad-check-size);
+    border: var(--_yadad-check-border-width) solid var(--_yadad-check-border);
+    border-radius: var(--_yadad-check-radius);
+    background-color: var(--_yadad-check-off);
+    /* The tick: two diagonal strokes meeting at the elbow just left of and
+       below centre — a short arm descending to the elbow (a 45° gradient
+       draws a "\" band) and a long arm rising from it (a 135° gradient
+       draws a "/" band), like the SPA reference tick. */
+    background-image:
+      linear-gradient(
+        45deg,
+        transparent calc(50% - var(--_yadad-check-tick-width) / 2),
+        var(--_yadad-check-tick) calc(50% - var(--_yadad-check-tick-width) / 2)
+          calc(50% + var(--_yadad-check-tick-width) / 2),
+        transparent calc(50% + var(--_yadad-check-tick-width) / 2)
+      ),
+      linear-gradient(
+        135deg,
+        transparent calc(50% - var(--_yadad-check-tick-width) / 2),
+        var(--_yadad-check-tick) calc(50% - var(--_yadad-check-tick-width) / 2)
+          calc(50% + var(--_yadad-check-tick-width) / 2),
+        transparent calc(50% + var(--_yadad-check-tick-width) / 2)
+      );
+    background-size: 0 0, 0 0;
+    background-repeat: no-repeat, no-repeat;
+    background-position: left 0 top 0, left 0 top 0;
+    transition:
+      background-color 120ms ease,
+      border-color 120ms ease;
+  }
+
+  :where([data-yadad="check"]):not(:disabled):hover {
+    border-color: var(--yadad-check-border-hover, var(--yadad-color-accent));
+  }
+
+  :where([data-yadad="check"]):checked {
+    background-color: var(--yadad-check-on, var(--yadad-color-accent));
+    border-color: var(--yadad-check-on, var(--yadad-color-accent));
+    /* Elbow at ~42%/66%: the "\" arm box starts at (18%,42%) and the "/"
+       arm box runs from (40%,16%) — their inner ends meet at the elbow. */
+    background-size: 25% 25%, 45% 50%;
+    background-position: left 18% top 42%, left 40% top 16%;
+  }
+
+  :where([data-yadad="check"]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--yadad-check-focus, var(--yadad-color-accent));
+    outline-offset: var(--yadad-focus-ring-width);
+  }
+
+  :where([data-yadad="check"]):disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :where([data-yadad="check"]) {
+      transition: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    /* `appearance: none` gave up the native high-contrast rendering, so map
+       the states to system colors here (plan D7): a CanvasText border box,
+       a Highlight fill with a Canvas tick when checked. `forced-color-adjust:
+       none` keeps these declarations painted as written. */
+    :where([data-yadad="check"]) {
+      forced-color-adjust: none;
+      background-color: Canvas;
+      border-color: CanvasText;
+    }
+    :where([data-yadad="check"]):checked {
+      background-color: Highlight;
+      border-color: Highlight;
+      --_yadad-check-tick: Canvas;
+    }
+  }
+}

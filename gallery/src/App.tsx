@@ -62,6 +62,7 @@ import { Table as TableComponent } from "../../sets/base/table/v1/index.js";
 import { Pager, TablePager } from "../../sets/base/pager/v1/index.js";
 import { Chip, ChipRow } from "../../sets/base/composer/v1/index.js";
 import { BooleanInput } from "../../sets/base/boolean/v1/index.js";
+import { Check } from "../../sets/internal/check/v1/index.js";
 const TextEntry = baseRegistry.fields.text;
 
 /**
@@ -369,6 +370,35 @@ function TagsStates(): ReactNode {
       {state("tags-display-one", "display: one chip", <Display field={field} value={["squat"]} />)}
       {state("tags-display-many", "display: many long chips (wraps at 320px)", <Display field={field} value={["squat", "bench press", "deadlift", "overhead press, strict, from the rack", "5x5 @ 100 kg", "accessory work", "feet elevated"]} />)}
     </section>
+  );
+}
+
+/**
+ * The `Check` primitive's own story (card 31b / plan M01): the square (the
+ * default radius) and the circle (`--yadad-check-radius: 50%`, the SPA's
+ * look), each unchecked, checked and locked. The theme buttons above cover
+ * light/dark; the forced-colours path is gallery/check/contrast.ts (Path B
+ * asserts check.css's @media block, Path A measures it emulated). Proves one
+ * `--yadad-check-*` surface paints every completion box in the set.
+ */
+function CheckStates(): ReactNode {
+  const [square, setSquare] = useState(true);
+  const [circle, setCircle] = useState(false);
+  return (
+    <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap" }}>
+      <label style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+        <Check data-testid="check-square" checked={square} onChange={(e) => setSquare(e.target.checked)} aria-label="Square check (default radius)" />
+        Square (default radius)
+      </label>
+      <label style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", ["--yadad-check-radius" as string]: "50%" }}>
+        <Check data-testid="check-circle" checked={circle} onChange={(e) => setCircle(e.target.checked)} aria-label="Circle check (SPA radius)" />
+        Circle (--yadad-check-radius: 50%)
+      </label>
+      <label style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+        <Check data-testid="check-locked" checked={false} disabled onChange={() => {}} aria-label="Locked check" />
+        Locked
+      </label>
+    </div>
   );
 }
 
@@ -1206,6 +1236,7 @@ const LAYOUT_ANCHORS = [
   "chips-row-phone",
   "batch-composer",
   "checklist-rows",
+  "check-primitive",
 ] as const;
 
 const FIELD_STATES = ["empty", "filled", "required", "invalid", "display-value", "display-empty"] as const;
@@ -1370,6 +1401,7 @@ export default function App(): ReactNode {
         <TextMaxLengthStates />
         <FieldGroup type="number" />
         <FieldGroup type="boolean" />
+        {state("check-primitive", "the internal Check primitive (card 31b): square and circle, checked/unchecked/locked — one --yadad-check-* surface paints every completion box", <CheckStates />)}
         <FieldGroup type="select" />
         <SelectStates />
         <FieldGroup type="date" />

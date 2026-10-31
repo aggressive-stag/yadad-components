@@ -392,6 +392,7 @@ const PART_DESCRIPTION: Record<string, Record<string, string>> = {
   panel: { root: "the panel wrapper", title: "the panel title" },
   pager: { root: "the `<nav>` wrapper", info: "the count text between the buttons (polite live text; the registry pager marks the current page here with aria-current)" },
   skeleton: { skeleton: "a grey placeholder bar (`aria-hidden`; the loading announcement stays the host's text)" },
+  check: { "check-input": "the native `<input type=\"checkbox\">` itself — with `appearance: none` it IS the painted box (border, fill, tick); it carries `data-yadad=\"check\"`, so style it with the check component's variables, not the owning component's" },
   section: { root: "the `<fieldset>` wrapper", title: "the `<legend>` title" },
   reference: { input: "the picker `<select>`; it carries `data-yadad=\"select\"`, so style it with the select component's variables and selector, not this component's", status: "the status line under the picker (loading, error, empty, cut short)", combobox: "wrapper of the type-to-filter input and its popup (8 or more records)", listbox: "the combobox popup `<ul role=\"listbox\">`", option: "one `<li role=\"option\">` in the popup (`data-active` = the keyboard-highlighted one, `data-state=\"empty\"` = the No matches row)", display: "read-only label of the referenced record", swatch: "the RFC 0008 `colorFrom` dot beside the label (`data-slot=0..7`; `aria-hidden`; no dot for a colour outside the documented vocabulary)" },
   select: { input: "the `<select>` picker", display: "read-only value (`inline-flex`, gap before the dot)", swatch: "the RFC 0008 option-colour dot (`data-slot=0..7` = the documented vocabulary index; `aria-hidden` — the label text beside it is the signal)" },
@@ -404,6 +405,7 @@ const PART_DESCRIPTION: Record<string, Record<string, string>> = {
 
 const COMPONENT_INTRO: Record<string, string> = {
   boolean: "A single on/off field, rendered as a checkbox.",
+  check: "Internal shared primitive (card 31b): the painted checkbox every completion control uses — the calendar's `done` box today, board and boolean in 31c. Apps never render it directly; they theme it through these variables.",
   board: "Cards in columns, one column per value of a field, with a group-by picker; columns scroll sideways and each column scrolls on its own.",
   calendar: "A month/week grid of entries with navigation, a colour-slot legend, and a keyboard/touch move control.",
   button: "A pressable control with primary/secondary variants.",
@@ -469,7 +471,7 @@ const VAR_DESCRIPTION: Record<string, string> = {
   "board-status-background": "live-region background",
   "board-move-panel-max-height": "tallest the \"Move to…\" panel gets before it scrolls inside the column (keeps Cancel reachable)",
   "board-checkbox-size": "done checkbox box size under a coarse pointer (its label stays the 44px target)",
-  "calendar-checkbox-size": "done checkbox box size under a coarse pointer (its label stays the 44px target)",
+  "calendar-checkbox-size": "DEPRECATED (card 31b): alias of `--yadad-check-size` on the calendar's done box; set `--yadad-check-size` instead (removal no earlier than the next major)",
   "board-touch-font-size": "input font size under a coarse pointer; defaults to the larger of 1rem and the theme's font-size-md, so it never drops below 16px. Set it smaller only on purpose: iOS then zooms on focus",
   "calendar-touch-font-size": "input font size under a coarse pointer; defaults to the larger of 1rem and the theme's font-size-md, so it never drops below 16px. Set it smaller only on purpose: iOS then zooms on focus",
   "text-touch-font-size": "input font size under a coarse pointer; defaults to the larger of 1rem and the theme's font-size-md, so it never drops below 16px. Set it smaller only on purpose: iOS then zooms on focus",
@@ -512,7 +514,7 @@ const VAR_DESCRIPTION: Record<string, string> = {
   "calendar-drop-target": "drag drop-target outline color",
   "calendar-drop-target-background": "drag drop-target background",
   "calendar-done-color": "completion checkbox label text color",
-  "calendar-done-accent": "completion checkbox accent color",
+  "calendar-done-accent": "DEPRECATED (card 31b): alias of `--yadad-check-on` on the calendar's done box; set `--yadad-check-on` instead (removal no earlier than the next major)",
   "calendar-actions-link": "record-action / actions-trigger / Cancel text color",
   "calendar-actions-border": "record-action button and actions-panel border color",
   "calendar-actions-focus": "record-action keyboard focus ring color",
@@ -595,6 +597,19 @@ const VAR_DESCRIPTION: Record<string, string> = {
   "skeleton-sheen-color": "colour of the shimmer sweep across a bar",
   "skeleton-radius": "corner radius of a placeholder bar",
   "skeleton-duration": "how long one shimmer sweep takes (removed under reduced motion)",
+  // check (internal primitive, card 31b / plan M01) — every control that
+  // shows a checked square (calendar done today; board + boolean in 31c)
+  // paints through these; the look follows the owner's SPA reference.
+  "check-size": "side of the drawn box (the label around it stays the 44px tap target)",
+  "check-radius": "corner radius of the box (`50%` gives the SPA's circle)",
+  "check-border": "box border colour at rest",
+  "check-border-width": "box border width",
+  "check-border-hover": "box border colour under the pointer",
+  "check-off": "box fill when unchecked",
+  "check-on": "box fill and border when checked (the accent fill of the SPA look)",
+  "check-focus": "focus-ring colour of the box",
+  "check-tick-color": "colour of the tick stroke (over the checked fill)",
+  "check-tick-width": "thickness of the tick stroke",
   // section
   "section-spacing": "space after the section", "section-padding": "inner padding",
   "section-background": "background", "title-size": "title font size",

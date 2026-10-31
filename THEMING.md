@@ -299,17 +299,40 @@ A month/week grid of entries with navigation, a colour-slot legend, and a keyboa
 - `--yadad-calendar-drop-target-background` — drag drop-target background; default: `var(--yadad-calendar-header-background, var(--yadad-color-surface))` (token-derived: `--yadad-color-surface`)
 - `--yadad-calendar-today` — today ring and badge color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-calendar-done-color` — completion checkbox label text color; default: token `--yadad-color-text` (main text color)
-- `--yadad-calendar-done-accent` — completion checkbox accent color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-calendar-checkbox-size` — DEPRECATED (card 31b): alias of `--yadad-check-size` on the calendar's done box; set `--yadad-check-size` instead (removal no earlier than the next major); default: `var(--yadad-check-size, calc(var(--yadad-space-4) + var(--yadad-space-1) + var(--yadad-focus-ring-width)))` (token-derived: `--yadad-focus-ring-width`, `--yadad-space-1`, `--yadad-space-4`)
+- `--yadad-calendar-done-accent` — DEPRECATED (card 31b): alias of `--yadad-check-on` on the calendar's done box; set `--yadad-check-on` instead (removal no earlier than the next major); default: `var(--yadad-check-on, var(--yadad-color-accent))` (token-derived: `--yadad-color-accent`)
 - `--yadad-calendar-actions-border` — record-action button and actions-panel border color; default: token `--yadad-color-border` (borders and dividers)
 - `--yadad-calendar-actions-link` — record-action / actions-trigger / Cancel text color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-calendar-actions-focus` — record-action keyboard focus ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-calendar-actions-danger` — danger-tone record-action text and border color; default: token `--yadad-color-danger` (error / danger text and borders)
 - `--yadad-calendar-actions-disabled-opacity` — disabled (action in flight) record-action opacity; default: `0.6`
 - `--yadad-calendar-link` — move-trigger / overflow button text color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
-- `--yadad-calendar-checkbox-size` — done checkbox box size under a coarse pointer (its label stays the 44px target); default: `calc(var(--yadad-space-4) + var(--yadad-space-1))` (token-derived: `--yadad-space-1`, `--yadad-space-4`)
 - `--yadad-calendar-touch-font-size` — input font size under a coarse pointer; defaults to the larger of 1rem and the theme's font-size-md, so it never drops below 16px. Set it smaller only on purpose: iOS then zooms on focus; default: `var(--yadad-touch-font-size, max(var(--yadad-space-4), var(--yadad-font-size-md)))` (token-derived: `--yadad-font-size-md`, `--yadad-space-4`)
 
 **Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-md`, `--yadad-shadow-md`, `--yadad-shadow-sm`, `--yadad-space-1`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
+
+### check
+
+Internal shared primitive (card 31b): the painted checkbox every completion control uses — the calendar's `done` box today, board and boolean in 31c. Apps never render it directly; they theme it through these variables.
+
+**`data-part` names** (marked parts carry the component marker and take `[data-yadad="<component>"][data-part="<name>"]`; nested parts are inside the component root and take the descendant form `[data-yadad="<component>"] [data-part="<name>"]` — the compound form on a nested part matches nothing):
+
+- `check-input` — the native `<input type="checkbox">` itself — with `appearance: none` it IS the painted box (border, fill, tick); it carries `data-yadad="check"`, so style it with the check component's variables, not the owning component's (target with `[data-yadad="check"][data-part="check-input"]`)
+
+**Per-component variables** (set on the component or an ancestor; the default is shown):
+
+- `--yadad-check-size` — side of the drawn box (the label around it stays the 44px tap target); default: `calc(var(--yadad-space-4) + var(--yadad-space-1) + var(--yadad-focus-ring-width))` (token-derived: `--yadad-focus-ring-width`, `--yadad-space-1`, `--yadad-space-4`)
+- `--yadad-check-radius` — corner radius of the box (`50%` gives the SPA's circle); default: token `--yadad-radius-sm` (small corner radius (inputs, buttons, chips))
+- `--yadad-check-border-width` — box border width; default: token `--yadad-focus-ring-width` (keyboard focus-ring width)
+- `--yadad-check-border` — box border colour at rest; default: token `--yadad-color-border` (borders and dividers)
+- `--yadad-check-border-hover` — box border colour under the pointer; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-check-off` — box fill when unchecked; default: token `--yadad-color-background` (page and control background)
+- `--yadad-check-on` — box fill and border when checked (the accent fill of the SPA look); default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-check-focus` — focus-ring colour of the box; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-check-tick-color` — colour of the tick stroke (over the checked fill); default: token `--yadad-color-background` (page and control background)
+- `--yadad-check-tick-width` — thickness of the tick stroke; default: token `--yadad-focus-ring-width` (keyboard focus-ring width)
+
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-focus-ring-width`, `--yadad-radius-sm`, `--yadad-space-1`, `--yadad-space-4`
 
 ### composer
 

@@ -10,6 +10,7 @@
 // so an internal stylesheet is appended to every base fragment whose view
 // imports the internal component (see needsInternal below).
 import { globSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import path from "node:path";
 import { fallbackCss } from "./token-fallback.ts";
 
 const files = globSync("sets/**/*.css").sort();
@@ -38,7 +39,13 @@ for (const f of files) {
   const extras: string[] = [];
   const baseDir = `sets/base/${m[1]}/`;
   const sources = globSync(`${baseDir}**/*.tsx`);
-  for (const internal of ["menu", "skeleton", "swatch"]) {
+  // Card 31b: derive the internal sheets from sets/internal/ instead of a
+  // hand-kept list — a new internal primitive is picked up automatically
+  // (a hand-kept list silently ships geometry without the primitive's styles).
+  const internals = globSync("sets/internal/*")
+    .map((d) => path.basename(d))
+    .sort();
+  for (const internal of internals) {
     if (sources.some((s) => readFileSync(s, "utf8").includes(`internal/${internal}/v1`))) {
       for (const css of globSync(`sets/internal/${internal}/**/*.css`)) {
         extras.push(`\n/* ${css} (used by ${m[1]}) */\n${readFileSync(css, "utf8").trim()}`);

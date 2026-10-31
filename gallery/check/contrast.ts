@@ -21,6 +21,7 @@ const CSS = {
   calendar: "sets/base/calendar/v1/calendar.css",
   panel: "sets/base/panel/v1/panel.css",
   text: "sets/base/text/v1/text.css",
+  check: "sets/internal/check/v1/check.css",
 };
 
 function forcedBlocks(file: string): string {
@@ -93,6 +94,32 @@ async function main() {
     check("dialog found on page for forced-colors measurement", false, "no open dialog found");
   }
 
+  // The Check primitive (card 31b): with forced-color-adjust:none the box
+  // must keep a CanvasText border and, when checked, a painted fill that is
+  // visibly different from the unchecked one (Highlight vs Canvas).
+  const boxes = page.locator("#check-primitive [data-part=\"check-input\"]");
+  if ((await boxes.count()) >= 2) {
+    const paints = await boxes.evaluateAll((els) =>
+      els.map((e) => {
+        const s = getComputedStyle(e);
+        return {
+          borderW: parseFloat(s.borderTopWidth) || 0,
+          borderStyle: s.borderTopStyle,
+          bg: s.backgroundColor,
+          checked: (e as HTMLInputElement).checked,
+        };
+      }),
+    );
+    if (emulated && reported) {
+      const off = paints.find((p) => !p.checked);
+      const on = paints.find((p) => p.checked);
+      check("check keeps a border under forced-colors", paints.every((p) => p.borderW > 0 && p.borderStyle !== "none"), JSON.stringify(paints));
+      check("checked check paints a fill different from the unchecked one", !!off && !!on && off.bg !== on.bg, `off=${off?.bg} on=${on?.bg}`);
+    }
+  } else if (emulated && reported) {
+    check("check primitive found for forced-colors measurement", false, "no #check-primitive boxes");
+  }
+
   await browser.close();
 
   // Path B is always run: the authored CSS must carry the blocks regardless of
@@ -104,6 +131,7 @@ async function main() {
     [CSS.calendar, [/data-part="actions-panel"\], \[data-part="move-panel"/, /outline:\s*1px solid CanvasText/]],
     [CSS.panel, [/border:\s*1px solid CanvasText/]],
     [CSS.text, [/diff-added[\s\S]*text-decoration:\s*underline/, /diff-removed[\s\S]*text-decoration:\s*line-through/, /background:\s*transparent/]],
+    [CSS.check, [/background-color:\s*Canvas/, /border-color:\s*CanvasText/, /background-color:\s*Highlight/]],
   ];
   for (const [file, expects] of expectations) {
     const blocks = forcedBlocks(file);
