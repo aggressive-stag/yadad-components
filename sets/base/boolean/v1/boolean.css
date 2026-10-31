@@ -2,23 +2,29 @@
    --yadad-boolean-size: the tick box's rendered side. In a checklist the box IS
    the row's tap target (RFC 0009 item 6), so the default is thumb-sized
    (1.5x space-4 = 24px at defaults, rescaling with the theme) rather than the
-   browser's 13px. */
+   browser's 13px.
+
+   Card 31c: the box is the shared internal `Check` primitive — appearance:none
+   and the border/fill/tick paint, margin, focus ring and disabled cursor all
+   come from its sheet, which scripts/build-css.ts appends to this fragment.
+   The input keeps `data-yadad="boolean"` and `data-part="input"`, so THEMING's
+   compound selector and field-frame's :has([data-yadad="boolean"]) label floor
+   are unchanged; the primitive always also carries data-yadad-check, which is
+   what its own sheet paints. These rules run ABOVE the primitive's :where
+   rules on purpose (specificity 0,2,0 vs 0,0,0 — fragment order never
+   decides): --yadad-boolean-size keeps its thumb-sized default (the primitive's
+   own 22px would shrink a checklist row's only tap target), and the invalid
+   outline keeps beating the primitive's focus-visible outline the way source
+   order did before. */
 @layer yadad.components {
-  :where([data-yadad="boolean"][data-part="input"]) {
-    inline-size: var(--yadad-boolean-size, calc(var(--yadad-space-4) * 1.5));
-    block-size: var(--yadad-boolean-size, calc(var(--yadad-space-4) * 1.5));
-    margin: 0;
-    flex-shrink: 0;
-    accent-color: var(--yadad-boolean-accent, var(--yadad-color-accent));
+  [data-yadad="boolean"][data-part="input"] {
+    --_yadad-check-size: var(--yadad-boolean-size, var(--yadad-check-size, calc(var(--yadad-space-4) * 1.5)));
+    --_yadad-check-on: var(--yadad-boolean-accent, var(--yadad-check-on, var(--yadad-color-accent)));
+    --_yadad-check-focus: var(--yadad-boolean-focus, var(--yadad-check-focus, var(--yadad-color-accent)));
     cursor: pointer;
   }
 
-  :where([data-yadad="boolean"][data-part="input"]):focus-visible {
-    outline: var(--yadad-focus-ring-width) solid var(--yadad-boolean-focus, var(--yadad-color-accent));
-    outline-offset: 1px;
-  }
-
-  :where([data-yadad="boolean"][data-part="input"][aria-invalid="true"]) {
+  [data-yadad="boolean"][data-part="input"][aria-invalid="true"] {
     outline: 1px solid var(--yadad-boolean-border-invalid, var(--yadad-color-danger));
   }
 }

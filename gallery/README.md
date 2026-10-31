@@ -18,6 +18,7 @@ GALLERY_URL=http://localhost:5151/ node --experimental-strip-types gallery/check
 | `shared-touch-vars.ts` | one shared `--yadad-touch-font-size`/`--yadad-touch-tap` moves every text-entry control at 390 touch; per-component override still wins; desktop unchanged (card 30a) |
 | `calendar-phone.ts` | calendar 390/320 touch audit in both themes: no rendered part at zero size, the per-mode visibility table, entries fill the root, 44px hit targets; seeded regressions must be caught (card 31a, audit in `lib/calendar-phone-audit.ts`) |
 | `check-phone.ts` | the shared `Check` primitive at 390 touch: the calendar's done box draws ≥22px inside its ≥44px label, the tick paints only when checked, and the `--yadad-check-*` / deprecated `--yadad-calendar-checkbox-size` theming contract holds (card 31b) |
+| `check-consumers.ts` | board and boolean adopt the shared `Check`: at 390 touch the calendar and board done boxes measure identical under one `--yadad-check-*` surface, all three keep their markers (`[data-yadad="boolean"][data-part="input"]` survives), Space toggles each, one `--yadad-check-size` reaches all three, and the deprecated `--yadad-board-*` aliases still work on the board box only (card 31c) |
 | `tabs-keyboard.ts` | tab keyboard nav + focus-ring clipping at 200% text (card 3) |
 | `contrast.ts` | forced-colors paint + reduced-motion guard (card 15c) |
 

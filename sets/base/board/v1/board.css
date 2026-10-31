@@ -256,19 +256,20 @@
     font-size: var(--yadad-font-size-sm);
   }
 
-  :where([data-yadad="board"]) :where([data-part="done-input"]) {
-    margin: 0;
-    accent-color: var(--yadad-board-done-accent, var(--yadad-color-accent));
+  /* Card 31c: the box is painted by internal/check (its sheet rides this
+     fragment via scripts/build-css.ts) — appearance:none, margin, the 22px
+     box, the focus ring and the `:disabled` cursor all come from there. The
+     deprecated board variables keep working as aliases for one minor
+     (THEMING.md) by re-pointing the primitive's private custom properties:
+     the public --yadad-check-* wins, the old board variable wins when it is
+     set, the token default wins when neither is. Specificity (0,1,0) — one
+     step above the primitive's :where rules — so fragment order never
+     decides, and none of these is a var() cycle. */
+  :where([data-yadad="board"]) [data-part="done-input"] {
+    --_yadad-check-size: var(--yadad-board-checkbox-size, var(--yadad-check-size, calc(var(--yadad-space-4) + var(--yadad-space-1) + var(--yadad-focus-ring-width))));
+    --_yadad-check-on: var(--yadad-board-done-accent, var(--yadad-check-on, var(--yadad-color-accent)));
+    --_yadad-check-focus: var(--yadad-board-focus, var(--yadad-check-focus, var(--yadad-color-accent)));
     cursor: inherit;
-  }
-
-  :where([data-yadad="board"]) :where([data-part="done-input"]):focus-visible {
-    outline: var(--yadad-focus-ring-width) solid var(--yadad-board-focus, var(--yadad-color-accent));
-    outline-offset: var(--yadad-focus-ring-width);
-  }
-
-  :where([data-yadad="board"]) :where([data-part="done-input"]):disabled {
-    cursor: not-allowed;
   }
 
   /* Record actions (RFC 0007) sit next to the "Move to…" path and borrow its
@@ -441,13 +442,12 @@
     max-block-size: var(--yadad-board-move-panel-max-height, calc(var(--yadad-space-4) * 20));
   }
 
-  /* Touch: no iOS focus zoom on the move select; the done checkbox box draws at 20px
-     (its label is already the 44px target). */
+  /* Touch: no iOS focus zoom on the move select; the done checkbox draws at
+     22px from card 31c (the primitive's size, aliased from the deprecated
+     --yadad-board-checkbox-size above) inside its 44px label. */
   @media (pointer: coarse) {
-    :where([data-yadad="board"]) :where([data-part="done-input"]) {
-      inline-size: var(--yadad-board-checkbox-size, calc(var(--yadad-space-4) + var(--yadad-space-1)));
-      block-size: var(--yadad-board-checkbox-size, calc(var(--yadad-space-4) + var(--yadad-space-1)));
-    }
+    /* Card 31c: the done box's size is the primitive's — no coarse-pointer
+       bump; the label is already the 44px target. */
 
     :where([data-yadad="board"]) :where([data-part="move-select"]) {
       font-size: var(--yadad-board-touch-font-size, var(--yadad-touch-font-size, max(var(--yadad-space-4), var(--yadad-font-size-md))));

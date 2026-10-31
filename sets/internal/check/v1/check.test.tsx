@@ -58,6 +58,19 @@ describe("Check (internal primitive, card 31b)", () => {
     expect(container.querySelector('[data-part="done-input"]')).not.toBeNull();
   });
 
+  it("carries the consumer's component marker (boolean keeps data-yadad=boolean) and always the primitive marker", () => {
+    const { container } = render(<Check checked={false} onChange={() => {}} data-yadad="boolean" data-part="input" />);
+    const input = container.querySelector('input[type="checkbox"]')!;
+    expect(input.getAttribute("data-yadad")).toBe("boolean");
+    expect(input.getAttribute("data-part")).toBe("input");
+    // check.css paints through this marker, so the override never unstyles it.
+    expect(input.hasAttribute("data-yadad-check")).toBe(true);
+    // default: the primitive's own marker
+    const plain = render(<Check checked={false} onChange={() => {}} />).container.querySelector("input")!;
+    expect(plain.getAttribute("data-yadad")).toBe("check");
+    expect(plain.hasAttribute("data-yadad-check")).toBe(true);
+  });
+
   it("passes disabled through — a disabled box never becomes checked", () => {
     const { container } = render(<Check checked={false} disabled onChange={() => {}} />);
     const input = container.querySelector("input") as HTMLInputElement;
@@ -95,5 +108,13 @@ describe("check.css (card 31b contract)", () => {
   });
   it("honours reduced motion", () => {
     expect(css).toContain("@media (prefers-reduced-motion: reduce)");
+  });
+  it("routes every state through the private aliases (31c: a consumer's deprecated alias reaches :checked/:hover/:focus-visible too)", () => {
+    const checkedBlock = css.slice(css.indexOf(":where([data-yadad-check]):checked {"));
+    const checkedDecl = checkedBlock.slice(0, checkedBlock.indexOf("}"));
+    expect(checkedDecl).toContain("var(--_yadad-check-on)");
+    expect(checkedDecl).not.toContain("var(--yadad-check-on,");
+    expect(css).toContain("border-color: var(--_yadad-check-border-hover);");
+    expect(css).toContain("solid var(--_yadad-check-focus)");
   });
 });

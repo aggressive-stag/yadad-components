@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import type { DragEvent, PointerEvent as ReactPointerEvent } from "react";
 import { useEffect, useId, useRef, useState } from "react";
 import { Menu } from "../../../internal/menu/v1/index.js";
+import { Check } from "../../../internal/check/v1/index.js";
 import { useTouchDrag } from "../../../internal/touch-drag/v1/index.js";
 import { Skeleton } from "../../../internal/skeleton/v1/index.js";
 import { paletteSlot } from "../../../internal/swatch/v1/index.js";
@@ -215,18 +216,19 @@ function CardActions({ card, strings }: { card: BoardCard<ReactNode>; strings: B
 
 /**
  * The card's completion checkbox (RFC 0008 item 3), drawn only when the
- * renderer passes `done`. A native checkbox named for the card; it owns
- * `checked` and `disabled` from the renderer and calls `toggle` once per
- * change. Pointer-down stops here so a press on it never lifts the card for a
- * touch drag; it is a sibling of the open-card button, so it never opens it.
+ * renderer passes `done`. A native checkbox named for the card (the shared
+ * `Check` primitive since card 31c — `data-part="done-input"` is unchanged);
+ * it owns `checked` and `disabled` from the renderer and calls `toggle` once
+ * per change. Pointer-down stops here so a press on it never lifts the card
+ * for a touch drag; it is a sibling of the open-card button, so it never
+ * opens it.
  */
 function DoneToggle({ card, strings }: { card: BoardCard<ReactNode>; strings: BoardStrings }): ReactNode {
   const done = card.done;
   if (!done) return null;
   return (
     <label data-part="done" onPointerDown={(e) => e.stopPropagation()}>
-      <input
-        type="checkbox"
+      <Check
         data-part="done-input"
         aria-label={(strings.doneAriaLabel ?? ((label: string) => `Done: ${label}`))(card.label)}
         checked={done.checked}

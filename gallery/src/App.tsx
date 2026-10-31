@@ -10,7 +10,7 @@
  */
 import { darkTheme, lightTheme, themeToCss, type Theme } from "@yadad/theme";
 import { optionValue } from "@yadad/core";
-import type { BoardCard, BoardColumn, DocumentError, FieldDisplayExtras, FieldDisplayProps, FieldInputExtras, FieldInputProps, FieldType, FieldValueTypes, SelectField } from "@yadad/core";
+import type { BoardCard, BoardColumn, CalendarDayProps, CalendarEntry, DocumentError, FieldDisplayExtras, FieldDisplayProps, FieldInputExtras, FieldInputProps, FieldType, FieldValueTypes, SelectField } from "@yadad/core";
 import { useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { baseRegistry } from "../../registry/base.js";
@@ -370,6 +370,78 @@ function TagsStates(): ReactNode {
       {state("tags-display-one", "display: one chip", <Display field={field} value={["squat"]} />)}
       {state("tags-display-many", "display: many long chips (wraps at 320px)", <Display field={field} value={["squat", "bench press", "deadlift", "overhead press, strict, from the rack", "5x5 @ 100 kg", "accessory work", "feet elevated"]} />)}
     </section>
+  );
+}
+
+/**
+ * Card 31c: the three consumers side by side — calendar `done`, board `done`,
+ * boolean field — under one `--yadad-check-*` surface (here the circle look
+ * on the whole row). They must render the same box for the same values;
+ * `gallery/check/check-consumers.ts` measures exactly that (the two 22px
+ * boxes agree to 0.01px; the boolean keeps its documented thumb-sized
+ * --yadad-boolean-size default).
+ */
+function CheckConsumers(): ReactNode {
+  const [calDone, setCalDone] = useState(true);
+  const [boardDone, setBoardDone] = useState(false);
+  const [flag, setFlag] = useState(true);
+  const entry: CalendarEntry<ReactNode> = {
+    id: "c1",
+    label: "Pull day",
+    content: <span>Pull day</span>,
+    movable: false,
+    pending: false,
+    done: { checked: calDone, disabled: false, toggle: () => setCalDone((v) => !v) },
+  };
+  const day: CalendarDayProps<ReactNode> = {
+    date: CALENDAR_TODAY,
+    dayOfMonth: 16,
+    weekday: 5,
+    label: "Friday 16 October 2026",
+    inMonth: true,
+    isToday: true,
+    entries: [entry],
+  };
+  const card: BoardCard<ReactNode> = {
+    ...boardCard(1, "Rows 3x5"),
+    done: { checked: boardDone, disabled: false, toggle: () => setBoardDone((v) => !v) },
+  };
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "1rem", ["--yadad-check-radius" as string]: "50%" }}>
+      <Calendar
+        label="Check consumers calendar"
+        title="October 2026"
+        mode="week"
+        modes={[{ mode: "week", label: "Week" }]}
+        weekdays={calendarWeekdays}
+        days={[day]}
+        legend={[]}
+        loading={false}
+        onModeChange={() => {}}
+        onPrevious={() => {}}
+        onNext={() => {}}
+        onToday={() => {}}
+      />
+      <Board
+        label="Check consumers board"
+        groupChoices={[{ field: "status", label: "Status" }]}
+        groupField="status"
+        columns={[boardColumn("v:todo", "To do", [card])]}
+        loading={false}
+        onGroupBy={() => undefined}
+        onOpenCard={() => undefined}
+      />
+      <label style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+        <BooleanInput
+          inputId="g-check-consumers-flag"
+          field={{ id: "flag", type: "boolean", label: "Flagged" } as never}
+          value={flag}
+          onChange={(v) => setFlag(v === true)}
+          invalid={false}
+        />
+        Boolean field (keeps its thumb-sized --yadad-boolean-size default)
+      </label>
+    </div>
   );
 }
 
@@ -1402,6 +1474,7 @@ export default function App(): ReactNode {
         <FieldGroup type="number" />
         <FieldGroup type="boolean" />
         {state("check-primitive", "the internal Check primitive (card 31b): square and circle, checked/unchecked/locked — one --yadad-check-* surface paints every completion box", <CheckStates />)}
+        {state("check-consumers", "card 31c: calendar done, board done and a boolean field side by side under one --yadad-check-* surface (circle here) — the two 22px boxes agree; the boolean keeps its documented thumb-sized default", <CheckConsumers />)}
         <FieldGroup type="select" />
         <SelectStates />
         <FieldGroup type="date" />

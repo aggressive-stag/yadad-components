@@ -144,7 +144,8 @@ Cards in columns, one column per value of a field, with a group-by picker; colum
 - `--yadad-board-tap` — minimum height of the move buttons (the tap target on a phone); default: `var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)))` (token-derived: `--yadad-space-3`, `--yadad-space-4`)
 - `--yadad-board-link` — move button text color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-board-done-color` — completion checkbox label text color; default: token `--yadad-color-text` (main text color)
-- `--yadad-board-done-accent` — completion checkbox accent color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-board-checkbox-size` — DEPRECATED (card 31c): alias of `--yadad-check-size` on the board's done box; set `--yadad-check-size` instead (removal no earlier than the next major); default: `var(--yadad-check-size, calc(var(--yadad-space-4) + var(--yadad-space-1) + var(--yadad-focus-ring-width)))` (token-derived: `--yadad-focus-ring-width`, `--yadad-space-1`, `--yadad-space-4`)
+- `--yadad-board-done-accent` — DEPRECATED (card 31c): alias of `--yadad-check-on` on the board's done box; set `--yadad-check-on` instead (removal no earlier than the next major); default: `var(--yadad-check-on, var(--yadad-color-accent))` (token-derived: `--yadad-color-accent`)
 - `--yadad-board-actions-border` — record-action button border color (danger actions use the danger color for both); default: token `--yadad-color-border` (borders and dividers)
 - `--yadad-board-actions-link` — record-action button text color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-board-actions-focus` — record-action button keyboard focus-ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
@@ -156,7 +157,6 @@ Cards in columns, one column per value of a field, with a group-by picker; colum
 - `--yadad-board-hidden-column-width` — width of the slim drop target for the hidden no-value column shown while a card is dragged; default: `calc(var(--yadad-space-4) * 8)` (token-derived: `--yadad-space-4`)
 - `--yadad-board-hidden-column-height` — minimum height of that drop target; default: `calc(var(--yadad-space-4) * 6)` (token-derived: `--yadad-space-4`)
 - `--yadad-board-move-panel-max-height` — tallest the "Move to…" panel gets before it scrolls inside the column (keeps Cancel reachable); default: `calc(var(--yadad-space-4) * 20)` (token-derived: `--yadad-space-4`)
-- `--yadad-board-checkbox-size` — done checkbox box size under a coarse pointer (its label stays the 44px target); default: `calc(var(--yadad-space-4) + var(--yadad-space-1))` (token-derived: `--yadad-space-1`, `--yadad-space-4`)
 - `--yadad-board-touch-font-size` — input font size under a coarse pointer; defaults to the larger of 1rem and the theme's font-size-md, so it never drops below 16px. Set it smaller only on purpose: iOS then zooms on focus; default: `var(--yadad-touch-font-size, max(var(--yadad-space-4), var(--yadad-font-size-md)))` (token-derived: `--yadad-font-size-md`, `--yadad-space-4`)
 
 **Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-danger`, `--yadad-color-surface`, `--yadad-color-text`, `--yadad-color-text-muted`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-font-size-sm`, `--yadad-radius-md`, `--yadad-shadow-md`, `--yadad-shadow-sm`, `--yadad-space-1`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
@@ -172,12 +172,12 @@ A single on/off field, rendered as a checkbox.
 
 **Per-component variables** (set on the component or an ancestor; the default is shown):
 
-- `--yadad-boolean-size` — box size; default: `calc(var(--yadad-space-4) * 1.5)` (token-derived: `--yadad-space-4`)
-- `--yadad-boolean-accent` — accent color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
-- `--yadad-boolean-focus` — focus-ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
+- `--yadad-boolean-size` — box size; when unset the box follows `--yadad-check-size`, and when neither is set it keeps this component's thumb-sized default (a checklist's box is the row's tap target); default: `var(--yadad-check-size, calc(var(--yadad-space-4) * 1.5))` (token-derived: `--yadad-space-4`)
+- `--yadad-boolean-accent` — accent color; default: `var(--yadad-check-on, var(--yadad-color-accent))` (token-derived: `--yadad-color-accent`)
+- `--yadad-boolean-focus` — focus-ring color; default: `var(--yadad-check-focus, var(--yadad-color-accent))` (token-derived: `--yadad-color-accent`)
 - `--yadad-boolean-border-invalid` — border color when invalid; default: token `--yadad-color-danger` (error / danger text and borders)
 
-**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-danger`, `--yadad-focus-ring-width`, `--yadad-space-4`
+**Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-danger`, `--yadad-space-4`
 
 ### button
 

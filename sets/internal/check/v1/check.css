@@ -12,7 +12,7 @@
    what scripts/theming.ts (15c) checks for.
    Override any --yadad-check-* variable or the underlying tokens. */
 @layer yadad.components {
-  :where([data-yadad="check"]) {
+  :where([data-yadad-check]) {
     /* Private aliases (31b): each --yadad-check-* reads through an internal
        custom property so a consumer set — the calendar adopts the primitive
        in this release — can re-point one variable (its deprecated
@@ -69,31 +69,31 @@
       border-color 120ms ease;
   }
 
-  :where([data-yadad="check"]):not(:disabled):hover {
-    border-color: var(--yadad-check-border-hover, var(--yadad-color-accent));
+  :where([data-yadad-check]):not(:disabled):hover {
+    border-color: var(--_yadad-check-border-hover);
   }
 
-  :where([data-yadad="check"]):checked {
-    background-color: var(--yadad-check-on, var(--yadad-color-accent));
-    border-color: var(--yadad-check-on, var(--yadad-color-accent));
+  :where([data-yadad-check]):checked {
+    background-color: var(--_yadad-check-on);
+    border-color: var(--_yadad-check-on);
     /* Elbow at ~42%/66%: the "\" arm box starts at (18%,42%) and the "/"
        arm box runs from (40%,16%) — their inner ends meet at the elbow. */
     background-size: 25% 25%, 45% 50%;
     background-position: left 18% top 42%, left 40% top 16%;
   }
 
-  :where([data-yadad="check"]):focus-visible {
-    outline: var(--yadad-focus-ring-width) solid var(--yadad-check-focus, var(--yadad-color-accent));
+  :where([data-yadad-check]):focus-visible {
+    outline: var(--yadad-focus-ring-width) solid var(--_yadad-check-focus);
     outline-offset: var(--yadad-focus-ring-width);
   }
 
-  :where([data-yadad="check"]):disabled {
+  :where([data-yadad-check]):disabled {
     cursor: not-allowed;
     opacity: 0.55;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    :where([data-yadad="check"]) {
+    :where([data-yadad-check]) {
       transition: none;
     }
   }
@@ -103,12 +103,12 @@
        the states to system colors here (plan D7): a CanvasText border box,
        a Highlight fill with a Canvas tick when checked. `forced-color-adjust:
        none` keeps these declarations painted as written. */
-    :where([data-yadad="check"]) {
+    :where([data-yadad-check]) {
       forced-color-adjust: none;
       background-color: Canvas;
       border-color: CanvasText;
     }
-    :where([data-yadad="check"]):checked {
+    :where([data-yadad-check]):checked {
       background-color: Highlight;
       border-color: Highlight;
       --_yadad-check-tick: Canvas;

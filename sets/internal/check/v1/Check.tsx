@@ -37,14 +37,25 @@ export interface CheckProps {
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
   /** Accessible name when no `<label>` wraps the box. */
   "aria-label"?: string;
-  "aria-labelledby"?: string;
+  "aria-labelledby"?: string | undefined;
+  "aria-describedby"?: string | undefined;
   "aria-invalid"?: boolean | "true" | "false" | "grammar" | "spelling";
+  "aria-required"?: boolean;
   id?: string;
   name?: string;
   value?: string;
   className?: string;
-  /** Override the primitive's own part name (calendar passes `done-input`). */
+  /** Override the primitive's own part name (calendar passes `done-input`; board too; boolean keeps `input`). */
   "data-part"?: string;
+  /**
+   * Override the primitive's own component marker (card 31c: boolean passes
+   * `boolean` — its input IS the component root, and the documented
+   * `[data-yadad="boolean"][data-part="input"]` contract and field-frame's
+   * `:has([data-yadad="boolean"])` label floor must survive the swap). The
+   * primitive stays styleable either way: it always also carries the
+   * `data-yadad-check` attribute, which is what check.css matches.
+   */
+  "data-yadad"?: string;
   "data-testid"?: string;
 }
 
@@ -56,12 +67,15 @@ export function Check({
   onChange,
   className,
   "data-part": dataPart,
+  "data-yadad": dataYadad,
   ...rest
 }: CheckProps) {
   return (
     <input
       type="checkbox"
       data-yadad="check"
+      {...(dataYadad !== undefined ? { "data-yadad": dataYadad } : {})}
+      data-yadad-check=""
       data-part="check-input"
       {...(dataPart !== undefined ? { "data-part": dataPart } : {})}
       checked={checked}
