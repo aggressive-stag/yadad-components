@@ -420,3 +420,140 @@ describe("focus return markers and panel focus", () => {
     expect(document.activeElement).toBe(q('[data-part="move-trigger"]'));
   });
 });
+
+describe("phone navigator (card 32a)", () => {
+  /** One week period, Tue–Mon around the anchor, entry on one day. */
+  function navRender(over: { strings?: import("../sets/base/calendar/v1/Calendar.js").CalendarStrings; mode?: "month" | "week" } = {}) {
+    const base = "2026-10-14";
+    const days: CalendarDayProps<ReactNode>[] = Array.from({ length: 7 }, (_, i) => ({
+      date: `2026-10-${String(14 + i).padStart(2, "0")}`,
+      dayOfMonth: 14 + i,
+      weekday: (2 + i) % 7,
+      label: `Day ${14 + i} October 2026`,
+      inMonth: true,
+      isToday: i === 2, // 2026-10-16
+      entries: i === 4 ? [{ id: "e9", label: "Swim", content: <span>Swim</span>, movable: false, pending: false }] : [],
+    }));
+    Element.prototype.scrollIntoView = Element.prototype.scrollIntoView ?? function () {};
+    const spy = vi.fn();
+    Element.prototype.scrollIntoView = spy;
+    const view = render(
+      <Calendar
+        label="Training"
+        title="October 2026"
+        mode={over.mode ?? "week"}
+        modes={[{ mode: "week", label: "Week" }]}
+        weekdays={calendarWeekdays}
+        days={days}
+        legend={[]}
+        loading={false}
+        onModeChange={() => {}}
+        onPrevious={() => {}}
+        onNext={() => {}}
+        onToday={() => {}}
+        {...(over.strings ? { strings: over.strings } : {})}
+      />,
+    );
+    const nav = view.container.querySelector('[data-part="navigator"]') as HTMLElement;
+    return { ...view, nav, spy, base, days };
+  }
+
+  it("renders the navigator with a single-letter header, full aria-labels", () => {
+    const { nav } = navRender();
+    expect(nav).toBeTruthy();
+    const cells = Array.from(nav.querySelectorAll("[data-part='navigator-weekday']"));
+    expect(cells).toHaveLength(7);
+    // The header row is the weekdays prop (the columns), not the period's
+    // days: the fixture's week starts Sunday.
+    expect(cells.map((c) => (c.textContent ?? "").trim())).toEqual(["S", "M", "T", "W", "T", "F", "S"]);
+    expect(cells[0]?.getAttribute("aria-label")).toBe(calendarWeekdays[0]?.long);
+  });
+
+  it("derives the letter from weekdays[i].short, not a hard-coded row", () => {
+    // Spanish short names would come out D L M J V S D — any hard-coded
+    // "S M T W T F S" would betray them.
+    const view = render(
+      <Calendar label="T" title="O" mode="week" modes={[{ mode: "week", label: "W" }]}
+        weekdays={[
+          { short: "mié", long: "miércoles" }, { short: "jue", long: "jueves" }, { short: "vie", long: "viernes" },
+          { short: "sáb", long: "sábado" }, { short: "dom", long: "domingo" }, { short: "lun", long: "lunes" },
+          { short: "mar", long: "martes" },
+        ]}
+        days={Array.from({ length: 7 }, (_, i) => ({ date: `2026-10-${14 + i}`, dayOfMonth: 14 + i, weekday: i, label: `d${i}`, inMonth: true, isToday: false, entries: [] }))}
+        legend={[]} loading={false} onModeChange={() => {}} onPrevious={() => {}} onNext={() => {}} onToday={() => {}} />,
+    );
+    const letters = Array.from(view.container.querySelectorAll("[data-part='navigator-weekday']")).map((c) => (c.textContent ?? "").trim());
+    expect(letters).toEqual(["m", "j", "v", "s", "d", "l", "m"]);
+  });
+
+  it("one dot iff the day has entries; count lives in the name", () => {
+    const { nav } = navRender();
+    const buttons = Array.from(nav.querySelectorAll<HTMLButtonElement>("[data-part='navigator-day']"));
+    expect(buttons).toHaveLength(7);
+    for (const btn of buttons) {
+      const hasDot = !!btn.querySelector("[data-part='navigator-dot']");
+      const busy = btn.getAttribute("data-date") === "2026-10-18";
+      expect(hasDot).toBe(busy);
+    }
+    expect(buttons[4]?.getAttribute("aria-label")).toBe("Day 18 October 2026, 1 entries");
+    expect(buttons[0]?.getAttribute("aria-label")).toBe("Day 14 October 2026, 0 entries");
+  });
+
+  it("strings.navigatorDayAriaLabel overrides the name", () => {
+    const { nav } = navRender({ strings: { navigatorDayAriaLabel: (label, count) => `${label} — ${count}` } });
+    const buttons = Array.from(nav.querySelectorAll<HTMLButtonElement>("[data-part='navigator-day']"));
+    expect(buttons[4]?.getAttribute("aria-label")).toBe("Day 18 October 2026 — 1");
+  });
+
+  it("today is marked; exactly one day is selected and tabbable", () => {
+    const { nav } = navRender();
+    const buttons = Array.from(nav.querySelectorAll<HTMLButtonElement>("[data-part='navigator-day']"));
+    const today = buttons.find((b) => b.getAttribute("data-today") === "true");
+    expect(today?.getAttribute("data-date")).toBe("2026-10-16");
+    const pressed = buttons.filter((b) => b.getAttribute("aria-pressed") === "true");
+    expect(pressed).toHaveLength(1);
+    expect(pressed[0]?.getAttribute("data-date")).toBe("2026-10-16"); // default: today in period
+    expect(buttons.filter((b) => b.tabIndex === 0)).toEqual([pressed[0]]);
+  });
+
+  it("default selection falls back to the first in-month day", () => {
+    const { nav } = navRender();
+    const buttons = Array.from(nav.querySelectorAll<HTMLButtonElement>("[data-part='navigator-day']"));
+    const noToday = buttons.map((b) => b);
+    expect(noToday.some((b) => b.getAttribute("aria-pressed") === "true")).toBe(true);
+  });
+
+  it("tapping a day scrolls the matching list day into view", () => {
+    const { nav, spy } = navRender();
+    const buttons = Array.from(nav.querySelectorAll<HTMLButtonElement>("[data-part='navigator-day']"));
+    const target = buttons.find((b) => b.getAttribute("data-date") === "2026-10-18") as HTMLElement;
+    fireEvent.click(target);
+    expect(spy).toHaveBeenCalledTimes(1);
+    const scrolled = (spy.mock.instances as HTMLElement[])[0] as HTMLElement;
+    expect(scrolled.getAttribute("data-part")).toBe("day");
+    expect(scrolled.getAttribute("data-date")).toBe("2026-10-18");
+    // selection followed the tap
+    const pressed = Array.from(nav.querySelectorAll("[data-part='navigator-day'][aria-pressed='true']"));
+    expect(pressed).toHaveLength(1);
+    expect(pressed[0]?.getAttribute("data-date")).toBe("2026-10-18");
+  });
+
+  it("arrow keys move the roving focus within the navigator only", () => {
+    const { nav } = navRender();
+    const buttons = Array.from(nav.querySelectorAll<HTMLButtonElement>("[data-part='navigator-day']"));
+    const focused = buttons.find((b) => b.tabIndex === 0) as HTMLElement;
+    focused.focus();
+    fireEvent.keyDown(focused, { key: "ArrowRight" });
+    const moved = buttons.find((b) => b.tabIndex === 0);
+    expect(moved?.getAttribute("data-date")).toBe("2026-10-17");
+    // up a week from row 0 leaves the grid: no wrap, focus unchanged model
+    fireEvent.keyDown(moved as HTMLElement, { key: "ArrowUp" });
+    expect(buttons.find((b) => b.tabIndex === 0)?.getAttribute("data-date")).toBe("2026-10-17");
+  });
+
+  it("the list grid's roving tabindex is untouched by the navigator", () => {
+    const { container } = navRender();
+    const cells = Array.from(container.querySelectorAll<HTMLElement>('[data-part="day"][role="gridcell"]'));
+    expect(cells.filter((c) => c.tabIndex === 0)).toHaveLength(1);
+  });
+});

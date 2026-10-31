@@ -74,14 +74,14 @@ function auditCalendarPhone(options?: CalendarPhoneAuditOptions): CalendarPhoneF
   const VISIBILITY: { agenda: VisibilityRow; grid: VisibilityRow } = {
     agenda: {
       agenda: true,
-      show: ["day-weekday", "day-number", "grid"],
+      show: ["day-weekday", "day-number", "grid", "navigator"],
       hide: ["weekday-row", "day-date"],
       showWhenEntries: ["day"],
     },
     grid: {
       agenda: false,
       show: ["weekday-row", "day-number", "grid", "day"],
-      hide: ["day-date", "day-weekday"],
+      hide: ["day-date", "day-weekday", "navigator"],
     },
   };
 
@@ -149,6 +149,29 @@ function auditCalendarPhone(options?: CalendarPhoneAuditOptions): CalendarPhoneF
     // Today's accent treatment gone: the day number renders in the plain
     // text colour again (the badge alone is not what the card asked for).
     seed('@container (max-width: 50ch) { [data-yadad="calendar"] [data-part="day"][data-today="true"] [data-part="day-number"] { color: inherit !important; } }');
+  }
+  if (seeds.includes("hide-navigator")) {
+    // The pre-32a phone restored: the map never shows, the list is alone.
+    seed('@container (max-width: 50ch) { [data-yadad="calendar"] [data-part="navigator"] { display: none !important; } }');
+  }
+  if (seeds.includes("no-nav-dots")) {
+    // The busy-day dots vanish: the map no longer says where things are,
+    // and nothing else in the navigator carries that (the count is only
+    // in the accessible name).
+    seed('[data-yadad="calendar"] [data-part="navigator-dot"] { display: none !important; }');
+  }
+  if (seeds.includes("nav-flat-today")) {
+    // Today loses its weight (G23's non-colour cue); the accent circle
+    // alone would leave colour-blind users with no way to find today.
+    seed('[data-yadad="calendar"] [data-part="navigator-day"][data-today="true"] [data-part="navigator-day-number"] { font-weight: 400 !important; }');
+  }
+
+  if (seeds.includes("nav-ragged-box")) {
+    // The regression the one-footprint check exists for: content-box puts
+    // today's ring *outside* its box, so the same day is 2px larger when
+    // it is today than when it is not — subtle enough that a glance at a
+    // screenshot never catches it.
+    seed('[data-yadad="calendar"] [data-part="navigator-day-number"] { box-sizing: content-box !important; }');
   }
 
   const roots = Array.from(document.querySelectorAll(rootSelector));
@@ -277,6 +300,139 @@ function auditCalendarPhone(options?: CalendarPhoneAuditOptions): CalendarPhoneF
       if (anyDay && parseFloat(getComputedStyle(anyDay).scrollMarginBlockStart) <= 0) {
         failures.push({ name: `${tag} day scroll-margin for the band`, expected: "> 0 (scroll-today clears the band)", actual: getComputedStyle(anyDay).scrollMarginBlockStart, detail: labelOf(anyDay) });
       }
+      // (g) card 32a: the phone navigator — a compact period map above the
+      // list. Dots iff busy, single-letter headers with full names, today
+      // distinguishable without colour, one tab stop, out-of-month muted
+      // but tappable. DOM/contract checks; the column math is (c)'s job.
+      const nav = root.querySelector('[data-part="navigator"]');
+      if (!nav || !rendered(nav)) {
+        failures.push({ name: `${tag} agenda shows the navigator`, expected: "rendered (32a)", actual: nav ? "hidden" : "missing", detail: labelOf(nav ?? root) });
+      } else {
+        const navButtons = Array.from(nav.querySelectorAll('[data-part="navigator-day"]')).filter(rendered);
+        if (navButtons.length === 0) {
+          failures.push({ name: `${tag} navigator has day buttons`, expected: ">= 1", actual: "0", detail: labelOf(nav) });
+        }
+        let tabStops = 0;
+        for (const btn of navButtons) {
+          if (btn.tagName !== "BUTTON") {
+            failures.push({ name: `${tag} navigator day is a real button`, expected: "BUTTON", actual: btn.tagName, detail: labelOf(btn) });
+          }
+          if (btn.getAttribute("tabindex") === "0") tabStops++;
+          const date = btn.getAttribute("data-date") || "";
+          const dayInList = root.querySelector(`[data-part="day"][data-date="${date}"]`);
+          // Full entry count, not just the rendered ones: a capped day
+          // renders shown entries + a "+N more" overflow button (RFC 0008
+          // item 7); the navigator names the *total* the set received.
+          const shown = dayInList ? dayInList.querySelectorAll('[data-part="entry"]').length : 0;
+          const overflow = dayInList?.querySelector('[data-part="overflow"]');
+          const hidden = overflow ? parseInt((overflow.textContent || "").match(/\d+/)?.[0] ?? "0", 10) : 0;
+          const count = shown + hidden;
+          const name = btn.getAttribute("aria-label") || "";
+          if (!name || !name.includes(`${count} entr`)) {
+            failures.push({ name: `${tag} navigator day named with its entry count`, expected: "aria-label like `label, N entries` (navigatorDayAriaLabel)", actual: name || "(none)", detail: labelOf(btn) });
+          }
+          const dot = btn.querySelector('[data-part="navigator-dot"]');
+          // rendered, not merely present: a dot hidden by display:none is
+          // exactly the regression (a map that no longer says where things
+          // are), and it would still be in the DOM.
+          if ((count > 0) !== !!dot) {
+            failures.push({ name: `${tag} navigator dot iff the day has entries`, expected: count > 0 ? "one dot" : "no dot", actual: dot ? "dot present" : "no dot", detail: labelOf(btn) });
+          } else if (dot && !dot.checkVisibility()) {
+            failures.push({ name: `${tag} navigator dot actually paints`, expected: "visible", actual: "hidden", detail: labelOf(btn) });
+          }
+          if (btn.getAttribute("data-in-month") === "false") {
+            // Compare the BUTTON's colour (its number may own its own paint:
+            // today's accent, the selected pill's surface — comparing the
+            // numbers would false-positive on those). Muted = distinct from
+            // an in-month sibling button's colour; measured, not literal.
+            const sibling = navButtons.find((b) => b.getAttribute("data-in-month") === "true");
+            if (sibling && getComputedStyle(btn).color === getComputedStyle(sibling).color) {
+              failures.push({ name: `${tag} out-of-month navigator day is muted`, expected: "a colour distinct from in-month days (still tappable)", actual: getComputedStyle(btn).color, detail: labelOf(btn) });
+            }
+          }
+        }
+        if (tabStops !== 1) {
+          failures.push({ name: `${tag} navigator roving tabindex (own group)`, expected: "exactly 1 button at tabIndex 0", actual: String(tabStops), detail: labelOf(nav) });
+        }
+        const weekdayRow = nav.querySelector('[data-part="navigator-weekday-row"]');
+        const weekdayCells = weekdayRow ? Array.from(weekdayRow.querySelectorAll('[data-part="navigator-weekday"]')) : [];
+        if (weekdayCells.length !== (navButtons.length > 0 ? 7 : 0)) {
+          failures.push({ name: `${tag} navigator weekday header columns`, expected: "7 cells", actual: String(weekdayCells.length), detail: labelOf(weekdayRow ?? nav) });
+        }
+        for (const cell of weekdayCells) {
+          const text = (cell.textContent || "").trim();
+          if (Array.from(text).length !== 1) {
+            failures.push({ name: `${tag} navigator weekday is a single letter (derived, G18)`, expected: "1 grapheme from weekdays[i].short", actual: `"${text}"`, detail: labelOf(cell) });
+          }
+          if (!(cell.getAttribute("aria-label") || "").trim()) {
+            failures.push({ name: `${tag} navigator weekday full aria-label`, expected: "weekdays[i].long", actual: "(none)", detail: labelOf(cell) });
+          }
+        }
+        const todayBtn = navButtons.find((b) => b.getAttribute("data-today") === "true");
+        if (todayBtn) {
+          const num = todayBtn.querySelector('[data-part="navigator-day-number"]');
+          const weight = num ? parseInt(getComputedStyle(num).fontWeight, 10) : 0;
+          if (weight < 600) {
+            failures.push({ name: `${tag} navigator today carries weight (non-colour cue, G23)`, expected: "bold (>= 600) besides the circle", actual: String(weight || getComputedStyle(num ?? todayBtn).fontWeight), detail: labelOf(todayBtn) });
+          }
+          // The two states must be distinguishable WITHOUT colour, which
+          // means by structure: today is a ring (border), selection is a
+          // fill (background). Checking the cue *type* rather than a
+          // screenshot means it holds even when today and selected coincide
+          // in a fixture — which they do here, and which is exactly why a
+          // shape-only review could never have caught a regression here.
+          if (num) {
+            const csNum = getComputedStyle(num);
+            const ringW = parseFloat(csNum.borderInlineStartWidth) || 0;
+            if (ringW <= 0) {
+              failures.push({ name: `${tag} navigator today cue is a ring`, expected: "border on the number (circle)", actual: `border-width ${csNum.borderInlineStartWidth}`, detail: labelOf(todayBtn) });
+            }
+            const pressedBtn = navButtons.find((b) => b.getAttribute("aria-pressed") === "true");
+            const pressedNum = pressedBtn?.querySelector('[data-part="navigator-day-number"]');
+            if (pressedNum) {
+              const csPressed = getComputedStyle(pressedNum);
+              const fills = csPressed.backgroundColor !== "rgba(0, 0, 0, 0)" && csPressed.backgroundColor !== "transparent";
+              if (!fills) {
+                failures.push({ name: `${tag} navigator selected cue is a fill`, expected: "background on the number (pill), structurally unlike today's ring", actual: `background ${csPressed.backgroundColor}`, detail: labelOf(pressedBtn ?? nav) });
+              }
+              if (num === pressedNum) {
+                // same day: both cues must coexist (ring AND fill) or the
+                // two states collapse into one when they coincide
+                const csBoth = getComputedStyle(num);
+                if ((parseFloat(csBoth.borderInlineStartWidth) || 0) <= 0 || csBoth.backgroundColor === "rgba(0, 0, 0, 0)") {
+                  failures.push({ name: `${tag} today+selected keeps both cues`, expected: "ring and fill together", actual: `border ${csBoth.borderInlineStartWidth} / bg ${csBoth.backgroundColor}`, detail: labelOf(todayBtn) });
+                }
+              }
+            }
+          }
+        }
+        // One footprint in every state: the ring and the fill paint ON the
+        // number box (border-box), so a day does not change size when it
+        // becomes today or selected, and every dot band measures the same
+        // (measured: 24/24/44, dot 4.5 from the box / 7 from the rule).
+        const footprints = new Map<string, string[]>();
+        for (const btn of navButtons) {
+          const num = btn.querySelector('[data-part="navigator-day-number"]');
+          if (!num) continue;
+          const r = num.getBoundingClientRect();
+          const key = `${Math.round(r.width)}x${Math.round(r.height)}`;
+          const bucket = footprints.get(key) ?? [];
+          if (bucket.length < 2) bucket.push(labelOf(btn));
+          footprints.set(key, bucket);
+        }
+        if (footprints.size > 1) {
+          failures.push({
+            name: `${tag} navigator day number keeps one box in every state`,
+            expected: "one size for plain/today/selected/busy (ring is border-box, fill is inside)",
+            actual: [...footprints.entries()].map(([k, v]) => `${k}: ${v.join(", ")}`).join(" | "),
+            detail: labelOf(nav),
+          });
+        }
+        const pressed = navButtons.filter((b) => b.getAttribute("aria-pressed") === "true");
+        if (pressed.length !== 1) {
+          failures.push({ name: `${tag} navigator has one selected day`, expected: "exactly 1 aria-pressed=true", actual: String(pressed.length), detail: labelOf(nav) });
+        }
+      }
       // (f) card 31f: the list rhythm — row band, entry gap, three-step
       // ladder, today's accent number. All computed-style checks, so a
       // host that re-tokens deliberately still passes; what fails is the
@@ -375,6 +531,19 @@ function auditCalendarPhone(options?: CalendarPhoneAuditOptions): CalendarPhoneF
 
     // (c) 44x44 hit targets under a coarse pointer
     if (window.matchMedia("(pointer: coarse)").matches) {
+      // Card 32a / plan Q5, measured: seven 44px columns need 308px of
+      // navigator, and a 320 viewport's root is 262 — so at narrow widths a
+      // day's *width* is its 1fr column, nothing more. That is the only
+      // axis the column math constrains. Height is never column-constrained,
+      // so the 44px floor holds at every width and is checked unconditionally.
+      const navEl = root.querySelector('[data-part="navigator"]');
+      // Read the tracks off the navigator itself: the rows are subgrids
+      // now, and a subgrid row's computed gridTemplateColumns is "subgrid",
+      // not px — reading the row would yield 0 and silently pass any width.
+      const navTrack = navEl && rendered(navEl)
+        ? Math.max(...getComputedStyle(navEl).gridTemplateColumns.split(" ").map((v) => parseFloat(v) || 0))
+        : 0;
+      const navColsFit = navTrack >= minTap;
       const controls: Element[] = [];
       for (const part of INTERACTIVE_PARTS) {
         for (const el of root.querySelectorAll(`[data-part="${part}"]`)) {
@@ -390,10 +559,13 @@ function auditCalendarPhone(options?: CalendarPhoneAuditOptions): CalendarPhoneF
         if (!rendered(target)) continue;
         const box = target.getBoundingClientRect();
         const part = el.getAttribute("data-part") || el.tagName.toLowerCase();
-        if (box.width < minTap - 1 || box.height < minTap - 1) {
+        const navColumnBound = part === "navigator-day" && !navColsFit;
+        const widthFloor = navColumnBound ? navTrack : minTap;
+        const heightFloor = minTap;
+        if (box.width < widthFloor - 1 || box.height < heightFloor - 1) {
           failures.push({
             name: `${tag} tap target ${part}`,
-            expected: `>= ${minTap}x${minTap}`,
+            expected: `>= ${Math.round(widthFloor)}x${heightFloor}${navColumnBound ? " (column-bound width; height is not)" : ""}`,
             actual: `${Math.round(box.width)}x${Math.round(box.height)}`,
             detail: labelOf(target),
           });

@@ -92,6 +92,10 @@ for (const vp of [
     ["clear-band", "pinned head goes translucent", "band must be opaque"],
     ["flat-ladder", "pre-31f flat type + no row floor", "row height band"],
     ["mute-today", "today's number loses its accent", "carries the accent"],
+    ["hide-navigator", "the 32a map never shows on the phone", "shows the navigator"],
+    ["no-nav-dots", "busy-day dots stop painting", "dot actually paints"],
+    ["nav-flat-today", "navigator today loses its weight", "carries weight"],
+    ["nav-ragged-box", "navigator day box grows with its state", "one box in every state"],
   ];
   for (const [seed, what, mustMention] of seeds) {
     const failures = await runAudit(page, [seed]);

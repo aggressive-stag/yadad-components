@@ -47,6 +47,10 @@ export interface CalendarStrings {
   readonly entriesAriaLabel?: (dayLabel: string) => string;
   /** Day overflow button (more entries than the grid shows). Default: `+${hidden} more`. */
   readonly overflowLabel?: (hidden: number) => string;
+  /** Phone navigator day button accessible name. Default: `${dayLabel}, ${count} entries`. */
+  readonly navigatorDayAriaLabel?: (dayLabel: string, count: number) => string;
+  /** Phone navigator group accessible name. Default: "Calendar navigator". */
+  readonly navigatorAriaLabel?: string;
   /** Nav button group accessible name. Default: `${calendarLabel} navigation`. */
   readonly navGroupAriaLabel?: (calendarLabel: string) => string;
   /** Previous nav button text. Default: "Previous". */
@@ -381,6 +385,136 @@ function DayCell({
 }
 
 /**
+ * Phone week/month navigator (card 32a): a compact map of the period —
+ * single-letter weekday header, day number, a dot per busy day — rendered
+ * before the grid and visible only inside the phone container (base
+ * `display: none`). It shows *where* things are; the list below shows *what*
+ * they are. 32b adds the collapsed/pinned week-strip form; this card is the
+ * expanded month form.
+ *
+ * Presentation state only: the selected day is local (an open Actions panel
+ * is the same kind of state), never `data-mode` — `CalendarMode` is a period,
+ * not a rendering. Keyboard is its own roving tabindex over the day buttons
+ * inside a `role="group"` — deliberately NOT the list grid's ARIA grid model
+ * (`Calendar.tsx`'s gridcell roving, which this component must not touch).
+ */
+function Navigator({
+  days,
+  weekdays,
+  strings,
+}: {
+  days: readonly CalendarDayProps<ReactNode>[];
+  weekdays: readonly { short: string; long: string }[];
+  strings: CalendarStrings;
+}): ReactNode {
+  // Default: today if the period contains it, else the first in-month day
+  // (a week period can legitimately sit away from today).
+  const [selectedDate, setSelectedDate] = useState<string>(
+    () => days.find((d) => d.isToday)?.date ?? days.find((d) => d.inMonth)?.date ?? days[0]?.date ?? ""
+  );
+  const buttonsRef = useRef<Map<string, HTMLButtonElement>>(new Map());
+  const pendingFocusRef = useRef(false);
+  const navRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!days.some((d) => d.date === selectedDate)) {
+      setSelectedDate(days.find((d) => d.isToday)?.date ?? days.find((d) => d.inMonth)?.date ?? days[0]?.date ?? "");
+      pendingFocusRef.current = true;
+    }
+  }, [days]);
+
+  useEffect(() => {
+    if (pendingFocusRef.current) {
+      pendingFocusRef.current = false;
+      buttonsRef.current.get(selectedDate)?.focus();
+    }
+  }, [selectedDate]);
+
+  // Selecting scrolls the *list* to that day; 31e's scroll-margin on the
+  // day cell keeps the head below the pinned chrome. Focus stays on the
+  // navigator button (the card never yanks focus into the list).
+  const select = (date: string): void => {
+    setSelectedDate(date);
+    // Search from the navigator's own root, not document.activeElement:
+    // Safari never focuses buttons on click, so activeElement is a liar
+    // there. dataset scan, not a selector — jsdom has no CSS global and
+    // dates are ISO anyway.
+    const root = navRef.current?.closest('[data-yadad="calendar"]');
+    const target = Array.from(root?.querySelectorAll('[data-part="day"]') ?? []).find(
+      (el) => (el as HTMLElement).dataset["date"] === date
+    );
+    target?.scrollIntoView({ block: "start" });
+  };
+
+  const onDayKeyDown = (date: string, e: KeyboardEvent<HTMLButtonElement>): void => {
+    const idx = days.findIndex((d) => d.date === date);
+    if (idx < 0) return;
+    let next: number | null = null;
+    switch (e.key) {
+      case "ArrowLeft": next = idx - 1; break;
+      case "ArrowRight": next = idx + 1; break;
+      case "ArrowUp": next = idx - 7; break;
+      case "ArrowDown": next = idx + 7; break;
+      case "Home": next = 0; break;
+      case "End": next = days.length - 1; break;
+      default: return;
+    }
+    // Up from the first week leaves the navigator (Shift+Tab) and Down past
+    // the last week enters the list — neither wraps and neither swallows
+    // the keypress: outside the grid the browser keeps its own scroll.
+    if (next < 0 || next >= days.length) return;
+    e.preventDefault();
+    const target = days[next];
+    if (!target) return;
+    pendingFocusRef.current = true;
+    setSelectedDate(target.date);
+  };
+
+  const nameDay = strings.navigatorDayAriaLabel ?? ((dayLabel: string, count: number) => `${dayLabel}, ${count} entries`);
+
+  return (
+    <div ref={navRef} role="group" aria-label={strings.navigatorAriaLabel ?? "Calendar navigator"} data-part="navigator">
+      <div data-part="navigator-weekday-row">
+        {weekdays.map((w, i) => (
+          // Single letter (first grapheme, locale-safe — never a hard-coded
+          // "S M T W T F S"), named by the full weekday for assistive tech.
+          <span key={w.long} data-part="navigator-weekday" aria-label={w.long} title={w.long} data-first={i === 0 ? "true" : undefined}>
+            {Array.from(w.short)[0] ?? w.short}
+          </span>
+        ))}
+      </div>
+      {weekRows(days).map((row, r) => (
+        <div key={row[0]?.date ?? r} data-part="navigator-row">
+          {row.map((day) => (
+            <button
+              key={day.date}
+              type="button"
+              ref={(el) => {
+                if (el) buttonsRef.current.set(day.date, el);
+                else buttonsRef.current.delete(day.date);
+              }}
+              data-part="navigator-day"
+              data-date={day.date}
+              data-in-month={day.inMonth}
+              data-today={day.isToday}
+              data-has-entries={day.entries.length > 0 ? "true" : undefined}
+              aria-pressed={day.date === selectedDate ? true : undefined}
+              aria-label={nameDay(day.label, day.entries.length)}
+              tabIndex={day.date === selectedDate ? 0 : -1}
+              onClick={() => select(day.date)}
+              onKeyDown={(e) => onDayKeyDown(day.date, e)}
+            >
+              <span data-part="navigator-day-number">{day.dayOfMonth}</span>
+              {day.entries.length > 0 ? <span data-part="navigator-dot" aria-hidden="true" /> : null}
+            </button>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
  * Month/week grid, navigation and entries (RFC 0004). Layout, drawing and
  * every drag/move affordance belong here; the renderer owns data, range and
  * optimistic state (`@yadad/core` CalendarProps). Phone agenda reflow and the
@@ -549,6 +683,13 @@ export function Calendar({
             </li>
           ))}
         </ul>
+      ) : null}
+
+      {/* Phone navigator (card 32a): before the grid, outside it, hidden at
+          base — the phone container query shows it. month/week only: a
+          future period-less mode would have no days to map. */}
+      {mode === "month" || mode === "week" ? (
+        <Navigator days={days} weekdays={weekdays} strings={strings} />
       ) : null}
 
       <div role="grid" aria-labelledby={titleId} aria-busy={loading ? true : undefined} data-part="grid">

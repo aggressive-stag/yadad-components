@@ -22,6 +22,13 @@
     container-type: inline-size;
   }
 
+  /* Phone navigator (card 32a): a week/month map above the agenda, shown
+     only in the phone container query below. Hidden at base so the laptop
+     pixels never move. */
+  :where([data-yadad="calendar"]) :where([data-part="navigator"]) {
+    display: none;
+  }
+
   :where([data-yadad="calendar"]) :where([data-part="header"]) {
     display: flex;
     flex-wrap: wrap;
@@ -618,6 +625,159 @@
     :where([data-yadad="calendar"]) :where([data-part="day"][data-today="true"]) [data-part="day-number"] {
       color: var(--yadad-calendar-today, var(--yadad-color-accent));
     }
+
+    /* Card 32a — the phone navigator: a compact map of the period above
+       the list ("where" things are; the list below is "what"). Shown here,
+       display:none at base. 7 columns mirror day-row; hairline between
+       weeks like the grid's own rows. */
+    :where([data-yadad="calendar"]) :where([data-part="navigator"]) {
+      display: grid;
+      /* One grid for the whole map, not one per week row: separate grids
+         size their tracks independently, so at 200% text the today pill's
+         min-content widened only its own row (measured: 50px vs 34.6px in
+         the same column) and the columns visibly wobbled. Rows subgrid
+         into these tracks (below) so a column is one width for the map. */
+      grid-template-columns: repeat(7, 1fr);
+      margin-block-end: var(--yadad-space-3);
+      /* At 200% text the seven tracks need ~257px against 242 available
+         (measured, 390 viewport; 320 is tighter) — no track sizing makes
+         two-digit numbers (36px) both fit and not collide. So the map
+         scrolls inside its own box, the same contract the series table
+         uses: the component scrolls, the *page* never does. At 100% text
+         there is nothing to scroll (7 × 44.9 < the 358 content box). */
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scrollbar-width: thin;
+    }
+
+    :where([data-yadad="calendar"]) :where([data-part="navigator-weekday-row"], [data-part="navigator-row"]) {
+      display: grid;
+      grid-column: 1 / -1;
+      /* Base for engines without subgrid; the tracks then diverge per row
+         (the wobble above), which is a cosmetic loss, not a breakage. */
+      grid-template-columns: repeat(7, 1fr);
+    }
+
+    @supports (grid-template-columns: subgrid) {
+      :where([data-yadad="calendar"]) :where([data-part="navigator-weekday-row"], [data-part="navigator-row"]) {
+        grid-template-columns: subgrid;
+      }
+    }
+
+    :where([data-yadad="calendar"]) :where([data-part="navigator-weekday"]) {
+      padding: var(--yadad-space-1);
+      text-align: center;
+      color: var(--yadad-color-text-muted);
+      font-weight: 600;
+    }
+
+    :where([data-yadad="calendar"]) :where([data-part="navigator-row"]) + :where([data-part="navigator-row"]) {
+      border-block-start: 1px solid var(--yadad-calendar-border, var(--yadad-color-border));
+    }
+
+    /* A day is a real <button> (selecting scrolls the list). all: unset
+       keeps it a button in the DOM and nothing in the paint — same
+       convention as move-trigger above, same focus-visible ring back. */
+    :where([data-yadad="calendar"]) :where([data-part="navigator-day"]) {
+      all: unset;
+      box-sizing: border-box;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      /* Every day reserves the dot's band whether or not it has a dot (the
+         dot is positioned into it, below): with the dot in flow, busy days'
+         numbers rode ~2.5px above their row-neighbours' baselines. 2.25 ×
+         space-1 = dot (3) + ~4.5 clearance each side of the number box. */
+      padding-block-end: calc(var(--yadad-space-1) * 2.25);
+      cursor: pointer;
+      min-block-size: var(--yadad-calendar-nav-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
+    }
+
+    :where([data-yadad="calendar"]) :where([data-part="navigator-day"]):focus-visible {
+      outline: var(--yadad-focus-ring-width) solid var(--yadad-calendar-focus, var(--yadad-color-accent));
+      outline-offset: calc(var(--yadad-focus-ring-width) * -1);
+    }
+
+    /* Out-of-month days: muted, still selectable (the period is what it
+       is; dimming to the point of un-tappability is the failure mode). */
+    :where([data-yadad="calendar"]) :where([data-part="navigator-day"][data-in-month="false"]) {
+      color: var(--yadad-color-text-muted);
+    }
+
+    /* One box for every day number, marked or not: today's ring and the
+       selected pill paint *on* it rather than growing their own. Same
+       geometry in every state means (a) the dot band below is identical for
+       busy/today/selected/plain days, and (b) selecting a day moves nothing
+       on the map. min-inline-size, not inline-size: a fixed width would
+       clip two-digit numbers when the host raises the text size (measured:
+       "31" is 36px at 200% text, spilling outside the accent pill). */
+    :where([data-yadad="calendar"]) :where([data-part="navigator-day-number"]) {
+      display: grid;
+      place-items: center;
+      /* Two properties, one goal: a day's box does not change when it
+         becomes today, selected or busy. border-box puts today's 1px ring
+         INSIDE the box (under content-box the ring read 2px wider than the
+         fill's box — measured 50 vs 48 at 200% text). The floor is the
+         rem-based token pair, which scales with the root font: at every
+         tested scale (100% and 200% at 320 and 390) all days — plain,
+         busy, today, selected — measured one identical box (24, then 48),
+         because bold two-digit text (19.5 / 36.2) stays under it. If a
+         host ever pushes the text past the floor, max-content resumes and
+         the audit's one-footprint check fails loudly rather than shipping
+         a subtly ragged map. */
+      box-sizing: border-box;
+      min-inline-size: calc(var(--yadad-space-4) + var(--yadad-space-2));
+      aspect-ratio: 1;
+    }
+
+    /* Today: accent circle around the number PLUS bold — the non-colour
+       cue (G23), so today is findable without seeing the accent. */
+    :where([data-yadad="calendar"]) :where([data-part="navigator-day"][data-today="true"]) [data-part="navigator-day-number"] {
+      border: 1px solid var(--yadad-calendar-today, var(--yadad-color-accent));
+      border-radius: 50%;
+      font-weight: 700;
+      color: var(--yadad-calendar-today, var(--yadad-color-accent));
+    }
+
+    /* The selected day: an accent pill on the number — a different shape
+       from today's circle, so today vs selected vs today+selected read
+       without colour. */
+    :where([data-yadad="calendar"]) :where([data-part="navigator-day"][aria-pressed="true"]) [data-part="navigator-day-number"] {
+      border-radius: var(--yadad-radius-md);
+      background: var(--yadad-calendar-selected-background, var(--yadad-color-accent));
+      color: var(--yadad-calendar-selected-color, var(--yadad-color-surface));
+    }
+
+    /* One dot per busy day regardless of count — the count lives in the
+       button's accessible name, not in the drawing. Positioned into the
+       band every day reserves (above), so dotted days align with the rest. */
+    :where([data-yadad="calendar"]) :where([data-part="navigator-dot"]) {
+      position: absolute;
+      /* Not bottom-anchored: the hairline between weeks sits exactly on the
+         button's bottom edge, and a dot nearer the rule than its number
+         reads as part of the rule. Midpoint of the band between the number
+         box and the rule (measured: 9.5/4 above/below → 6.5/7), so the
+         dot-number pair reads as one unit. */
+      inset-block-end: calc(var(--yadad-space-1) * 1.75);
+      inset-inline-start: 50%;
+      translate: -50% 0;
+      inline-size: calc(var(--yadad-space-1) * 0.75);
+      block-size: calc(var(--yadad-space-1) * 0.75);
+      border-radius: 50%;
+      background: var(--yadad-calendar-today, var(--yadad-color-accent));
+    }
+
+    /* Q5 (plan) measured: 7 columns at 44px need 308px of navigator; at
+       a 320 viewport the root is 262 and no gutter cut fixes it. Width is
+       the column-constrained axis: below that width a day takes its 1fr
+       column (~35px) — forcing wider would only overflow the grid. Height
+       needs NO narrow-width concession: the vertical axis is never column-
+       constrained, so the 44px floor stands at every width and the audit
+       can hold it to 44 unconditionally. (An earlier @container rule here
+       that dropped the floor to 40 was dead code: Chromium never matches a
+       query condition containing var() — measured, not folklore.) */
   }
 
   /* Touch: the move date input stays at 16px or larger (no iOS focus zoom) and 44px tall.
