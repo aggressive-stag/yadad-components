@@ -150,9 +150,12 @@
     overflow: hidden;
   }
 
+  /* Card 33a: a rolling "3day" period sets --yadad-calendar-columns inline on
+     the grid, so its rows lay out as n columns; month/week never set it and
+     the 7 fallback keeps their computed layout byte-identical. */
   :where([data-yadad="calendar"]) :where([data-part="weekday-row"], [data-part="day-row"]) {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(var(--yadad-calendar-columns, 7), 1fr);
   }
 
   :where([data-yadad="calendar"]) :where([data-part="weekday-row"]) {

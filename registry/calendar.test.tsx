@@ -877,3 +877,111 @@ describe("the strip follows the list (card 32c)", () => {
     expect(FakeIO.instances).toHaveLength(0);
   });
 });
+
+/** One day as the renderer would build it (card 33a fixtures). */
+function dayOf(date: string, dayOfMonth: number, weekday: number, entries: CalendarEntry<ReactNode>[] = []): CalendarDayProps<ReactNode> {
+  return { date, dayOfMonth, weekday, label: `${date} day ${dayOfMonth}`, inMonth: true, isToday: false, entries };
+}
+
+const entryOfCal = (id: string): CalendarEntry<ReactNode> => ({ id, label: id, content: <span>{id}</span>, movable: false, pending: false });
+
+/** N consecutive days starting Mon 2026-11-02 (weekday 1); no entries unless ids given for the first day. */
+function periodDays(n: number, rows = 1): CalendarDayProps<ReactNode>[] {
+  const out: CalendarDayProps<ReactNode>[] = [];
+  for (let i = 0; i < n * rows; i++) {
+    const dow = (1 + i) % 7; // Mon..Sun, wrapping for the second row
+    out.push(dayOf(`2026-11-0${2 + (i % 7)}`, 2 + (i % 7), dow, i === 0 ? [entryOfCal("e1")] : []));
+  }
+  return out;
+}
+
+function periodWeekdays(n: number): { short: string; long: string }[] {
+  return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].slice(0, n).map((s) => ({ short: s[0] ?? "M", long: s }));
+}
+
+describe("N-day periods (card 33a)", () => {
+  function renderPeriod(mode: string, days: CalendarDayProps<ReactNode>[], weekdays = periodWeekdays(mode === "5day" ? 5 : 3), strings = {}) {
+    return render(
+      <Calendar
+        label="Shifts"
+        title="November 2026"
+        mode={mode as never}
+        modes={[{ mode: mode as never, label: mode }]}
+        weekdays={weekdays}
+        days={days}
+        legend={[]}
+        loading={false}
+        strings={strings}
+        onModeChange={() => {}}
+        onPrevious={() => {}}
+        onNext={() => {}}
+        onToday={() => {}}
+      />,
+    );
+  }
+
+  it("a 3-day period is one row of 3 with the weekday headers of those columns", () => {
+    const view = renderPeriod("3day", periodDays(3));
+    const rows = view.container.querySelectorAll('[data-part="day-row"]');
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.querySelectorAll('[data-part="day"]')).toHaveLength(3);
+    const heads = Array.from(view.container.querySelectorAll('[data-part="weekday-row"] [data-part="weekday"]')).map((h) => h.getAttribute("aria-label"));
+    expect(heads).toEqual(["Mon", "Tue", "Wed"]);
+  });
+
+  it("a 5-day period of ten days is two rows of five", () => {
+    const view = renderPeriod("5day", periodDays(5, 2));
+    const rows = view.container.querySelectorAll('[data-part="day-row"]');
+    expect(rows).toHaveLength(2);
+    expect(rows[0]?.querySelectorAll('[data-part="day"]')).toHaveLength(5);
+    expect(rows[1]?.querySelectorAll('[data-part="day"]')).toHaveLength(5);
+  });
+
+  it("the grid carries --yadad-calendar-columns from the row length", () => {
+    const view = renderPeriod("3day", periodDays(3));
+    const grid = view.container.querySelector<HTMLElement>('[data-part="grid"]');
+    expect(grid?.style.getPropertyValue("--yadad-calendar-columns")).toBe("3");
+    // month/week keep the DOM untouched (no inline custom property).
+    const month = render(
+      <Calendar label="M" title="November 2026" mode="month" modes={[{ mode: "month", label: "Month" }]} weekdays={periodWeekdays(7)} days={periodDays(7, 6)} legend={[]} loading={false} onModeChange={() => {}} onPrevious={() => {}} onNext={() => {}} onToday={() => {}} />,
+    );
+    expect(month.container.querySelector<HTMLElement>('[data-part="grid"]')?.style.getPropertyValue("--yadad-calendar-columns")).toBe("");
+  });
+
+  it("nav buttons name the period: 'Previous 3 days', 'Next 3 days'", () => {
+    const view = renderPeriod("3day", periodDays(3));
+    expect(view.container.querySelector('[data-part="nav-previous"]')?.getAttribute("aria-label")).toBe("Previous 3 days");
+    expect(view.container.querySelector('[data-part="nav-next"]')?.getAttribute("aria-label")).toBe("Next 3 days");
+  });
+
+  it("strings.periodNoun re-labels the period", () => {
+    const view = renderPeriod("3day", periodDays(3), periodWeekdays(3), { periodNoun: (m: string) => (m === "3day" ? "shift block" : m) });
+    expect(view.container.querySelector('[data-part="nav-previous"]')?.getAttribute("aria-label")).toBe("Previous shift block");
+  });
+
+  it("no navigator is rendered for N-day modes", () => {
+    const view = renderPeriod("3day", periodDays(3));
+    expect(view.container.querySelector('[data-part="navigator"]')).toBeNull();
+  });
+
+  it("ArrowDown steps by the row length, not by 7", () => {
+    const view = renderPeriod("5day", periodDays(5, 2));
+    const first = view.container.querySelector<HTMLElement>('[data-part="day"][data-date="2026-11-02"]');
+    if (!first) throw new Error("first cell missing");
+    first.focus();
+    fireEvent.keyDown(first, { key: "ArrowDown" });
+    const focused = view.container.querySelector('[data-part="day"][data-date="2026-11-07"]');
+    expect(view.container.ownerDocument.activeElement).toBe(focused);
+  });
+
+  it("an unknown mode (older core) renders like week", () => {
+    const view = renderPeriod("9day", periodDays(7));
+    const rows = view.container.querySelectorAll('[data-part="day-row"]');
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.querySelectorAll('[data-part="day"]')).toHaveLength(7);
+    expect(view.container.querySelector('[data-part="nav-previous"]')?.getAttribute("aria-label")).toBe("Previous week");
+    // Week's form includes its navigator strip (card 32b): the unknown mode
+    // must not be missing it either — "renders like week" means the whole form.
+    expect(view.container.querySelector('[data-part="navigator"]')).not.toBeNull();
+  });
+});

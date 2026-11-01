@@ -300,6 +300,7 @@ A month/week grid of entries with navigation, a colour-slot legend, and a keyboa
 - `--yadad-calendar-slot-5` — colour slot 5 (categorical entry/legend color); default: no default — the host must set it
 - `--yadad-calendar-slot-6` — colour slot 6 (categorical entry/legend color); default: no default — the host must set it
 - `--yadad-calendar-slot-7` — colour slot 7 (categorical entry/legend color); default: no default — the host must set it
+- `--yadad-calendar-columns` — the grid's column count, as the number `repeat()` consumes. month/week never set it and the CSS fallback is 7; a rolling "<n>day" period (card 33a) sets it inline from its row length — set it yourself only to force an odd mode's column count; default: `7`
 - `--yadad-calendar-header-background` — header background; default: token `--yadad-color-surface` (raised surface (sections, panels, table headers))
 - `--yadad-calendar-day-min` — minimum day-cell block size; default: `calc(var(--yadad-space-4) * 6)` (token-derived: `--yadad-space-4`)
 - `--yadad-calendar-outside-color` — text color of a day outside the current month; default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states))

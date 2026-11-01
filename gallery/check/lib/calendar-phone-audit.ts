@@ -326,8 +326,16 @@ function auditCalendarPhone(options?: CalendarPhoneAuditOptions): CalendarPhoneF
       // list. Dots iff busy, single-letter headers with full names, today
       // distinguishable without colour, one tab stop, out-of-month muted
       // but tappable. DOM/contract checks; the column math is (c)'s job.
+      // Card 33a Do 5 (D4): a rolling "<n>day" period renders NO navigator
+      // — the list already pages n days at a time — so the whole block is
+      // month/week only. The mode is read from the root's own data-mode.
+      const rolling = /^[1-6]day$/.test(root.getAttribute("data-mode") ?? "");
       const nav = root.querySelector('[data-part="navigator"]');
-      if (!nav || !rendered(nav)) {
+      if (rolling) {
+        if (nav) {
+          failures.push({ name: `${tag} rolling period has no navigator (33a Do 5)`, expected: "not rendered", actual: "present", detail: labelOf(nav) });
+        }
+      } else if (!nav || !rendered(nav)) {
         failures.push({ name: `${tag} agenda shows the navigator`, expected: "rendered (32a)", actual: nav ? "hidden" : "missing", detail: labelOf(nav ?? root) });
       } else {
         const navButtons = Array.from(nav.querySelectorAll('[data-part="navigator-day"]')).filter(rendered);

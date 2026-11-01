@@ -10,7 +10,7 @@
  */
 import { darkTheme, lightTheme, themeToCss, type Theme } from "@yadad/theme";
 import { optionValue } from "@yadad/core";
-import type { BoardCard, BoardColumn, CalendarDayProps, CalendarEntry, DocumentError, FieldDisplayExtras, FieldDisplayProps, FieldInputExtras, FieldInputProps, FieldType, FieldValueTypes, SelectField } from "@yadad/core";
+import type { BoardCard, BoardColumn, CalendarDayProps, CalendarEntry, CalendarMode, DocumentError, FieldDisplayExtras, FieldDisplayProps, FieldInputExtras, FieldInputProps, FieldType, FieldValueTypes, SelectField } from "@yadad/core";
 import { useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { baseRegistry } from "../../registry/base.js";
@@ -798,7 +798,7 @@ function CalendarHarness({
   maxEntriesPerDay = 3,
 }: {
   id: string;
-  initialMode: "month" | "week";
+  initialMode: "month" | "week" | "3day" | "5day";
   /** The view's busy-day cutoff the renderer resolves into each day's `overflow` (RFC 0008 item 7; default 3). */
   maxEntriesPerDay?: number;
   oneModeOnly?: boolean;
@@ -812,15 +812,36 @@ function CalendarHarness({
   doneable?: boolean;
 }): ReactNode {
   const [doneIds, setDoneIds] = useState<ReadonlySet<string>>(new Set());
-  const [mode, setMode] = useState<"month" | "week">(initialMode);
+  const [mode, setMode] = useState<"month" | "week" | "3day" | "5day">(initialMode);
   const [anchor, setAnchor] = useState(initialAnchor);
   const [localEntries, setLocalEntries] = useState(entries);
   const [announcement, setAnnouncement] = useState<{ seq: number; text: string } | undefined>(undefined);
   const [openedId, setOpenedId] = useState<string | null>(null);
   const seqRef = useRef(0);
 
-  const dates = mode === "month" ? monthGridDates(anchor) : weekGridDates(anchor);
-  const title = mode === "month" ? monthTitle(anchor) : weekTitle(dates);
+  const addDaysISO = (iso: string, n: number): string => {
+    const d = new Date(`${iso}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + n);
+    return d.toISOString().slice(0, 10);
+  };
+  const fromISO = (iso: string): Date => new Date(`${iso}T00:00:00Z`);
+
+  // Card 33a: a rolling "<n>day" period is n consecutive days from the
+  // anchor (the renderer's periodFirst for weekStartsOn=0 is the anchor
+  // itself when the anchor starts the period), titled with the same range
+  // label as a week, one weekday header per column starting at the anchor's
+  // weekday — the same math @yadad/runtime's periodGridDates/weekdayLabels
+  // do; the gallery reimplements fixtures rather than importing the runtime.
+  const period = mode === "3day" || mode === "5day" ? Number(mode[0]) : null;
+  const dates = period !== null ? Array.from({ length: period }, (_, i) => addDaysISO(anchor, i)) : mode === "month" ? monthGridDates(anchor) : weekGridDates(anchor);
+  const title = period !== null ? weekTitle(dates) : mode === "month" ? monthTitle(anchor) : weekTitle(dates);
+  const weekdays =
+    period !== null
+      ? Array.from({ length: period }, (_, i) => {
+          const name = fromISO(addDaysISO(anchor, i)).toLocaleDateString("en-US", { weekday: "long", timeZone: "UTC" });
+          return { short: name.slice(0, 3), long: name };
+        })
+      : calendarWeekdays;
   const days = calendarDays(dates, mode === "month" ? anchor : dates[0] ?? anchor, localEntries).map((d) => ({
     ...d,
     ...(d.entries.length > maxEntriesPerDay ? { overflow: { shown: maxEntriesPerDay, hidden: d.entries.length - maxEntriesPerDay } } : {}),
@@ -843,7 +864,9 @@ function CalendarHarness({
     setAnchor((a) => {
       const d = new Date(`${a}T00:00:00Z`);
       if (mode === "month") d.setUTCMonth(d.getUTCMonth() + n);
-      else d.setUTCDate(d.getUTCDate() + n * 7);
+      // Card 33a: a rolling period pages by its own length (runtime's
+      // shiftAnchor), week by 7.
+      else d.setUTCDate(d.getUTCDate() + n * (period ?? 7));
       return d.toISOString().slice(0, 10);
     });
   };
@@ -865,20 +888,36 @@ function CalendarHarness({
 
   const onOpenEntry = openable ? (id: string): void => setOpenedId(id) : undefined;
 
+  // CalendarMode covers 1day..6day; this harness only wires month/week/3day/
+  // 5day, so any other mode is ignored rather than corrupting the state.
+  const onModeChange = (next: CalendarMode): void => {
+    if (next === "month" || next === "week" || next === "3day" || next === "5day") setMode(next);
+  };
+
+  const harnessModes: { mode: "month" | "week" | "3day" | "5day"; label: string }[] =
+    oneModeOnly
+      ? [{ mode, label: mode === "month" ? "Month" : mode === "week" ? "Week" : `${period} days` }]
+      : [
+          { mode: "month", label: "Month" },
+          { mode: "week", label: "Week" },
+          { mode: "3day", label: "3 days" },
+          { mode: "5day", label: "5 days" },
+        ];
+
   return (
     <>
       <Calendar
         label={id}
         title={title}
         mode={mode}
-        modes={oneModeOnly ? [{ mode, label: mode === "month" ? "Month" : "Week" }] : [{ mode: "month", label: "Month" }, { mode: "week", label: "Week" }]}
-        weekdays={calendarWeekdays}
+        modes={harnessModes}
+        weekdays={weekdays}
         days={days}
         legend={legend === false ? [] : [...calendarLegend]}
         loading={false}
         {...(notice !== undefined ? { notice } : {})}
         {...(announcement ? { announcement } : {})}
-        onModeChange={setMode}
+        onModeChange={onModeChange}
         onPrevious={() => step(-1)}
         onNext={() => step(1)}
         onToday={() => setAnchor(CALENDAR_TODAY)}
@@ -1276,8 +1315,13 @@ const LAYOUT_ANCHORS = [
   "calendar-month-busy",
   "calendar-month-today",
   "calendar-week",
+  "calendar-3day",
+  "calendar-3day-thursday",
+  "calendar-5day",
   "calendar-one-mode",
   "calendar-phone-agenda",
+  "calendar-phone-3day",
+  "calendar-phone-5day",
   "calendar-phone-sticky-agenda",
   "calendar-phone-sticky-hosted",
   "calendar-phone-strip-hosted",
@@ -1726,6 +1770,35 @@ export default function App(): ReactNode {
             "calendar-week",
             "week mode",
             <CalendarHarness id="Training (week)" initialMode="week" initialAnchor={CALENDAR_TODAY} entries={calendarFixtureEntries} />,
+          )}
+          {state(
+            "calendar-3day",
+            "3-day rolling period (card 33a): one row of 3, headers follow the columns",
+            <CalendarHarness id="Training (3-day)" initialMode="3day" initialAnchor="2026-10-19" entries={calendarFixtureEntries} />,
+          )}
+          {state(
+            "calendar-3day-thursday",
+            "3-day rolling period starting a Thursday (card 33a): the weekday headers are Thu/Fri/Sat",
+            <CalendarHarness id="Training (3-day, Thu)" initialMode="3day" initialAnchor="2026-10-22" entries={calendarFixtureEntries} />,
+          )}
+          {state(
+            "calendar-5day",
+            "5-day rolling period (card 33a): one row of 5, nav reads \u201cPrevious 5 days\u201d",
+            <CalendarHarness id="Training (5-day)" initialMode="5day" initialAnchor="2026-10-19" entries={calendarFixtureEntries} />,
+          )}
+          {state(
+            "calendar-phone-3day",
+            "phone 3-day rolling period (390px container): the normal list, no navigator (card 33a)",
+            <div className="phone-frame">
+              <CalendarHarness id="Training (phone 3-day)" initialMode="3day" initialAnchor="2026-10-19" entries={calendarFixtureEntries} />
+            </div>,
+          )}
+          {state(
+            "calendar-phone-5day",
+            "phone 5-day rolling period (390px container): the normal list, no navigator (card 33a)",
+            <div className="phone-frame">
+              <CalendarHarness id="Training (phone 5-day)" initialMode="5day" initialAnchor="2026-10-19" entries={calendarFixtureEntries} />
+            </div>,
           )}
           {state(
             "calendar-one-mode",

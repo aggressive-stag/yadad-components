@@ -1,7 +1,7 @@
 "use client";
 
 import type { CalendarDayProps, CalendarEntry, CalendarMode, CalendarProps } from "@yadad/core";
-import type { KeyboardEvent, ReactNode } from "react";
+import type { CSSProperties, KeyboardEvent, ReactNode } from "react";
 import { useEffect, useId, useRef, useState } from "react";
 import { Menu } from "../../../internal/menu/v1/index.js";
 import { Check } from "../../../internal/check/v1/index.js";
@@ -10,7 +10,17 @@ import { useTouchDrag } from "../../../internal/touch-drag/v1/index.js";
 
 /** How many entries show before a day collapses the rest behind "+N more" (card 11 issue 3: unbounded growth). */
 
-const nounFor = (mode: CalendarMode): string => (mode === "month" ? "month" : "week");
+/** The rolling family (RFC 0004 amendment): "1day".."6day". Anything else — including a mode an older core never heard of — is not rolling. */
+const ROLLING = /^([1-6])day$/;
+/** Days in a rolling "<n>day" mode; null for month, week and unknown modes (which render like week, card 33a Do 4). */
+const rollingLength = (mode: CalendarMode): number | null => {
+  const m = ROLLING.exec(mode);
+  return m ? Number(m[1]) : null;
+};
+const nounFor = (mode: CalendarMode, strings: CalendarStrings): string => {
+  const n = rollingLength(mode);
+  return strings.periodNoun?.(mode) ?? (mode === "month" ? "month" : n === null ? "week" : `${n} days`);
+};
 
 /**
  * Every word the calendar says, as a prop; each default is the English
@@ -67,16 +77,20 @@ export interface CalendarStrings {
   readonly nextAriaLabel?: (noun: string) => string;
   /** Today nav button. Default: "Today". */
   readonly navTodayLabel?: string;
+  /** Mode switcher button text fallback (card 33a) for a mode whose host label is empty; the set's own default for a rolling "3day" is "3 days". A non-empty host `modes[].label` always wins. */
+  readonly modeLabel?: (mode: CalendarMode) => string;
+  /** The period noun in "Previous ${noun}" / "Next ${noun}" (card 33a). Default: "month", "week", or "3 days" for a rolling mode. */
+  readonly periodNoun?: (mode: CalendarMode) => string;
   /** Mode switcher group accessible name. Default: "Calendar mode". */
   readonly modeSwitchAriaLabel?: string;
   /** Colour legend accessible name. Default: "Colours". */
   readonly legendAriaLabel?: string;
 }
 
-/** Splits the flat day list into rows of 7, for role="row" grouping under role="grid". */
-function weekRows(days: readonly CalendarDayProps<ReactNode>[]): CalendarDayProps<ReactNode>[][] {
+/** Splits the flat day list into rows of `columns`, for role="row" grouping under role="grid". Month/week (and a mode an older core invented) use 7; a rolling "<n>day" period uses n — one row when the renderer sends exactly n days, two when it sends 2n, and so on (card 33a). */
+function weekRows(days: readonly CalendarDayProps<ReactNode>[], columns = 7): CalendarDayProps<ReactNode>[][] {
   const rows: CalendarDayProps<ReactNode>[][] = [];
-  for (let i = 0; i < days.length; i += 7) rows.push(days.slice(i, i + 7));
+  for (let i = 0; i < days.length; i += columns) rows.push(days.slice(i, i + columns));
   return rows;
 }
 
@@ -736,7 +750,12 @@ export function Calendar({
 }: CalendarProps<ReactNode> & { strings?: CalendarStrings }): ReactNode {
   const base = useId();
   const titleId = `${base}-title`;
-  const noun = nounFor(mode);
+  const noun = nounFor(mode, strings);
+  // Grid columns (card 33a): a rolling "<n>day" mode has n columns; month,
+  // week and any mode an older core never validated (rollingLength null)
+  // keep the seven-day week. `weekdays` arrives one-per-column from the
+  // renderer either way, so headers always match the columns.
+  const columns = rollingLength(mode) ?? 7;
 
   // Roving tabindex (ARIA grid pattern): one gridcell is in the Tab order at
   // a time; arrow keys move the "active" cell, Home/End to the week's ends,
@@ -802,19 +821,19 @@ export function Calendar({
         break;
       case "ArrowDown":
         e.preventDefault();
-        focusDelta(date, 7);
+        focusDelta(date, columns);
         break;
       case "ArrowUp":
         e.preventDefault();
-        focusDelta(date, -7);
+        focusDelta(date, -columns);
         break;
       case "Home":
         e.preventDefault();
-        focusDelta(date, -(idx % 7));
+        focusDelta(date, -(idx % columns));
         break;
       case "End":
         e.preventDefault();
-        focusDelta(date, 6 - (idx % 7));
+        focusDelta(date, columns - 1 - (idx % columns));
         break;
       case "PageUp":
         e.preventDefault();
@@ -852,7 +871,7 @@ export function Calendar({
           <div role="group" aria-label={strings.modeSwitchAriaLabel ?? "Calendar mode"} data-part="mode-switch">
             {modes.map((m) => (
               <button key={m.mode} type="button" aria-pressed={m.mode === mode} onClick={() => onModeChange(m.mode)} data-part="mode-button">
-                {m.label}
+                {m.label !== "" ? m.label : strings.modeLabel?.(m.mode) ?? (rollingLength(m.mode) === null ? m.mode : `${rollingLength(m.mode)} days`)}
               </button>
             ))}
           </div>
@@ -880,13 +899,25 @@ export function Calendar({
       ) : null}
 
       {/* Phone navigator (card 32a): before the grid, outside it, hidden at
-          base — the phone container query shows it. month/week only: a
-          future period-less mode would have no days to map. */}
-      {mode === "month" || mode === "week" ? (
-        <Navigator days={days} weekdays={weekdays} strings={strings} mode={mode} />
+          base — the phone container query shows it. month/week/unknown only:
+          rolling periods have no navigator (card 33a Do 5 — D4, the phone
+          list already pages them), and an unknown mode gets week's form
+          whole, per Do 4's "renders like week". */}
+      {rollingLength(mode) === null ? (
+        <Navigator days={days} weekdays={weekdays} strings={strings} mode={mode === "month" ? "month" : "week"} />
       ) : null}
 
-      <div role="grid" aria-labelledby={titleId} aria-busy={loading ? true : undefined} data-part="grid">
+      <div
+        role="grid"
+        aria-labelledby={titleId}
+        aria-busy={loading ? true : undefined}
+        data-part="grid"
+        /* Card 33a: the visual column count follows the row length (n for a
+           rolling period, 7 otherwise) so calendar.css can lay out with
+           repeat(var(--yadad-calendar-columns, 7), 1fr). month/week write
+           nothing, so their computed style is byte-identical to before. */
+        style={columns === 7 ? undefined : ({ "--yadad-calendar-columns": String(columns) } as CSSProperties)}
+      >
         <div role="row" data-part="weekday-row">
           {weekdays.map((w) => (
             <span key={w.long} role="columnheader" aria-label={w.long} data-part="weekday">
@@ -894,7 +925,7 @@ export function Calendar({
             </span>
           ))}
         </div>
-        {weekRows(days).map((row, r) => (
+        {weekRows(days, columns).map((row, r) => (
           <div key={row[0]?.date ?? r} role="row" data-part="day-row">
             {row.map((day, column) => (
               <DayCell

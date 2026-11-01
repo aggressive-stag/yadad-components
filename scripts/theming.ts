@@ -514,6 +514,7 @@ const VAR_DESCRIPTION: Record<string, string> = {
   "calendar-status-color": "live-region (status) text color",
   "calendar-status-accent": "live-region leading bar color",
   "calendar-status-background": "live-region background",
+  "calendar-columns": "the grid's column count, as the number `repeat()` consumes. month/week never set it and the CSS fallback is 7; a rolling \"<n>day\" period (card 33a) sets it inline from its row length — set it yourself only to force an odd mode's column count",
   "calendar-day-min": "minimum day-cell block size",
   "calendar-sticky-top": "phone agenda only: how far below the top of the agenda's own scroll container a day's pinned head sits. Leave it unset (0) when nothing is pinned above the list; set it to the height of your own pinned header/app bar so the head pins below it instead of under it. The day cells get the matching scroll-margin, so the renderer's scroll-today-into-view on load lands the day clear of the band",
   "calendar-row-min": "phone agenda only: the minimum height of an entry row (the tappable line; the <li> grows past it when a done/actions cluster sits under the row). Default 3rem — the middle of the 44–56px list band; the touch audit still enforces 44px targets whatever you set",
