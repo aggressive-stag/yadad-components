@@ -658,3 +658,222 @@ describe("navigator week strip (card 32b)", () => {
     expect(toggle.textContent).toBe("Solo la semana");
   });
 });
+
+describe("the strip follows the list (card 32c)", () => {
+  /** Controllable stand-ins: jsdom ships neither observer, so the card's
+   *  contract (observer only, tap wins, teardown) is otherwise untested. */
+  class FakeIO {
+    static instances: FakeIO[] = [];
+    observed: Element[] = [];
+    disconnected = false;
+    constructor(
+      private cb: IntersectionObserverCallback,
+      public init: IntersectionObserverInit | undefined,
+    ) {
+      FakeIO.instances.push(this);
+    }
+    observe(el: Element): void {
+      this.observed.push(el);
+    }
+    unobserve(): void {}
+    disconnect(): void {
+      this.disconnected = true;
+    }
+    takeRecords(): IntersectionObserverEntry[] {
+      return [];
+    }
+    /** Deliver `dates` as simultaneously visible, topmost first. */
+    fire(dates: { date: string; top: number }[]): void {
+      const entries = dates.map((d) => ({
+        isIntersecting: true,
+        target: document.querySelector(`[data-part="day"][data-date="${d.date}"]`) as Element,
+        boundingClientRect: { top: d.top },
+      })) as unknown as IntersectionObserverEntry[];
+      act(() => {
+        this.cb(entries, this as unknown as IntersectionObserver);
+      });
+    }
+  }
+  class FakeRO {
+    static instances: FakeRO[] = [];
+    cb: ResizeObserverCallback;
+    constructor(cb: ResizeObserverCallback) {
+      this.cb = cb;
+      FakeRO.instances.push(this);
+    }
+    observe(): void {}
+    unobserve(): void {}
+    disconnect(): void {}
+    trigger(): void {
+      this.cb([], this as unknown as ResizeObserver);
+    }
+  }
+
+  function followRender() {
+    const days: CalendarDayProps<ReactNode>[] = Array.from({ length: 35 }, (_, i) => ({
+      date: `2026-10-${String(1 + i).padStart(2, "0")}`,
+      dayOfMonth: 1 + i,
+      weekday: i % 7,
+      label: `Day ${1 + i} October 2026`,
+      inMonth: true,
+      isToday: i === 15, // row 2 — the strip's initial week
+      entries: [],
+    }));
+    Element.prototype.scrollIntoView = vi.fn();
+    // If the component ever tries to MOVE the list, these catch the hijack.
+    const scrollToSpy = vi.fn();
+    const scrollBySpy = vi.fn();
+    Element.prototype.scrollTo = scrollToSpy as unknown as typeof Element.prototype.scrollTo;
+    Element.prototype.scrollBy = scrollBySpy as unknown as typeof Element.prototype.scrollBy;
+    FakeIO.instances = [];
+    FakeRO.instances = [];
+    const view = render(
+      <Calendar
+        label="Training"
+        title="October 2026"
+        mode="month"
+        modes={[{ mode: "month", label: "Month" }]}
+        weekdays={calendarWeekdays}
+        days={days}
+        legend={[]}
+        loading={false}
+        onModeChange={() => {}}
+        onPrevious={() => {}}
+        onNext={() => {}}
+        onToday={() => {}}
+      />,
+    );
+    const nav = view.container.querySelector('[data-part="navigator"]') as HTMLElement;
+    const toggle = view.container.querySelector('[data-part="navigator-toggle"]') as HTMLButtonElement;
+    const rows = () => Array.from(nav.querySelectorAll('[data-part="navigator-row"]'));
+    const datesShown = (): string[] =>
+      Array.from(rows()[0]?.querySelectorAll("[data-part='navigator-day']") ?? []).map((b) => b.getAttribute("data-date") ?? "");
+    return { ...view, nav, toggle, rows, datesShown, scrollToSpy, scrollBySpy };
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  it("watches exactly the list's day cells while the phone navigator shows", () => {
+    vi.stubGlobal("IntersectionObserver", FakeIO);
+    vi.stubGlobal("ResizeObserver", FakeRO);
+    followRender();
+    expect(FakeIO.instances).toHaveLength(1);
+    const io = FakeIO.instances[0];
+    if (!io) throw new Error("no observer constructed");
+    expect(io.observed).toHaveLength(35);
+    expect(io.observed.every((el) => el.matches('[data-part="day"][data-date]'))).toBe(true);
+    // and the follow band derives from the chrome, as a negative top margin
+    expect(String(io.init?.rootMargin ?? "")).toMatch(/^-\d+(\.\d+)?px 0px -45% 0px$/);
+  });
+
+  it("reading the 27th walks the strip to the 27th's week, focus untouched", () => {
+    vi.stubGlobal("IntersectionObserver", FakeIO);
+    vi.stubGlobal("ResizeObserver", FakeRO);
+    const { nav, datesShown, toggle } = followRender();
+    expect(datesShown()).toContain("2026-10-16"); // row 2
+    const io = FakeIO.instances[0];
+    if (!io) throw new Error("no observer constructed");
+    toggle.focus();
+    io.fire([{ date: "2026-10-27", top: 130 }, { date: "2026-10-28", top: 320 }]);
+    // the top-most visible day wins, and selection + pill + Tab stop move with it
+    expect(datesShown()).toContain("2026-10-27");
+    const pill = nav.querySelector("[data-part='navigator-day'][data-date='2026-10-27']") as HTMLButtonElement;
+    expect(pill.getAttribute("aria-pressed")).toBe("true");
+    expect(pill.getAttribute("tabindex")).toBe("0");
+    expect(document.activeElement).toBe(toggle); // a scroll never steals focus
+  });
+
+  it("observer only: the component never sets scroll position", () => {
+    vi.stubGlobal("IntersectionObserver", FakeIO);
+    vi.stubGlobal("ResizeObserver", FakeRO);
+    const { scrollToSpy, scrollBySpy, datesShown } = followRender();
+    const io = FakeIO.instances[0];
+    if (!io) throw new Error("no observer constructed");
+    for (const date of ["2026-10-20", "2026-10-24", "2026-10-27", "2026-10-31"]) {
+      io.fire([{ date, top: 130 }]);
+      expect(datesShown()).toContain(date);
+    }
+    expect(scrollToSpy).not.toHaveBeenCalled();
+    expect(scrollBySpy).not.toHaveBeenCalled();
+    expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled();
+  });
+
+  it("a day tap wins over the observer until its scroll settles", () => {
+    vi.stubGlobal("IntersectionObserver", FakeIO);
+    vi.stubGlobal("ResizeObserver", FakeRO);
+    vi.useFakeTimers();
+    const { datesShown } = followRender();
+    const nav = document.querySelector('[data-part="navigator"]') as HTMLElement;
+    const io = FakeIO.instances[0];
+    if (!io) throw new Error("no observer constructed");
+    const day20 = nav.querySelector("[data-part='navigator-day'][data-date='2026-10-20']") as HTMLButtonElement;
+    fireEvent.click(day20); // the tap's own scrollIntoView starts
+    io.fire([{ date: "2026-10-27", top: 130 }]); // list scrolls past weeks en route
+    expect(datesShown()).toContain("2026-10-20"); // the tap still owns the strip
+    act(() => {
+      vi.advanceTimersByTime(150); // the tap's scroll settles
+    });
+    io.fire([{ date: "2026-10-27", top: 130 }]); // a NEW scroll position, after settle
+    expect(datesShown()).toContain("2026-10-27");
+  });
+
+  it("collapsing through the grabber survives its own layout shift (measured bug: 28→29)", () => {
+    // Collapsing deletes ~4 rows above the list: real browsers clamp
+    // scrollTop, which fires scroll events. Those are OUR doing — the
+    // observer must not read them as the user scrolling and steal the day
+    // the user just tapped. Found by the Chromium probe, not by jsdom.
+    vi.stubGlobal("IntersectionObserver", FakeIO);
+    vi.stubGlobal("ResizeObserver", FakeRO);
+    vi.useFakeTimers();
+    const { toggle, datesShown } = followRender();
+    const nav = document.querySelector('[data-part="navigator"]') as HTMLElement;
+    const io = FakeIO.instances[0];
+    if (!io) throw new Error("no observer constructed");
+    fireEvent.click(toggle); // expand so the 28th renders
+    const day28 = nav.querySelector("[data-part='navigator-day'][data-date='2026-10-28']") as HTMLButtonElement;
+    fireEvent.click(day28); // tap: strip lands on the 25th's week (25..31)
+    act(() => {
+      vi.advanceTimersByTime(150); // the tap's scroll settles; suppression off
+    });
+    fireEvent.click(toggle); // collapse — the layout shift fires scroll
+    // fire a day OUTSIDE the 25th's week: if the clamp's scroll callbacks
+    // were read, the strip would move to the 11th's week and lose the 28th.
+    io.fire([{ date: "2026-10-12", top: 130 }]);
+    expect(datesShown()).toContain("2026-10-28"); // still the tapped day
+    act(() => {
+      vi.advanceTimersByTime(150);
+    });
+    io.fire([{ date: "2026-10-02", top: 130 }]); // a real user scroll afterwards
+    expect(datesShown()).toContain("2026-10-02");
+  });
+
+  it("no observer survives unmount, expanding, or the base (non-phone) style", () => {
+    vi.stubGlobal("IntersectionObserver", FakeIO);
+    vi.stubGlobal("ResizeObserver", FakeRO);
+    const { unmount, toggle } = followRender();
+    const first = FakeIO.instances[0];
+    if (!first) throw new Error("no observer constructed");
+    fireEvent.click(toggle); // expand: all rows render, nothing to follow
+    expect(first.disconnected).toBe(true);
+    fireEvent.click(toggle); // collapse: a fresh watch
+    const second = FakeIO.instances[1];
+    if (!second) throw new Error("collapse did not re-watch");
+    unmount();
+    expect(second.disconnected).toBe(true);
+
+    // Base style (display:none on the navigator = outside the phone query):
+    // the container never gets a watcher at all.
+    FakeIO.instances = [];
+    const real = window.getComputedStyle.bind(window);
+    vi.spyOn(window, "getComputedStyle").mockImplementation((el: Element, ...rest) =>
+      el instanceof HTMLElement && el.dataset["part"] === "navigator"
+        ? ({ display: "none" } as CSSStyleDeclaration)
+        : real(el, ...(rest as [undefined])),
+    );
+    followRender();
+    expect(FakeIO.instances).toHaveLength(0);
+  });
+});

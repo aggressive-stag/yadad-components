@@ -423,10 +423,23 @@ function Navigator({
   // to pin, so only the collapsed strip sticks and the expanded month
   // scrolls away like any other content.
   const [expanded, setExpanded] = useState(false);
+  // Card 32c (M22): as the list scrolls, the strip shows the week being
+  // READ — selectedDate follows the top-most visible day under the pinned
+  // chrome, so the strip's pill, its Tab stop and its week all move
+  // together. Observer only: it NEVER sets scroll position (no hijack), and
+  // a day tap wins over it: the tap suppresses the observer until its own
+  // scrollIntoView settles.
   const rowsId = useId();
   const buttonsRef = useRef<Map<string, HTMLButtonElement>>(new Map());
   const pendingFocusRef = useRef(false);
   const navRef = useRef<HTMLDivElement | null>(null);
+  // The tap's own scroll owns the strip until it settles; the observer
+  // waits it out rather than flickering the strip through intermediate weeks.
+  const tapScrollRef = useRef(false);
+  // The list lives beside the navigator (both under the calendar root);
+  // both effects resolve it from navRef at run time, after commit.
+  const listRoot = (): HTMLElement | null =>
+    navRef.current?.closest('[data-yadad="calendar"]')?.querySelector<HTMLElement>('[data-part="grid"]') ?? null;
 
   useEffect(() => {
     if (!days.some((d) => d.date === selectedDate)) {
@@ -442,20 +455,155 @@ function Navigator({
     }
   }, [selectedDate]);
 
-  // Selecting scrolls the *list* to that day; 31e's scroll-margin on the
-  // day cell keeps the head below the pinned chrome. Focus stays on the
-  // navigator button (the card never yanks focus into the list).
+  // Card 32c (M22): the strip follows the list. Observer only — it reads
+  // which day is being read and re-anchors the collapsed strip; it never
+  // calls scrollTo/scrollIntoView, so the user's scroll is never hijacked.
+  // Three exits, all of which tear it down: unmount, leaving the phone
+  // container (base hides the navigator, so a zero-height nav means the
+  // container query is off), and expanded (all rows render anyway).
+  //
+  // The top band comes from the COMPUTED day-head inset — the same composed
+  // sticky-top + strip-size the 32b audit enforces — not a constant, so a
+  // host that re-tokens the chrome moves the observer line with it. A tap's
+  // own scrollIntoView wins: callbacks are dropped until that scroll settles
+  // (scroll events going quiet for a beat), which is what stops the strip
+  // flickering through every intermediate week on the way to the tap target.
+  useEffect(() => {
+    if (expanded || mode === "week") return;
+    if (typeof IntersectionObserver === "undefined") return; // jsdom without a stub
+    const nav = navRef.current;
+    const root = listRoot();
+    if (!nav || !root) return;
+    const cal = nav.closest('[data-yadad="calendar"]');
+    if (!cal) return;
+
+    let observer: IntersectionObserver | null = null;
+
+    const start = (): void => {
+      if (observer) return;
+      // Hidden at base: the stylesheet's `display: none` IS the phone gate
+      // (the container query flips it), so read that property rather than
+      // layout — same signal, no forced reflow, and honest in jsdom where
+      // no stylesheet loads and offsetHeight is a constant 0.
+      if (getComputedStyle(nav).display === "none") return;
+      const cells = Array.from(root.querySelectorAll<HTMLElement>('[data-part="day"]')).filter(
+        (el) => typeof el.dataset["date"] === "string"
+      );
+      if (cells.length === 0) return;
+      // The scroll container is whatever actually scrolls the list — the
+      // host's overflow box, or the viewport when the page itself scrolls.
+      let scroller: HTMLElement | null = null;
+      for (let p: HTMLElement | null = root.parentElement; p; p = p.parentElement) {
+        const oy = getComputedStyle(p).overflowY;
+        if ((oy === "auto" || oy === "scroll") && p.scrollHeight > p.clientHeight) {
+          scroller = p;
+          break;
+        }
+      }
+      const head = root.querySelector<HTMLElement>('[data-part="day-head"]');
+      const chrome = head ? parseFloat(getComputedStyle(head).insetBlockStart) : NaN;
+      const top = Number.isFinite(chrome) ? chrome : 0;
+      observer = new IntersectionObserver(
+        (entries) => {
+          if (tapScrollRef.current) return; // the tap's scroll owns the strip
+          let best: { date: string; top: number } | null = null;
+          for (const e of entries) {
+            if (!e.isIntersecting) continue;
+            const d = (e.target as HTMLElement).dataset["date"];
+            if (!d) continue;
+            const t = e.boundingClientRect.top;
+            if (!best || t < best.top) best = { date: d, top: t };
+          }
+          if (!best) return;
+          if (!days.some((d) => d.date === best!.date)) return;
+          // The selection follows the reading — never via the pendingFocus
+          // path, so the keyboard focus the user placed stays put (a scroll
+          // must not move the Tab ring; the strip just changes week).
+          setSelectedDate((cur) => (cur === best!.date ? cur : best!.date));
+        },
+        { root: scroller, rootMargin: `-${Math.max(top, 0)}px 0px -45% 0px`, threshold: 0 }
+      );
+      for (const c of cells) observer.observe(c);
+    };
+
+    const stop = (): void => {
+      observer?.disconnect();
+      observer = null;
+    };
+
+    start();
+    // Phone-ness is a CONTAINER query, so the gate watches the container:
+    // the nav's box appears/disappears when the container query flips
+    // (display:none has no box), and a ResizeObserver reports that. A
+    // viewport matchMedia would lie for hosts that size the container
+    // independently of the window — the gallery's hosted stories do.
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(() => (getComputedStyle(nav).display === "none" ? stop() : start()));
+      ro.observe(nav);
+    }
+    return () => {
+      ro?.disconnect();
+      stop();
+    };
+  }, [days, expanded, mode]);
+
+  // The tap's own scroll owns the strip until it settles (see above). A
+  // settle = scroll events quiet for 120ms — ONE shared timer, rearmed on
+  // every scroll event, so continuous user scrolling keeps suppression held
+  // (a per-event timer would fire mid-scroll and let the observer steal the
+  // strip). A tap that needs no scroll clears through the same timer.
+  const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const settleRootRef = useRef<HTMLElement | null>(null);
+  const armSettle = (): void => {
+    if (settleTimerRef.current) clearTimeout(settleTimerRef.current);
+    tapScrollRef.current = true;
+    settleTimerRef.current = setTimeout(() => {
+      tapScrollRef.current = false;
+      settleRootRef.current?.removeEventListener("scroll", armSettle);
+      settleRootRef.current = null;
+      settleTimerRef.current = null;
+    }, 120);
+  };
+  // The grabber's toggle owns the strip through its OWN layout shift:
+  // collapsing removes ~4 rows above the list, which clamps scrollTop,
+  // which fires scroll events the observer would otherwise read as "the
+  // user scrolled" and yank the selection off the day just tapped (measured:
+  // 28 → 29 on collapse). Same suppression, same settle.
+  const onToggle = (): void => {
+    settleRootRef.current?.removeEventListener("scroll", armSettle);
+    settleRootRef.current = listRoot();
+    settleRootRef.current?.addEventListener("scroll", armSettle);
+    armSettle();
+    setExpanded((e) => !e);
+  };
+  useEffect(() => {
+    return () => {
+      // Unmount mid-tap: no orphan listener, no orphan timer holding a
+      // stale suppression that the next mount would inherit as a ref anyway.
+      if (settleTimerRef.current) clearTimeout(settleTimerRef.current);
+      settleRootRef.current?.removeEventListener("scroll", armSettle);
+      settleRootRef.current = null;
+      settleTimerRef.current = null;
+    };
+  }, []);
   const select = (date: string): void => {
     setSelectedDate(date);
+    tapScrollRef.current = true;
+    const root = listRoot();
+    settleRootRef.current?.removeEventListener("scroll", armSettle);
+    settleRootRef.current = root;
+    root?.addEventListener("scroll", armSettle);
     // Search from the navigator's own root, not document.activeElement:
     // Safari never focuses buttons on click, so activeElement is a liar
     // there. dataset scan, not a selector — jsdom has no CSS global and
     // dates are ISO anyway.
-    const root = navRef.current?.closest('[data-yadad="calendar"]');
-    const target = Array.from(root?.querySelectorAll('[data-part="day"]') ?? []).find(
+    const navRoot = navRef.current?.closest('[data-yadad="calendar"]');
+    const target = Array.from(navRoot?.querySelectorAll('[data-part="day"]') ?? []).find(
       (el) => (el as HTMLElement).dataset["date"] === date
     );
     target?.scrollIntoView({ block: "start" });
+    armSettle();
   };
 
   const onDayKeyDown = (date: string, e: KeyboardEvent<HTMLButtonElement>): void => {
@@ -485,10 +633,10 @@ function Navigator({
   const nameDay = strings.navigatorDayAriaLabel ?? ((dayLabel: string, count: number) => `${dayLabel}, ${count} entries`);
 
   const rows = weekRows(days);
+  // The strip anchors on the selection (32c moves it as the list is read).
+  // A selection the host removed (period change mid-render) falls back to
+  // the first row rather than rendering an empty strip.
   const selectedIndex = days.findIndex((d) => d.date === selectedDate);
-  // Collapsed shows exactly the selected day's week. A selection the host
-  // removed (period change mid-render) falls back to the first row rather
-  // than rendering an empty strip.
   const selectedRow = selectedIndex >= 0 ? Math.floor(selectedIndex / 7) : 0;
   const showAll = expanded || mode === "week";
   const visibleRows = showAll ? rows : rows.slice(selectedRow, selectedRow + 1);
@@ -515,7 +663,7 @@ function Navigator({
           data-part="navigator-toggle"
           aria-expanded={expanded}
           aria-controls={rowIds.join(" ")}
-          onClick={() => setExpanded((e) => !e)}
+          onClick={onToggle}
         >
           {(expanded ? strings.navigatorCollapseLabel : strings.navigatorExpandLabel) ?? (expanded ? "Show week only" : "Show full month")}
         </button>
