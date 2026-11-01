@@ -93,4 +93,20 @@ describe("scanParts (data-part extraction)", () => {
     const tsx = `<section data-yadad="board"><ul data-part="cards"></ul></section>`;
     expect([...scanParts(tsx).entries()]).toEqual([["cards", false]]);
   });
+
+  test("KNOWN LIMITATION: an unbalanced apostrophe in a comment inside an attribute brace desyncs the scan", () => {
+    // Comment text inside {...} is not stripped, so a stray `'` opens a
+    // quote state that swallows the tag's closing `>` (and everything after
+    // it, once the outer while-loop breaks on findTagEnd === -1). House
+    // rule: comments inside attribute expressions carry no apostrophes.
+    const tsx = `
+      <div data-part="a" {...(ok ? {
+        // don't write contractions here
+        cb: (x: string) => x,
+      } : {})} />
+      <button data-part="nav-previous">Previous</button>`;
+    expect([...scanParts(tsx).keys()]).toEqual([]); // the desynced tag and everything after, lost
+    const fixed = tsx.replace("don't", "do not");
+    expect([...scanParts(fixed).keys()]).toEqual(["a", "nav-previous"]);
+  });
 });

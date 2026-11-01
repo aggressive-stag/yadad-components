@@ -356,6 +356,7 @@ const PART_DESCRIPTION: Record<string, Record<string, string>> = {
     "navigator-day-number": "a navigator day's day-of-month number (the circle/pill paint lands here)",
     "navigator-dot": "the busy-day dot — one per day with entries, regardless of count (the count is in the button's accessible name)",
     "navigator-toggle": "the grabber that expands the pinned week strip to the month and back (aria-expanded + aria-controls on the rendered rows; week mode has none — one row is already a strip)",
+    "earlier-toggle": "the \"Earlier (N)\" fold toggle (phone only; collapsed by default, aria-expanded; the laptop never shows it and renders every day)",
     "weekday-row": "the weekday header row",
     weekday: "one weekday column header",
     "day-row": "one week's row of day cells",

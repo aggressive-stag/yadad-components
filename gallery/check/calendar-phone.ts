@@ -63,15 +63,17 @@ for (const vp of [
     // reads each root's own data-expanded, so this pass flips the pinned
     // checks: the expanded month must NOT pin (D9) and the grabber must
     // announce true. Click via the DOM (React sees it); focus/scroll
-    // stability across the click is the 32b probe's job.
+    // stability across the click is the 32b probe's job. Card 33b adds the
+    // Earlier fold toggle to the same pass: collapsed and expanded audit the
+    // fold both ways.
     const toggled = await page.evaluate(() => {
-      const t = Array.from(document.querySelectorAll('[data-part="navigator-toggle"]'));
+      const t = Array.from(document.querySelectorAll('[data-part="navigator-toggle"], [data-part="earlier-toggle"]'));
       t.forEach((el) => (el as HTMLElement).click());
       return t.length;
     });
     const expandedFailures = await runAudit(page, []);
     check(`${run}: expanded-month audit clean (${toggled} grabbers clicked)`, expandedFailures.length === 0, expandedFailures.map((f) => `${f.name} (expected ${f.expected}, got ${f.actual}) ${f.detail}`).join(" | "));
-    await page.evaluate(() => document.querySelectorAll('[data-part="navigator-toggle"]').forEach((el) => (el as HTMLElement).click()));
+    await page.evaluate(() => document.querySelectorAll('[data-part="navigator-toggle"], [data-part="earlier-toggle"]').forEach((el) => (el as HTMLElement).click()));
     await ctx.close();
   }
 }

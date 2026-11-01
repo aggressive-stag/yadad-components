@@ -269,6 +269,7 @@ A month/week grid of entries with navigation, a colour-slot legend, and a keyboa
 - `legend-item` — one legend entry (target with `[data-yadad="calendar"] [data-part="legend-item"]`)
 - `legend-swatch` — one legend entry's colour swatch (target with `[data-yadad="calendar"] [data-part="legend-swatch"]`)
 - `legend-label` — one legend entry's label text (target with `[data-yadad="calendar"] [data-part="legend-label"]`)
+- `earlier-toggle` — the "Earlier (N)" fold toggle (phone only; collapsed by default, aria-expanded; the laptop never shows it and renders every day) (target with `[data-yadad="calendar"] [data-part="earlier-toggle"]`)
 - `grid` — the `role="grid"` wrapper (target with `[data-yadad="calendar"] [data-part="grid"]`)
 - `weekday-row` — the weekday header row (target with `[data-yadad="calendar"] [data-part="weekday-row"]`)
 - `weekday` — one weekday column header (target with `[data-yadad="calendar"] [data-part="weekday"]`)

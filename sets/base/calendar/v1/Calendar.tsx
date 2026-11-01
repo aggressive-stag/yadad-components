@@ -81,6 +81,10 @@ export interface CalendarStrings {
   readonly modeLabel?: (mode: CalendarMode) => string;
   /** The period noun in "Previous ${noun}" / "Next ${noun}" (card 33a). Default: "month", "week", or "3 days" for a rolling mode. */
   readonly periodNoun?: (mode: CalendarMode) => string;
+  /** The "Earlier (N)" fold toggle (card 33b): N = past days carrying entries. Default: `Earlier (${n})`. */
+  readonly earlierLabel?: (n: number) => string;
+  /** Toggle accessible name (card 33b). Function so translations keep the count in the right place. Default: shows or hides the wording around `earlierLabel`. */
+  readonly earlierAriaLabel?: (n: number) => string;
   /** Mode switcher group accessible name. Default: "Calendar mode". */
   readonly modeSwitchAriaLabel?: string;
   /** Colour legend accessible name. Default: "Colours". */
@@ -323,6 +327,7 @@ function DayCell({
   onDrop,
   onTouchOver,
   strings,
+  earlier,
 }: {
   day: CalendarDayProps<ReactNode>;
   /** This day's column header short name (the weekday of its row index). */
@@ -339,6 +344,10 @@ function DayCell({
   onDrop?: (date: string, entryId: string) => void;
   onTouchOver: (date: string | undefined) => void;
   strings: CalendarStrings;
+  /** Strictly before today under listStart:"today" (card 33b). The attribute
+   *  alone changes nothing on a laptop — visibility is the phone container
+   *  query's job (C5: attributes + CSS, never a wrapper element). */
+  earlier?: boolean;
 }): ReactNode {
   const [expanded, setExpanded] = useState(false);
   // The renderer owns the cutoff (RFC 0008 item 7, the view's maxEntriesPerDay) and sends
@@ -359,6 +368,7 @@ function DayCell({
       data-date={day.date}
       data-in-month={day.inMonth}
       data-today={day.isToday}
+      data-earlier={earlier ? "true" : undefined}
       data-drag-over={canDrop && dragOver ? "true" : undefined}
       onDragOver={canDrop ? (e) => e.preventDefault() : undefined}
       onDragEnter={canDrop ? () => onDragEnter?.(day.date) : undefined}
@@ -421,11 +431,14 @@ function Navigator({
   weekdays,
   strings,
   mode,
+  onSelect,
 }: {
   days: readonly CalendarDayProps<ReactNode>[];
   weekdays: readonly { short: string; long: string }[];
   strings: CalendarStrings;
   mode: "month" | "week";
+  /** Notified with the tapped date (card 33b: a past-day tap opens the fold). */
+  onSelect?: (date: string) => void;
 }): ReactNode {
   // Default: today if the period contains it, else the first in-month day
   // (a week period can legitimately sit away from today).
@@ -603,6 +616,9 @@ function Navigator({
   }, []);
   const select = (date: string): void => {
     setSelectedDate(date);
+    // Card 33b Do 3: the parent may need to open the Earlier fold for a
+    // past-day tap; its scrollIntoView below lands on the now-visible cell.
+    onSelect?.(date);
     tapScrollRef.current = true;
     const root = listRoot();
     settleRootRef.current?.removeEventListener("scroll", armSettle);
@@ -746,6 +762,7 @@ export function Calendar({
   onToday,
   onOpenEntry,
   onMove,
+  listStart,
   strings = {},
 }: CalendarProps<ReactNode> & { strings?: CalendarStrings }): ReactNode {
   const base = useId();
@@ -756,6 +773,42 @@ export function Calendar({
   // keep the seven-day week. `weekdays` arrives one-per-column from the
   // renderer either way, so headers always match the columns.
   const columns = rollingLength(mode) ?? 7;
+
+  // Card 33b: the "Earlier (N)" fold. Only listStart:"today" with today
+  // actually IN the period folds anything — with "period", an absent key,
+  // or a period away from today the component renders exactly as before
+  // (no attributes, no toggle, keyboard untouched). The fold is collapsed
+  // by default; the phone container query hides folded days, the laptop
+  // never hides them (C5 — attributes + CSS, and the toggle lives outside
+  // [data-part="grid"], never between a row and its cells).
+  const hasToday = listStart === "today" && days.some((d) => d.isToday);
+  const earlierDates = hasToday
+    ? new Set(days.filter((d) => !d.isToday && d.date < (days.find((x) => x.isToday)?.date ?? "")).map((d) => d.date))
+    : null;
+  const earlierCount = earlierDates
+    ? days.filter((d) => earlierDates.has(d.date) && d.entries.length > 0).length
+    : 0;
+  const [earlierExpanded, setEarlierExpanded] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement | null>(null);
+  // The toggle is display:none at base and flex inside the phone query
+  // (mirror of the 32a navigator). jsdom has no stylesheet, so a rendered
+  // toggle reads display "" — the phone verdict; a real browser reports the
+  // container query's answer, laptop included.
+  const onPhoneWithFold = (): boolean => {
+    if (!hasToday || !toggleRef.current) return false;
+    return window.getComputedStyle(toggleRef.current).display !== "none";
+  };
+  // The CSS hides (a) every earlier day while collapsed and (b) earlier
+  // days with NO entries outright (Do 1) — the keyboard skip must match
+  // that rule exactly or roving focus lands on a display:none cell.
+  const foldedDates = (): Set<string> | null => {
+    if (!hasToday || !earlierDates || !onPhoneWithFold()) return null;
+    return new Set(
+      days
+        .filter((d) => earlierDates.has(d.date) && (d.entries.length === 0 || !earlierExpanded))
+        .map((d) => d.date),
+    );
+  };
 
   // Roving tabindex (ARIA grid pattern): one gridcell is in the Tab order at
   // a time; arrow keys move the "active" cell, Home/End to the week's ends,
@@ -799,10 +852,43 @@ export function Calendar({
     onMove?.(entryId, date);
   };
 
-  const focusDelta = (from: string, delta: number): void => {
+  const focusDelta = (from: string, delta: number, scope?: "home" | "end"): void => {
     const idx = dates.indexOf(from);
     if (idx < 0) return;
-    const next = dates[Math.min(Math.max(idx + delta, 0), dates.length - 1)];
+    const folded = foldedDates();
+    // No fold in play (no listStart, "period", period away from today,
+    // expanded with every earlier day busy, or a laptop where the toggle
+    // is display:none): EXACTLY the pre-33b walk, clamp and all — month/
+    // week behavior and byte-identical DOM stay untouched.
+    if (!folded || folded.size === 0) {
+      const next = dates[Math.min(Math.max(idx + delta, 0), dates.length - 1)];
+      if (next === undefined) return;
+      pendingFocusRef.current = true;
+      setFocusedDate(next);
+      return;
+    }
+    // Fold on a phone: hidden earlier days are display:none, so the roving
+    // tabindex must not land on one. Hidden days are a chronological
+    // PREFIX of the period, so any step rightward/downward from a visible
+    // cell stays visible — only Home into today's row and backward steps
+    // can touch the fold. Those walk past it; a run that would leave the
+    // visible tail (a fully hidden leading row) leaves the cursor put,
+    // matching the grid's own "outside the grid the browser scrolls" rule.
+    const skip = (d: string | undefined): boolean => (d === undefined ? false : folded.has(d));
+    let target: number;
+    if (scope === "home" || scope === "end") {
+      const rowStart = idx - (idx % columns);
+      const rowEnd = Math.min(rowStart + columns - 1, dates.length - 1);
+      target = scope === "home" ? rowStart : rowEnd;
+      const step = scope === "home" ? 1 : -1;
+      while (skip(dates[target]) && target + step >= rowStart && target + step <= rowEnd) target += step;
+      if (skip(dates[target])) return; // whole row folded: the cursor stays put
+    } else {
+      target = idx + delta;
+      while (target >= 0 && target < dates.length && skip(dates[target])) target += delta > 0 ? 1 : -1;
+      if (target < 0 || target >= dates.length) return; // past the visible tail: stay put
+    }
+    const next = dates[target];
     if (next === undefined) return;
     pendingFocusRef.current = true;
     setFocusedDate(next);
@@ -829,11 +915,11 @@ export function Calendar({
         break;
       case "Home":
         e.preventDefault();
-        focusDelta(date, -(idx % columns));
+        focusDelta(date, -(idx % columns), "home");
         break;
       case "End":
         e.preventDefault();
-        focusDelta(date, columns - 1 - (idx % columns));
+        focusDelta(date, columns - 1 - (idx % columns), "end");
         break;
       case "PageUp":
         e.preventDefault();
@@ -904,7 +990,42 @@ export function Calendar({
           list already pages them), and an unknown mode gets week's form
           whole, per Do 4's "renders like week". */}
       {rollingLength(mode) === null ? (
-        <Navigator days={days} weekdays={weekdays} strings={strings} mode={mode === "month" ? "month" : "week"} />
+        <Navigator
+          days={days}
+          weekdays={weekdays}
+          strings={strings}
+          mode={mode === "month" ? "month" : "week"}
+          {...(hasToday
+            ? {
+                // Card 33b Do 3: tapping a past day in the navigator opens
+                // the fold; the Navigator scrollIntoView then lands on the
+                // day (React batches this setState before the scroll runs).
+                // NOTE: no apostrophes in comments inside attribute braces —
+                // scripts/theming.ts scanParts counts quotes, not comments.
+                onSelect: (date: string) => {
+                  if (earlierDates?.has(date)) setEarlierExpanded(true);
+                },
+              }
+            : {})}
+        />
+      ) : null}
+
+      {/* Card 33b: the "Earlier (N)" fold toggle — before the grid, outside
+          it (C5: nothing may sit between a row and its cells), collapsed by
+          default, shown only by the phone container query. N counts the past
+          days that carry entries (the overdue ones). Laptop: display:none,
+          the grid unchanged. */}
+      {hasToday && earlierDates && earlierDates.size > 0 ? (
+        <button
+          ref={toggleRef}
+          type="button"
+          data-part="earlier-toggle"
+          aria-expanded={earlierExpanded}
+          onClick={() => setEarlierExpanded((e) => !e)}
+          aria-label={(strings.earlierAriaLabel ?? ((n: number) => `${earlierExpanded ? "Hide" : "Show"} earlier days (${n})`))(earlierCount)}
+        >
+          {(strings.earlierLabel ?? ((n: number) => `Earlier (${n})`))(earlierCount)}
+        </button>
       ) : null}
 
       <div
@@ -942,6 +1063,7 @@ export function Calendar({
                 onDrop={onDrop}
                 onTouchOver={onTouchOver}
                 strings={strings}
+                {...(earlierDates && earlierDates.has(day.date) ? { earlier: true } : {})}
                 {...(onOpenEntry ? { onOpenEntry } : {})}
                 {...(onMove ? { onMove } : {})}
               />

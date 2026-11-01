@@ -796,6 +796,7 @@ function CalendarHarness({
   openable,
   doneable,
   maxEntriesPerDay = 3,
+  listStart,
 }: {
   id: string;
   initialMode: "month" | "week" | "3day" | "5day";
@@ -810,6 +811,8 @@ function CalendarHarness({
   openable?: boolean;
   /** Every entry gets the completion checkbox (RFC 0008 item 3); the third one is locked (disabled). */
   doneable?: boolean;
+  /** Card 33b: "today" starts the list at today with the Earlier fold. */
+  listStart?: "period" | "today";
 }): ReactNode {
   const [doneIds, setDoneIds] = useState<ReadonlySet<string>>(new Set());
   const [mode, setMode] = useState<"month" | "week" | "3day" | "5day">(initialMode);
@@ -921,6 +924,7 @@ function CalendarHarness({
         onPrevious={() => step(-1)}
         onNext={() => step(1)}
         onToday={() => setAnchor(CALENDAR_TODAY)}
+        {...(listStart ? { listStart } : {})}
         {...(onMove ? { onMove } : {})}
         {...(onOpenEntry ? { onOpenEntry } : {})}
       />
@@ -1320,6 +1324,8 @@ const LAYOUT_ANCHORS = [
   "calendar-5day",
   "calendar-one-mode",
   "calendar-phone-agenda",
+  "calendar-phone-earlier-fold",
+  "calendar-today-liststart-desktop",
   "calendar-phone-3day",
   "calendar-phone-5day",
   "calendar-phone-sticky-agenda",
@@ -1811,6 +1817,18 @@ export default function App(): ReactNode {
             <div className="phone-frame">
               <CalendarHarness id="Training (phone)" initialMode="month" initialAnchor={CALENDAR_TODAY} entries={calendarFixtureEntries} />
             </div>,
+          )}
+          {state(
+            "calendar-phone-earlier-fold",
+            "phone agenda with listStart: \"today\" (390px container): the fold is collapsed, today leads, the overdue day is one tap away (card 33b)",
+            <div className="phone-frame">
+              <CalendarHarness id="Training (phone, earlier fold)" initialMode="month" initialAnchor={CALENDAR_TODAY} entries={calendarFixtureEntries} listStart="today" />
+            </div>,
+          )}
+          {state(
+            "calendar-today-liststart-desktop",
+            "listStart: \"today\" on the desktop grid (card 33b): ignored entirely — every day renders, no toggle",
+            <CalendarHarness id="Training (desktop, today listStart)" initialMode="month" initialAnchor={CALENDAR_TODAY} entries={calendarFixtureEntries} listStart="today" />
           )}
           {state(
             "calendar-phone-sticky-agenda",

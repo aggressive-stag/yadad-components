@@ -985,3 +985,182 @@ describe("N-day periods (card 33a)", () => {
     expect(view.container.querySelector('[data-part="navigator"]')).not.toBeNull();
   });
 });
+
+/**
+ * Card 33b: the "Earlier (N)" fold for listStart:"today".
+ * 2026-11-02 is a Monday, so 2026-11-11 is a Wednesday (weekday 3).
+ */
+function foldDay(date: string, dayOfMonth: number, weekday: number, opts: { today?: boolean; entries?: boolean } = {}): CalendarDayProps<ReactNode> {
+  return {
+    date,
+    dayOfMonth,
+    weekday,
+    label: `${date} day ${dayOfMonth}`,
+    inMonth: true,
+    isToday: opts.today ?? false,
+    entries: opts.entries ? [entryOfCal(`e-${date}`)] : [],
+  };
+}
+
+/** Wed 11 → Fri 13, today Thu 12; overdue entry on the 11th, today has one too. */
+function foldTriad(): CalendarDayProps<ReactNode>[] {
+  return [
+    foldDay("2026-11-11", 11, 3, { entries: true }),
+    foldDay("2026-11-12", 12, 4, { today: true, entries: true }),
+    foldDay("2026-11-13", 13, 5),
+  ];
+}
+
+/** Mon 09 → Sun 15 (week form, navigator included), today Thu 12; overdue on 10 and 11. */
+function foldWeek(): CalendarDayProps<ReactNode>[] {
+  return [
+    foldDay("2026-11-09", 9, 1),
+    foldDay("2026-11-10", 10, 2, { entries: true }),
+    foldDay("2026-11-11", 11, 3, { entries: true }),
+    foldDay("2026-11-12", 12, 4, { today: true, entries: true }),
+    foldDay("2026-11-13", 13, 5),
+    foldDay("2026-11-14", 14, 6),
+    foldDay("2026-11-15", 15, 0),
+  ];
+}
+
+describe("Earlier (N) fold (card 33b)", () => {
+  function renderFold(
+    days: CalendarDayProps<ReactNode>[],
+    opts: { mode?: string; listStart?: "period" | "today"; strings?: Record<string, unknown> } = {},
+  ) {
+    const mode = opts.mode ?? "3day";
+    const n = mode === "week" ? 7 : 3;
+    return render(
+      <Calendar
+        label="Shifts"
+        title="November 2026"
+        mode={mode as never}
+        modes={[{ mode: mode as never, label: mode }]}
+        weekdays={periodWeekdays(n)}
+        days={days}
+        legend={[]}
+        loading={false}
+        {...(opts.listStart ? { listStart: opts.listStart } : {})}
+        strings={opts.strings as never}
+        onModeChange={() => {}}
+        onPrevious={() => {}}
+        onNext={() => {}}
+        onToday={() => {}}
+      />,
+    );
+  }
+
+  it("marks days strictly before today data-earlier, today and after unmarked", () => {
+    const view = renderFold(foldTriad(), { listStart: "today" });
+    const day = (d: string) => view.container.querySelector(`[data-part="day"][data-date="${d}"]`);
+    expect(day("2026-11-11")?.getAttribute("data-earlier")).toBe("true");
+    expect(day("2026-11-12")?.hasAttribute("data-earlier")).toBe(false);
+    expect(day("2026-11-13")?.hasAttribute("data-earlier")).toBe(false);
+  });
+
+  it("renders an earlier-toggle before the grid, collapsed, counting past days WITH entries", () => {
+    const view = renderFold(foldTriad(), { listStart: "today" });
+    const toggle = view.container.querySelector('[data-part="earlier-toggle"]');
+    expect(toggle).not.toBeNull();
+    expect(toggle?.getAttribute("aria-expanded")).toBe("false");
+    // one past day with entries (the 11th); the 12th is today, not past
+    expect(toggle?.textContent).toBe("Earlier (1)");
+    const grid = view.container.querySelector('[data-part="grid"]');
+    if (!toggle || !grid) throw new Error("toggle or grid missing");
+    // outside the grid, immediately before it
+    expect(toggle.compareDocumentPosition(grid) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(toggle.parentElement).toBe(grid.parentElement);
+  });
+
+  it("expanding flips aria-expanded and never reorders the days", () => {
+    const view = renderFold(foldTriad(), { listStart: "today" });
+    const before = Array.from(view.container.querySelectorAll('[data-part="day"]')).map((d) => d.getAttribute("data-date"));
+    const toggle = view.container.querySelector('[data-part="earlier-toggle"]');
+    if (!toggle) throw new Error("no toggle");
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    const after = Array.from(view.container.querySelectorAll('[data-part="day"]')).map((d) => d.getAttribute("data-date"));
+    expect(after).toEqual(before);
+  });
+
+  it("no listStart or 'period' renders no toggle, no data-earlier, byte-identical DOM", () => {
+    const bare = renderFold(foldTriad());
+    const period = renderFold(foldTriad(), { listStart: "period" });
+    expect(bare.container.querySelector('[data-part="earlier-toggle"]')).toBeNull();
+    expect(period.container.querySelector('[data-part="earlier-toggle"]')).toBeNull();
+    expect(bare.container.querySelector("[data-earlier]")).toBeNull();
+    expect(period.container.querySelector("[data-earlier]")).toBeNull();
+    // normalize useId counters — render order differs between the two mounts;
+    // React's useId counter is base36 (_r_3o_), not just digits.
+    const norm = (s: string) => s.replace(/_r_[a-z0-9]+_/g, "_r_X_");
+    expect(norm(period.container.innerHTML)).toBe(norm(bare.container.innerHTML));
+  });
+
+  it("earlierLabel overrides the count label", () => {
+    const view = renderFold(foldTriad(), {
+      listStart: "today",
+      strings: { earlierLabel: (n: number) => `Overdue (${n})` },
+    });
+    expect(view.container.querySelector('[data-part="earlier-toggle"]')?.textContent).toBe("Overdue (1)");
+  });
+
+  it("no toggle when today is not in the period", () => {
+    const days = foldTriad().map((d) => ({ ...d, isToday: false }));
+    const view = renderFold(days, { listStart: "today" });
+    expect(view.container.querySelector('[data-part="earlier-toggle"]')).toBeNull();
+    expect(view.container.querySelector("[data-earlier]")).toBeNull();
+  });
+
+  it("count ignores past days without entries", () => {
+    const days = foldTriad().map((d) => (d.date === "2026-11-11" ? { ...d, entries: [] } : d));
+    // 11th loses its entry; no other past day has one → count 0, still a fold
+    const view = renderFold(days, { listStart: "today" });
+    expect(view.container.querySelector('[data-part="earlier-toggle"]')?.textContent).toBe("Earlier (0)");
+  });
+
+  it("navigator: selecting a past day expands the fold and scrolls to it", () => {
+    Element.prototype.scrollIntoView = vi.fn();
+    const view = renderFold(foldWeek(), { mode: "week", listStart: "today" });
+    const navDay = view.container.querySelector('[data-part="navigator-day"][data-date="2026-11-10"]');
+    if (!navDay) throw new Error("navigator day missing");
+    fireEvent.click(navDay);
+    const toggle = view.container.querySelector('[data-part="earlier-toggle"]');
+    expect(toggle?.getAttribute("aria-expanded")).toBe("true");
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
+  });
+
+  it("phone collapsed: arrow keys skip the folded days; expanded they return", () => {
+    // jsdom has no stylesheet: the toggle's computed display is "" (not
+    // "none"), which is the phone verdict the component reads.
+    const view = renderFold(foldTriad(), { listStart: "today" });
+    const todayCell = view.container.querySelector('[data-part="day"][data-date="2026-11-12"]');
+    if (!(todayCell instanceof HTMLElement)) throw new Error("today cell missing");
+    todayCell.focus();
+    fireEvent.keyDown(todayCell, { key: "ArrowLeft" });
+    // folded away — focus stays put rather than landing on a display:none cell
+    expect(document.activeElement).toBe(todayCell);
+    const toggle = view.container.querySelector('[data-part="earlier-toggle"]');
+    if (!toggle) throw new Error("no toggle");
+    fireEvent.click(toggle);
+    fireEvent.keyDown(todayCell, { key: "ArrowLeft" });
+    const earlierCell = view.container.querySelector('[data-part="day"][data-date="2026-11-11"]');
+    expect(document.activeElement).toBe(earlierCell);
+  });
+
+  it("laptop (toggle hidden): arrow keys reach the earlier days — grid unchanged", () => {
+    const real = window.getComputedStyle.bind(window);
+    vi.spyOn(window, "getComputedStyle").mockImplementation((el: Element, ...rest) =>
+      el instanceof HTMLElement && el.dataset["part"] === "earlier-toggle"
+        ? ({ display: "none" } as CSSStyleDeclaration)
+        : real(el, ...(rest as [undefined])),
+    );
+    const view = renderFold(foldTriad(), { listStart: "today" });
+    const todayCell = view.container.querySelector('[data-part="day"][data-date="2026-11-12"]');
+    if (!(todayCell instanceof HTMLElement)) throw new Error("today cell missing");
+    todayCell.focus();
+    fireEvent.keyDown(todayCell, { key: "ArrowLeft" });
+    const earlierCell = view.container.querySelector('[data-part="day"][data-date="2026-11-11"]');
+    expect(document.activeElement).toBe(earlierCell);
+  });
+});

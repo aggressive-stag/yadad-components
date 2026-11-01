@@ -81,7 +81,7 @@ function auditCalendarPhone(options?: CalendarPhoneAuditOptions): CalendarPhoneF
     grid: {
       agenda: false,
       show: ["weekday-row", "day-number", "grid", "day"],
-      hide: ["day-date", "day-weekday", "navigator", "navigator-toggle"],
+      hide: ["day-date", "day-weekday", "navigator", "navigator-toggle", "earlier-toggle"],
     },
   };
 
@@ -252,9 +252,18 @@ function auditCalendarPhone(options?: CalendarPhoneAuditOptions): CalendarPhoneF
       const day = el.closest('[data-part="day"]');
       return !!day && !day.checkVisibility() && !day.querySelector('[data-part="entry"]');
     };
+    // Card 33b: an earlier day inside a COLLAPSED fold is hidden by design,
+    // entry or no entry — its head parts are no more required visible than
+    // an empty day's. (The fold block below owns the positive checks: the
+    // toggle visible, the count right, today first, expanded reveals.)
+    const inCollapsedFold = (el: Element): boolean => {
+      const day = el.closest('[data-part="day"][data-earlier="true"]');
+      return !!day && !!root.querySelector('[data-part="earlier-toggle"][aria-expanded="false"]');
+    };
+    const hiddenByDesign = (el: Element): boolean => inHiddenEmptyDay(el) || inCollapsedFold(el);
     for (const part of table.show) {
       for (const el of root.querySelectorAll(`[data-part="${part}"]`)) {
-        if (el.closest('[aria-hidden="true"]') || inHiddenEmptyDay(el)) continue;
+        if (el.closest('[aria-hidden="true"]') || hiddenByDesign(el)) continue;
         if (!el.checkVisibility()) {
           failures.push({ name: `${tag} ${part} must be visible (${mode} mode)`, expected: "visible", actual: "hidden", detail: labelOf(el) });
         }
@@ -271,6 +280,10 @@ function auditCalendarPhone(options?: CalendarPhoneAuditOptions): CalendarPhoneF
     if (table.showWhenEntries && table.showWhenEntries.includes("day")) {
       for (const day of root.querySelectorAll('[data-part="day"]')) {
         if (!day.querySelector('[data-part="entry"]')) continue;
+        // Card 33b: an earlier day hidden by the collapsed fold is hidden on
+        // purpose — the toggle is the tap that reveals it (its own presence
+        // is what the fold check below guards).
+        if (day.getAttribute("data-earlier") === "true" && root.querySelector('[data-part="earlier-toggle"][aria-expanded="false"]')) continue;
         if (!day.checkVisibility()) {
           failures.push({
             name: `${tag} day with entries must be visible (${mode} mode)`,
@@ -278,6 +291,54 @@ function auditCalendarPhone(options?: CalendarPhoneAuditOptions): CalendarPhoneF
             actual: "hidden",
             detail: day.getAttribute("data-date") || "",
           });
+        }
+      }
+    }
+
+    // Card 33b: the "Earlier (N)" fold, agenda only, when a root has one.
+    // Collapsed: every earlier day is hidden and the toggle itself shows
+    // (a collapsed fold with no toggle is a dead end). Expanded: every
+    // earlier day WITH entries shows again. Either way: today is the first
+    // visible day, and the toggle is labelled Earlier (<count>) with count
+    // the number of earlier days that carry entries.
+    if (inAgenda) {
+      const toggle = root.querySelector<HTMLButtonElement>('[data-part="earlier-toggle"]');
+      if (toggle) {
+        const earlier = Array.from(root.querySelectorAll('[data-part="day"][data-earlier="true"]'));
+        const collapsed = toggle.getAttribute("aria-expanded") !== "true";
+        if (collapsed) {
+          for (const day of earlier) {
+            if (day.checkVisibility()) {
+              failures.push({ name: `${tag} collapsed fold hides earlier days`, expected: "hidden", actual: "visible", detail: day.getAttribute("data-date") || "" });
+            }
+          }
+          // Collapsed is the state where today leads the list; expanding
+          // the fold deliberately puts the earlier days back above it.
+          const visibleDays = Array.from(root.querySelectorAll('[data-part="day"]')).filter((d) => d.checkVisibility());
+          const firstToday = visibleDays.find((d) => d.getAttribute("data-today") === "true");
+          if (visibleDays.length > 0 && firstToday !== visibleDays[0]) {
+            failures.push({
+              name: `${tag} fold: today is the first visible day`,
+              expected: firstToday ? firstToday.getAttribute("data-date") || "today" : "today",
+              actual: visibleDays[0]?.getAttribute("data-date") || "(none)",
+              detail: labelOf(root),
+            });
+          }
+        } else {
+          for (const day of earlier) {
+            if (!day.querySelector('[data-part="entry"]')) continue;
+            if (!day.checkVisibility()) {
+              failures.push({ name: `${tag} expanded fold shows earlier days with entries`, expected: "visible", actual: "hidden", detail: day.getAttribute("data-date") || "" });
+            }
+          }
+        }
+        if (!toggle.checkVisibility() || toggle.getBoundingClientRect().width === 0) {
+          failures.push({ name: `${tag} earlier toggle is visible`, expected: "visible", actual: "hidden", detail: labelOf(toggle) });
+        }
+        const busyEarlier = earlier.filter((d) => d.querySelector('[data-part="entry"]')).length;
+        const wantLabel = `Earlier (${busyEarlier})`;
+        if ((toggle.textContent || "").trim() !== wantLabel) {
+          failures.push({ name: `${tag} earlier toggle counts the busy days`, expected: wantLabel, actual: (toggle.textContent || "").trim(), detail: labelOf(toggle) });
         }
       }
     }

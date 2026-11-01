@@ -29,6 +29,13 @@
     display: none;
   }
 
+  /* Card 33b: the "Earlier (N)" fold toggle — same visibility model as the
+     navigator: display:none at base (the laptop grid is untouched; earlier
+     days simply render), shown inside the phone query below. */
+  :where([data-yadad="calendar"]) :where([data-part="earlier-toggle"]) {
+    display: none;
+  }
+
   :where([data-yadad="calendar"]) :where([data-part="header"]) {
     display: flex;
     flex-wrap: wrap;
@@ -519,6 +526,42 @@
 
     :where([data-yadad="calendar"]) :where([data-part="day"][data-in-month="false"]):not(:has([data-part="entries"] [data-part="entry"])) {
       display: none;
+    }
+
+    /* Card 33b: the "Earlier (N)" fold, phone only. An earlier day with NO
+       entries is hidden outright (the agenda has no reason to show an empty
+       yesterday); while the fold is collapsed, EVERY earlier day is hidden —
+       the same :has-on-expanded pattern the navigator toggle uses, so the
+       expanded state needs no un-hide override: with the toggle open, the
+       busy earlier days simply match no hiding rule. The toggle is display
+       none at base (laptop: no fold exists, the grid is the pre-33b pixels)
+       and a quiet text button here. */
+    :where([data-yadad="calendar"]) :where([data-part="day"][data-earlier="true"]):not(:has([data-part="entries"] [data-part="entry"])) {
+      display: none;
+    }
+
+    :where([data-yadad="calendar"]:has([data-part="earlier-toggle"][aria-expanded="false"])) :where([data-part="day"][data-earlier="true"]) {
+      display: none;
+    }
+
+    :where([data-yadad="calendar"]) :where([data-part="earlier-toggle"]) {
+      all: unset;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* The same tap floor as the navigator toggle: it lives in the agenda
+         flow above the rows, where a thumb aims at it. */
+      min-block-size: var(--yadad-calendar-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
+      padding-inline: var(--yadad-space-2);
+      color: var(--yadad-calendar-link, var(--yadad-color-accent));
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    :where([data-yadad="calendar"]) :where([data-part="earlier-toggle"]):focus-visible {
+      outline: var(--yadad-focus-ring-width) solid var(--yadad-calendar-focus, var(--yadad-color-accent));
+      outline-offset: calc(var(--yadad-focus-ring-width) * -1);
     }
 
     /* Card 31d: the agenda's day head reads "Thu 29" — the short weekday
