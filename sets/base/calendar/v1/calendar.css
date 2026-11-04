@@ -683,7 +683,13 @@
          min-content widened only its own row (measured: 50px vs 34.6px in
          the same column) and the columns visibly wobbled. Rows subgrid
          into these tracks (below) so a column is one width for the map. */
-      grid-template-columns: repeat(7, 1fr);
+      grid-template-columns: repeat(
+        7,
+        minmax(
+          var(--yadad-calendar-nav-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)))),
+          1fr
+        )
+      );
       margin-block-end: var(--yadad-space-3);
       /* At 200% text the seven tracks need ~257px against 242 available
          (measured, 390 viewport; 320 is tighter) — no track sizing makes
@@ -785,8 +791,16 @@
       display: grid;
       grid-column: 1 / -1;
       /* Base for engines without subgrid; the tracks then diverge per row
-         (the wobble above), which is a cosmetic loss, not a breakage. */
-      grid-template-columns: repeat(7, 1fr);
+         (the wobble above), which is a cosmetic loss, not a breakage. Same
+         44px track floor as the navigator grid itself, so a row can never
+         squeeze a day button under the tap floor. */
+      grid-template-columns: repeat(
+        7,
+        minmax(
+          var(--yadad-calendar-nav-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3)))),
+          1fr
+        )
+      );
     }
 
     @supports (grid-template-columns: subgrid) {
