@@ -4,6 +4,11 @@
     display: grid;
     gap: var(--yadad-count-gap, var(--yadad-space-1));
     font-family: var(--yadad-count-font-family, var(--yadad-font-family));
+    /* Stress audit (card 34a): as a grid item the root sized to its content
+       and a long value/label widened the host sideways; let it shrink into
+       the column the host gave it. */
+    min-inline-size: 0;
+    max-inline-size: 100%;
   }
 
   :where([data-yadad="count"]) :where([data-part="label"]) {
@@ -14,8 +19,12 @@
     font-size: var(--yadad-count-label-size, var(--yadad-font-size-sm));
     color: var(--yadad-count-label-color, var(--yadad-color-text-muted));
     /* Long labels must wrap on narrow screens instead of running the page
-       sideways; the value never wraps (it is a single number). */
-    overflow-wrap: break-word;
+       sideways; the value never wraps (it is a single number). `anywhere`
+       rather than break-word: the root is a grid, and only `anywhere`
+       shrinks the min-content contribution that sizes the column (card 34a
+       stress audit — a break-word label still pinned the track at the word's
+       full width). */
+    overflow-wrap: anywhere;
   }
 
   :where([data-yadad="count"]) :where([data-part="value"]) {
@@ -23,10 +32,10 @@
     font-weight: 700;
     color: var(--yadad-count-value-color, var(--yadad-color-text));
     /* A long value (a big number, at 200% text on a narrow screen) must wrap
-       inside the widget instead of running the host page sideways. break-word
-       lets an unbroken number break when it cannot fit; it never does on the
-       common short-value case. */
-    overflow-wrap: break-word;
+       inside the widget instead of running the host page sideways. `anywhere`
+       so the grid column can shrink to the host's width (same reason as the
+       label above); it never breaks on the common short-value case. */
+    overflow-wrap: anywhere;
     min-inline-size: 0;
   }
 }
