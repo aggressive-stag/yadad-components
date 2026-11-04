@@ -23,6 +23,10 @@
   :where([data-yadad="panel"]) :where([data-part="title"]) {
     margin: 0 0 var(--yadad-space-3);
     font-size: var(--yadad-panel-title-size, var(--yadad-font-size-md));
+    /* Stress audit (card 34a): the panel root owns overflow:auto, so an
+       unbreakable word in the title made the whole panel side-scroll. The
+       title breaks the word instead — the same rule the dialog title carries. */
+    overflow-wrap: anywhere;
   }
 
   /* Sections inside a panel do not need a second frame. One attribute of
