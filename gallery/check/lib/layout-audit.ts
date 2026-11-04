@@ -217,6 +217,14 @@ function auditLayout(options?: LayoutAuditOptions): LayoutFinding[] {
     seed('[data-yadad] input:not([type="checkbox"]):not([type="radio"]), [data-yadad] select, [data-yadad] textarea { font-size: 12px !important; }');
   if (seeds.includes("zero-part"))
     seed('[data-yadad="count"] [data-part="value"] { inline-size: 0 !important; overflow: hidden !important; }');
+  // Card 34a regressions: each undoes one stress fix, so the probe must
+  // re-find the defect the fixed CSS prevents.
+  if (seeds.includes("button-word-overflow"))
+    seed('[data-yadad="button"][data-part="root"] { overflow-wrap: normal !important; }');
+  if (seeds.includes("panel-title-word"))
+    seed('[data-yadad="panel"] [data-part="title"] { overflow-wrap: normal !important; }');
+  if (seeds.includes("dialog-body-word"))
+    seed('[data-yadad="dialog"] [data-part="body"] { overflow-wrap: normal !important; }');
 
   /* ---- collect rendered, non-sr-only elements in scope -------------------- */
   const all: Element[] = [];
@@ -229,14 +237,19 @@ function auditLayout(options?: LayoutAuditOptions): LayoutFinding[] {
   /* ---- V4: page wider than the screen ------------------------------------- */
   {
     const doc = document.documentElement;
-    if (doc.scrollWidth > window.innerWidth + 1) {
+    // Under mobile emulation `window.innerWidth` inflates to the overflowing
+    // content width and the check never fires (measured on card 34a:
+    // innerWidth 459 at a 320 viewport). clientWidth is the layout viewport —
+    // the screen the component was given — so compare against both.
+    const screen = Math.min(window.innerWidth, doc.clientWidth);
+    if (doc.scrollWidth > screen + 1) {
       findings.push({
         defect: "V4",
         component: "",
         part: "document",
         selector: "html",
         text: "",
-        expected: `scrollWidth <= ${window.innerWidth}`,
+        expected: `scrollWidth <= ${screen}`,
         actual: `scrollWidth ${doc.scrollWidth}`,
         detail: "the page itself scrolls sideways; a wide table must scroll inside its own wrapper instead",
       });

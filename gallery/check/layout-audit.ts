@@ -118,6 +118,18 @@ const ALLOW: Array<{ defect: string; component: string; part?: string; text?: st
     part: "navigator",
     reason: "the phone week-map owns its horizontal scroll by design (calendar.css, card 32a): seven 44px tracks need 308px against a 262px content box at 320, so the map scrolls and every day button keeps the 44px tap floor — the component scrolls, the page never does",
   },
+  {
+    defect: "V1",
+    component: "text",
+    part: "input",
+    reason: "a multiline text field is a rows=4 <textarea> (text/v1 contract, pinned by gallery/check/text-multiline.ts): content past the fourth row scrolls inside the textarea — that is what a textarea is; the page never scrolls for it and resizes are vertical-only",
+  },
+  {
+    defect: "V2",
+    component: "series",
+    part: "table",
+    reason: "the table display scrolls its wide content by design (card 34a): the table box becomes block + overflow-x:auto — the documented trick the chart path already uses — so a long group label scrolls inside the table instead of widening the page",
+  },
 ];
 
 const allowed = (f: LayoutFinding): string | null => {
@@ -233,6 +245,9 @@ for (const vp of VIEWPORTS) {
     ["small-target", "buttons collapse to 20px tall", "V7"],
     ["small-input", "text inputs drop to 12px font", "V7"],
     ["zero-part", "the count value paints a 0-wide box", "V12"],
+    ["button-word-overflow", "a 40-char word stretches the button past its dialog (the stress fix: overflow-wrap on the button)", "V2"],
+    ["panel-title-word", "a 40-char word in a panel title side-scrolls the panel (the stress fix: overflow-wrap on the title)", "V2"],
+    ["dialog-body-word", "a 40-char word in a dialog paragraph side-scrolls the body (the stress fix: overflow-wrap on the body)", "V2"],
   ];
   // Baseline first: a seed "passes" only when it ADDS a finding of the
   // expected defect, not when an unrelated pre-existing finding happens to
