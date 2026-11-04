@@ -30,6 +30,13 @@
     width: 100%;
     border-collapse: collapse;
     font-size: var(--yadad-series-font-size, var(--yadad-font-size-md));
+    /* Stress audit (card 34a): a 40-char group label widened the table past
+       the phone and ran the page sideways (V4). Same trick the chart path
+       below already uses — a <table> box ignores overflow, so it becomes a
+       block first and the rows inside still lay out as an anonymous table
+       and keep their roles. The table scrolls, the page never does. */
+    display: block;
+    overflow-x: auto;
   }
 
   :where([data-yadad="series"]) :where([data-part="table"]) th {
