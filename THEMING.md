@@ -34,6 +34,16 @@ Give every input a pill shape and a thicker focus ring, in just your host CSS �
 
 A full, clearly-different look (rounded, high-contrast, a brand color) is exactly what the gallery's third theme demonstrates — it is built only from the tokens and variables documented below.
 
+The same board, twice — the same markup, the same fixtures, only the token values changed (the gallery's brand theme is host CSS that re-sets the tokens in `:root`):
+
+![the board under the default light theme tokens](docs/assets/screens/theming-board-columns-1280-light.png)
+
+*The board under the default light theme tokens (1280px, light).*
+
+![the same board under the gallery's brand token set](docs/assets/screens/theming-board-columns-1280-brand.png)
+
+*The same board with the tokens re-set — accent, radius and background all come from the theme, nothing per-component.*
+
 ### Shared touch variables
 
 Every per-component touch variable — each `--yadad-<component>-touch-font-size` (the coarse-pointer input font floor, 16px at the default tokens) and each `--yadad-<component>-tap` (the 44px thumb target) — defaults through one of two shared variables before falling back to the token-derived size: `--yadad-touch-font-size` and `--yadad-touch-tap`. Set them once on `:root` to move every touch control in every component at once; a per-component variable still overrides just its component, because it is the outer `var()`. Both default to the same values the per-component variables had before they were shared: `max(var(--yadad-space-4), var(--yadad-font-size-md))` for the font and `calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))` (44px at the default tokens) for the tap target.
