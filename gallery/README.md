@@ -21,6 +21,7 @@ GALLERY_URL=http://localhost:5151/ node --experimental-strip-types gallery/check
 | `check-consumers.ts` | board and boolean adopt the shared `Check`: at 390 touch the calendar and board done boxes measure identical under one `--yadad-check-*` surface, all three keep their markers (`[data-yadad="boolean"][data-part="input"]` survives), Space toggles each, one `--yadad-check-size` reaches all three, and the deprecated `--yadad-board-*` aliases still work on the board box only (card 31c) |
 | `tabs-keyboard.ts` | tab keyboard nav + focus-ring clipping at 200% text (card 3) |
 | `contrast.ts` | forced-colors paint + reduced-motion guard (card 15c) |
+| `layout-audit.ts` | the shared layout probe (V1-V12 classes) over every gallery demo at 1280/390/320 in both themes, closed and opened: no stray page scrollbars, one scroller per region, no clipped focus rings or cut text, 44px touch floors, no zero-box/overlap/collision defects; every allow-list entry states its contract and seeded regressions (injected CSS) must be caught (card 34a, audit in `lib/layout-audit.ts`) |
 
 The table lists the original checks; every `gallery/check/*.ts` file states what
 it proves in its header comment. `token-fallback.ts` needs `pnpm build` and no
