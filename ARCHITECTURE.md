@@ -2,7 +2,7 @@
 
 How `@yadad/components` is put together and how a host wires it in. The engine's own architecture (the document model, the `Registry` contract in section 9) lives in the [yadad repo](https://github.com/aggressive-stag/yadad/blob/main/ARCHITECTURE.md); this file covers only the component set. Security is in [docs/security.md](./docs/security.md).
 
-All diagrams are Mermaid, so they render on GitHub and GitLab and diff in review. Each was checked against the source at commit `bbfc51e` on 2026-10-27.
+All diagrams are Mermaid, so they render on GitHub and GitLab and diff in review. Each was checked against the source at commit `bbfc51e` on 2026-10-27 and re-checked against `registry/base.ts`, `sets/` and `gallery/` at `e69d2a0` on 2026-11-04.
 
 ## 1. How a host wires the set
 
@@ -26,7 +26,7 @@ flowchart LR
     Layout["layout: FieldFrame Section Button Table ErrorSummary Tabs Panel Calendar Board Dialog Pager"]
     Widgets["widgets: count series"]
     V1["sets/base/name/v1/"]
-    Internal["sets/internal: menu skeleton swatch touch-drag"]
+    Internal["sets/internal: check menu skeleton swatch touch-drag"]
   end
   Core -->|"keys and prop types"| Base
   Base --> Fields
@@ -49,7 +49,58 @@ The set imports only `react` and `@yadad/core`; there are no other runtime impor
 
 Versions sit side by side: a breaking change to a component arrives as a new `v2` folder, and switching is a one-line change in `registry/base.ts`.
 
-## 2. Theming layers
+## 2. How a component is registered and resolved
+
+Registration is data, not code paths: `registry/base.ts` builds one object literal (`baseRegistry`) mapping every engine key to a component. Resolution is a lookup in the renderer — it reads the key off the document (a field's `type`, the `layout` name a view asks for, a widget's name) and renders the component it finds, passing that component its slot props. The flow below names the files it describes: `registry/base.ts`, the engine's `Registry` type in `@yadad/core`, and the renderer's component resolution.
+
+```mermaid
+flowchart LR
+  Doc["entity + view documents: field type, layout name, widget name"]
+  Keys["@yadad/core Registry keys: fields, layout, widgets"]
+  Reg["registry/base.ts: baseRegistry object literal"]
+  Resolve["renderer: look up the key, render what it finds"]
+  Input["an Input, e.g. TextInput from sets/base/text/v1"]
+  Display["a Display, e.g. TextDisplay"]
+  Slot["slot props: value, onChange, invalid, options, actions"]
+  Doc -->|"the key the renderer asks for"| Resolve
+  Keys -->|"the shape the object must satisfy"| Reg
+  Reg -->|"one component version per key"| Resolve
+  Resolve -->|"editing"| Input
+  Resolve -->|"read-only"| Display
+  Resolve --> Slot
+  Slot --> Input
+```
+
+*Registration is one object literal; resolution is a lookup keyed by the document (checked against `registry/base.ts` and the engine's `Registry` contract at `e69d2a0`, 2026-11-04).*
+
+A `fields.<type>` entry is always a `{ type, Input, Display }` pair; `layout` names single components (`FieldFrame`, `Table`, `Pager`, ...); `widgets` maps `count` and `series`. Nothing registers by string at runtime — if `registry/base.ts` does not name a component, the renderer never sees it.
+
+## 3. Repository layout: sets, internal, registry
+
+```mermaid
+flowchart TB
+  subgraph Reg["registry/"]
+    BR["base.ts: baseRegistry, the only public entry"]
+  end
+  subgraph Base["sets/base/"]
+    BV1["name/v1/: Component.tsx + component.css + index.ts, plus its test; one folder per component, versions side by side"]
+  end
+  subgraph Int["sets/internal/"]
+    IC["check: the completion box every checkbox is built on"]
+    IM["menu, skeleton, swatch, touch-drag"]
+  end
+  TH["theme: @yadad/theme tokens, read only through var()"]
+  Reg -->|"imports exactly one version per key"| Base
+  Base -->|"composes"| IC
+  Base --> IM
+  Base -->|"colours, spacing, radii via tokens only"| TH
+```
+
+*What imports what: the registry is the only door, components compose internal primitives, and only tokens reach the theme (checked against `registry/base.ts`, `sets/base/` and `sets/internal/` at `e69d2a0`, 2026-11-04).*
+
+Each `sets/base/<name>/v1/` folder owns its component, its stylesheet (one `@layer yadad.components` block), its barrel `index.ts` and its tests. `sets/internal/` holds what several components share but hosts never import: `check` (every checkbox in the set), `menu` and its skeleton, the colour `swatch`, and the touch-drag helpers. The published `files` list ships `dist/`, `sets/`, `registry/` and `THEMING.md` only — gallery, checks and scripts stay in the repo.
+
+## 4. Theming layers
 
 Components read tokens and never hard-code a colour, length, radius or font (enforced by `scripts/theming.ts`, run as `scripts/theming.test.ts`). The pre-built CSS declares the layer order `yadad.tokens, yadad.components`, so unlayered host CSS always wins. [THEMING.md](./THEMING.md) is generated from the CSS; never hand-edit it.
 
@@ -73,29 +124,33 @@ flowchart TB
 
 `scripts/token-fallback.ts` generates the fallback from `lightTheme`; `scripts/build-css.ts` emits `dist/yadad-components.css` plus one fragment per component in `dist/styles/`. Colour hints from documents are not applied as CSS: `paletteSlot()` maps a `#RRGGBB` value to a palette slot 0-7 and the component renders `data-slot`, which the CSS maps to a `--yadad-color-category-N` token.
 
-## 3. Gallery and browser checks
+## 5. Gallery and browser checks
 
-`pnpm gallery` serves a page that renders every registry entry in every state (`gallery/src/App.tsx`, fixtures in `gallery/src/fixtures.ts`). The checks in `gallery/check/` drive Chromium through `playwright-core` against that page, or against the built CSS, and exit non-zero on failure. They are not part of `pnpm test` and are not published.
+`pnpm gallery` serves a page that renders every registry entry in every state (`gallery/src/App.tsx`, fixtures in `gallery/src/fixtures.ts`). The checks in `gallery/check/` drive Chromium through `playwright-core` against that page, or against the built CSS, and exit non-zero on failure. `gallery/shoot.ts` (the `docs:shots` script) drives the same page the same way to take the documentation pictures into `docs/assets/screens/`. They are not part of `pnpm test` and are not published.
 
 ```mermaid
 flowchart LR
   Dev["pnpm gallery, vite on port 5199"]
   App["gallery/src/App.tsx: every entry, themes light dark stress brand, 100% and 200% text"]
-  Fix["gallery/src/fixtures.ts"]
+  Fix["gallery/src/fixtures.ts, fictional data"]
   Chk["gallery/check/*.ts: playwright-core and Chromium"]
+  Shoot["gallery/shoot.ts, pnpm docs:shots"]
   Css["dist/yadad-components.css, from pnpm build"]
+  Docs["docs/assets/screens/*.png with a generated manifest README"]
   Dev --> App
   Fix --> App
   App -->|"GALLERY_URL"| Chk
+  App -->|"GALLERY_URL"| Shoot
   Css -->|"token-fallback.ts, no server"| Chk
   Chk --> Out["PASS or FAIL lines, exit code"]
+  Shoot --> Docs
 ```
 
-*The gallery and the browser checks that drive it (checked against `gallery/` and `gallery/check/` at `bbfc51e`, 2026-10-27).*
+*The gallery and everything that drives it: the checks and the docs capture (checked against `gallery/`, `gallery/check/` and `gallery/shoot.ts` at `e69d2a0`, 2026-11-04).*
 
-The checks are `composer-surfaces`, `contrast`, `done-toggle`, `pager-registry`, `phone-touch`, `select-labels-axe`, `slot-props`, `table-markup`, `tabs-keyboard`, `text-maxlength`, `text-multiline`, `time-tags-phone` and `token-fallback`; see [gallery/README.md](./gallery/README.md).
+The checks are `board-scoped-refocus`, `calendar-phone`, `check-consumers`, `check-phone`, `composer-surfaces`, `confirm-subject`, `contrast`, `done-toggle`, `hidden-column`, `layout-audit` (the shared probe in `gallery/check/lib/layout-audit.ts`), `move-panel-touch`, `pager-registry`, `phone-touch`, `select-labels-axe`, `shared-touch-vars`, `slot-props`, `table-markup`, `tabs-keyboard`, `text-maxlength`, `text-multiline`, `time-tags-phone` and `token-fallback`; see [gallery/README.md](./gallery/README.md).
 
-## 4. Release and peer-range policy
+## 6. Release and peer-range policy
 
 `peerDependencies["@yadad/core"]` is `>=0.10.0 <1.0.0`. A new core minor therefore needs no components release unless a feature needs it; the README Compatibility section lists the per-feature minimums. A core 1.0 is outside the range and needs a deliberate change here.
 
