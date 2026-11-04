@@ -4,6 +4,14 @@ The reference component set for [yadad](https://github.com/aggressive-stag/yadad
 
 You do not have to use it. The engine only asks for something that satisfies its `Registry` type, so you can swap this set for your own, or replace individual entries.
 
+![The set composed together: fields in a panel, a table with its pager and a board](docs/assets/screens/hero-overview-1280-light.png)
+
+*The set composed together: fields in a panel, a table with its pager, a board — one page, one theme. The same page under the dark theme:*
+
+![The same composed page in the dark theme](docs/assets/screens/hero-overview-1280-dark.png)
+
+Every picture in this README and in [docs/components/](./docs/components/) is generated from the gallery by `pnpm docs:shots` (`gallery/shoot.ts`) over the fictional fixtures — see [docs/assets/screens/README.md](./docs/assets/screens/README.md).
+
 ## Install
 
 Packages are published to the project's GitLab npm registry, not to npmjs.com. Point the `@yadad` scope at the registry's instance-level npm endpoint, where `<gitlab-host>` is the GitLab instance that hosts the project. One entry serves `@yadad/components` and every engine package; a project-scoped URL would serve only one repo's packages. Add an auth token for that host if the instance requires one.
@@ -51,7 +59,31 @@ export function CustomerForm({ entity, view, dataSources }) {
 - **Record actions (RFC 0007):** tables, board cards and calendar entries render their record's actions as buttons (`tone` neutral/danger, `disabled` with a "Working…" live region while the record has an action in flight); two or more collapse into an "Actions…" menu where the surface has no room for buttons (tables at phone width, boards and calendars always). The renderer owns the confirm/input dialog; it is this set's `Dialog`.
 - **Widgets:** `count` and `series` (one measure per group of a table view — the engine computes the groups, the component draws them; `display: "table"`, `"bar"` and `"line"` — the charts are inline SVG over the same data, keyboard-operable, with the table kept as the accessible data).
 
-Each component lives under `sets/base/<name>/v1/`. Versions sit side by side, so a future breaking change arrives as a new `v2` rather than an in-place edit.
+| [text](./docs/components/text.md) | [number](./docs/components/number.md) | [boolean](./docs/components/boolean.md) | [select](./docs/components/select.md) |
+| --- | --- | --- | --- |
+| [<img src="docs/assets/screens/text-filled-1280-light.png" alt="text field" width="290">](./docs/components/text.md) | [<img src="docs/assets/screens/number-filled-1280-light.png" alt="number field" width="290">](./docs/components/number.md) | [<img src="docs/assets/screens/boolean-filled-1280-light.png" alt="boolean field" width="290">](./docs/components/boolean.md) | [<img src="docs/assets/screens/select-filled-1280-light.png" alt="select field" width="290">](./docs/components/select.md) |
+
+| [date](./docs/components/date.md) | [datetime](./docs/components/datetime.md) | [time](./docs/components/time.md) | [tags](./docs/components/tags.md) |
+| --- | --- | --- | --- |
+| [<img src="docs/assets/screens/date-filled-1280-light.png" alt="date field" width="290">](./docs/components/date.md) | [<img src="docs/assets/screens/datetime-filled-1280-light.png" alt="datetime field" width="290">](./docs/components/datetime.md) | [<img src="docs/assets/screens/time-filled-1280-light.png" alt="time field" width="290">](./docs/components/time.md) | [<img src="docs/assets/screens/tags-filled-1280-light.png" alt="tags field" width="290">](./docs/components/tags.md) |
+
+| [reference](./docs/components/reference.md) | [FieldFrame](./docs/components/field-frame.md) | [Section](./docs/components/section.md) | [Panel](./docs/components/panel.md) |
+| --- | --- | --- | --- |
+| [<img src="docs/assets/screens/reference-filled-1280-light.png" alt="reference field" width="290">](./docs/components/reference.md) | [<img src="docs/assets/screens/field-frame-clean-1280-light.png" alt="field frame" width="290">](./docs/components/field-frame.md) | [<img src="docs/assets/screens/section-titled-1280-light.png" alt="section" width="290">](./docs/components/section.md) | [<img src="docs/assets/screens/panel-titled-1280-light.png" alt="panel" width="290">](./docs/components/panel.md) |
+
+| [Tabs](./docs/components/tabs.md) | [Button](./docs/components/button.md) | [ErrorSummary](./docs/components/error-summary.md) | [Dialog](./docs/components/dialog.md) |
+| --- | --- | --- | --- |
+| [<img src="docs/assets/screens/tabs-two-1280-light.png" alt="tabs" width="290">](./docs/components/tabs.md) | [<img src="docs/assets/screens/button-primary-enabled-1280-light.png" alt="button" width="290">](./docs/components/button.md) | [<img src="docs/assets/screens/error-summary-one-1280-light.png" alt="error summary" width="290">](./docs/components/error-summary.md) | [<img src="docs/assets/screens/dialog-static-1280-light.png" alt="dialog" width="290">](./docs/components/dialog.md) |
+
+| [Table](./docs/components/table.md) | [Pager](./docs/components/pager.md) | [Calendar](./docs/components/calendar.md) | [Board](./docs/components/board.md) |
+| --- | --- | --- | --- |
+| [<img src="docs/assets/screens/table-few-rows-1280-light.png" alt="table" width="290">](./docs/components/table.md) | [<img src="docs/assets/screens/pager-middle-1280-light.png" alt="pager" width="290">](./docs/components/pager.md) | [<img src="docs/assets/screens/calendar-month-1280-light.png" alt="calendar" width="290">](./docs/components/calendar.md) | [<img src="docs/assets/screens/board-columns-1280-light.png" alt="board" width="290">](./docs/components/board.md) |
+
+| [count](./docs/components/count.md) | [series](./docs/components/series.md) | [RFC 0009 chrome](./docs/components/composer.md) | [Check (internal)](./docs/components/check.md) |
+| --- | --- | --- | --- |
+| [<img src="docs/assets/screens/count-small-1280-light.png" alt="count widget" width="290">](./docs/components/count.md) | [<img src="docs/assets/screens/series-bar-1280-light.png" alt="series widget" width="290">](./docs/components/series.md) | [<img src="docs/assets/screens/composer-chips-row-1280-light.png" alt="composer chrome" width="290">](./docs/components/composer.md) | [<img src="docs/assets/screens/check-primitive-1280-light.png" alt="check primitive" width="290">](./docs/components/check.md) |
+
+Each component lives under `sets/base/<name>/v1/`. Versions sit side by side, so a future breaking change arrives as a new `v2` rather than an in-place edit. `Check` is the internal completion box every checkbox in the set is built on; it lives under `sets/internal/check/v1/` and is not in the registry.
 
 ## Theming
 
@@ -94,7 +126,7 @@ pnpm test        # contract kit, axe, theming guardrails
 pnpm build       # type declarations and dist/yadad-components.css
 ```
 
-How the set is put together is in [ARCHITECTURE.md](./ARCHITECTURE.md) and its security notes in [docs/security.md](./docs/security.md). Contribution rules, releasing and the browser checks are in [AGENTS.md](./AGENTS.md); attribution for adapted code is in [UPSTREAM.md](./UPSTREAM.md); versions are listed in [CHANGELOG.md](./CHANGELOG.md).
+How the set is put together is in [ARCHITECTURE.md](./ARCHITECTURE.md), the component pages with a picture of every state are in [docs/components/](./docs/components/), and its security notes in [docs/security.md](./docs/security.md). Contribution rules, releasing and the browser checks are in [AGENTS.md](./AGENTS.md); attribution for adapted code is in [UPSTREAM.md](./UPSTREAM.md); versions are listed in [CHANGELOG.md](./CHANGELOG.md).
 
 ## Links
 

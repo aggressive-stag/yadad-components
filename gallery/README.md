@@ -25,8 +25,11 @@ GALLERY_URL=http://localhost:5151/ node --experimental-strip-types gallery/check
 
 The table lists the original checks; every `gallery/check/*.ts` file states what
 it proves in its header comment. `token-fallback.ts` needs `pnpm build` and no
-dev server. The gallery and its checks are drawn in
-[ARCHITECTURE.md](../ARCHITECTURE.md#3-gallery-and-browser-checks); the
+dev server. `gallery/shoot.ts` (not a check — `pnpm docs:shots`, same harness)
+captures every picture in [docs/assets/screens/](../docs/assets/screens/README.md)
+from the running gallery: the manifest in the script is the contract, and
+rerunning it regenerates all of them. The gallery and its checks are drawn in
+[ARCHITECTURE.md](../ARCHITECTURE.md#5-gallery-and-browser-checks); the
 gallery is dev tooling and is never published.
 
 ## Forced-colors (High Contrast) procedure
