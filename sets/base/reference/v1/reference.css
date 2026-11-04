@@ -31,6 +31,12 @@
     display: inline-flex;
     align-items: center;
     gap: var(--yadad-space-2);
+    /* Stress audit (card 34a): an unbreakable label widened the inline-flex
+       display (and the page) sideways; `anywhere` breaks the word inside the
+       label and min-inline-size lets the flex item shrink to do it. */
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    overflow-wrap: anywhere;
   }
 
   :where([data-yadad="reference"][data-part="combobox"]) {
