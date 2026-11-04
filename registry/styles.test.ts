@@ -139,7 +139,10 @@ describe.each(files)("%s", (file) => {
     const valueRule = body.match(/:where\(\[data-yadad="count"\]\)\s*:where\(\[data-part="value"\]\)\s*\{([^}]*)\}/);
     expect(valueRule, "count value rule").toBeTruthy();
     if (valueRule) {
-      expect(valueRule[1]).toMatch(/overflow-wrap:\s*break-word/);
+      // Card 34a upgraded the value to overflow-wrap:anywhere so the grid
+      // column can actually shrink (break-word does not contribute to
+      // min-content); either value satisfies this card-4 guard.
+      expect(valueRule[1]).toMatch(/overflow-wrap:\s*(break-word|anywhere)/);
       expect(valueRule[1]).toMatch(/min-inline-size:\s*0/);
     }
   });
