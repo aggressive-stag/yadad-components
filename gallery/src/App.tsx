@@ -1422,7 +1422,7 @@ function DialogConfirmDemo({ subject }: { subject?: string } = {}): ReactNode {
         <Dialog label="Delete record?" onClose={() => { setResult("dismissed"); setOpen(false); }}>
           <p>Deleting is permanent. The record and its comments go with it.</p>
           {subject === undefined ? null : <p data-yadad-confirm-subject="">{subject}</p>}
-          <p>
+          <p className="dialog-buttons">
             <Button label="Cancel" type="button" variant="secondary" disabled={false} onPress={() => { setResult("Cancel"); setOpen(false); }} />{" "}
             <Button label="Confirm" type="button" variant="primary" disabled={false} onPress={() => { setResult("Confirm"); setOpen(false); }} />
           </p>
@@ -1472,7 +1472,7 @@ function DialogDemo(): ReactNode {
             />
           </FieldFrame>
           {invalid ? <ErrorSummary id="dialog-demo-errors" errors={errors} /> : null}
-          <p>
+          <p className="dialog-buttons">
             <Button label="Cancel" type="button" variant="secondary" disabled={false} onPress={() => close("Cancel")} />{" "}
             <Button label="Confirm" type="button" variant="primary" disabled={false} onPress={() => close("Confirm")} />
           </p>
@@ -1584,6 +1584,55 @@ function StressStates(): ReactNode {
   );
 }
 
+/**
+ * The docs README hero (card 34b): several components composed the way a host
+ * page composes them — a field frame, a table with its pager, a board, a
+ * count widget — so the README shows the set together, not one component at a
+ * time. `gallery/shoot.ts` screenshots `#hero-page` directly (not a `.state`
+ * box) for `README.md`'s hero picture; the same fixtures back the per-component pages.
+ */
+function HeroStates(): ReactNode {
+  return (
+    <section id="group-hero">
+      <h2>hero (docs README)</h2>
+      {/* max 1212px = the board's exact four-column width: 8px scroller padding
+          + 4 × 290px columns (18rem + 1px borders) + 3 × 12px gaps + 8px. The
+          hero shrinks with the viewport so the page never scrolls sideways. */}
+      <div id="hero-page" style={{ display: "grid", gap: "1rem", inlineSize: "100%", maxInlineSize: "1212px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(340px, 420px) minmax(0, 1fr)", gap: "1rem", alignItems: "start" }}>
+          <Panel title="Session">
+            <div style={{ display: "grid", gap: "0.75rem" }}>
+              <Field type="text" value="Ada" idPrefix="g-hero-text" />
+              <Field type="number" value={102.5} idPrefix="g-hero-number" />
+              <Field type="boolean" value={true} idPrefix="g-hero-boolean" />
+              <Button label="Save" type="button" variant="primary" disabled={false} onPress={() => {}} />
+            </div>
+          </Panel>
+          <div style={{ display: "grid", gap: "0.5rem" }}>
+            <Count label="Working sets" value={4} />
+            <Table
+              caption="Sets"
+              columns={[
+                { id: "day", headerId: "g-hero-col-day", label: "Day", sortable: true },
+                { id: "weight", headerId: "g-hero-col-weight", label: "Weight", sortable: false },
+              ]}
+              rows={[
+                { id: "r1", cells: ["2026-10-04", "100 kg"] },
+                { id: "r2", cells: ["2026-10-03", "95 kg"] },
+                { id: "r3", cells: ["2026-10-02", "90 kg"] },
+              ]}
+              onSort={() => {}}
+              empty="No sets yet"
+            />
+            <Pager hasPrev={false} hasNext={false} info="1–3 of 3" onFirst={() => {}} onPrev={() => {}} onNext={() => {}} />
+          </div>
+        </div>
+        <BoardHarness id="Tasks (hero)" openable />
+      </div>
+    </section>
+  );
+}
+
 export default function App(): ReactNode {
   const [mode, setMode] = useState<"light" | "dark" | "stress" | "brand">("light");
   const [textScale, setTextScale] = useState<"100" | "200">("100");
@@ -1678,6 +1727,8 @@ export default function App(): ReactNode {
         <FieldGroup type="time" />
         <FieldGroup type="tags" />
         <TagsStates />
+
+        <HeroStates />
 
         <section id="group-field-frame">
           <h2>field-frame</h2>
@@ -2143,7 +2194,7 @@ export default function App(): ReactNode {
             "static (modal={false}): the same shell rendered in-flow, for demos and print",
             <DialogComponent label="Delete record?" onClose={() => {}} modal={false}>
               <p>Deleting is permanent.</p>
-              <p>
+              <p className="dialog-buttons">
                 <Button label="Cancel" type="button" variant="secondary" disabled={false} />{" "}
                 <Button label="Delete" type="button" variant="primary" tone="danger" disabled={false} />
               </p>
