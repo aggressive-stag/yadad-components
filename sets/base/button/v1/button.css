@@ -16,6 +16,12 @@
     /* Phone touch: a thumb needs a 44px target. Token-derived (2x space-4
        plus space-3) so a host token override rescales it with the theme. */
     min-block-size: var(--yadad-button-tap, var(--yadad-touch-tap, calc(var(--yadad-space-4) * 2 + var(--yadad-space-3))));
+    /* Stress audit (card 34a): a flex item's min-content width is the
+       longest unbreakable run, so a button labelled with one 40-char word
+       grew past its dialog body and made the body side-scroll. `anywhere`
+       breaks the word inside the button instead — the same rule the dialog
+       title carries. */
+    overflow-wrap: anywhere;
   }
 
   :where([data-yadad="button"][data-variant="primary"]) {
