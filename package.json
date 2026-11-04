@@ -173,6 +173,7 @@
     "prepare": "git config core.hooksPath .githooks",
     "changeset": "changeset",
     "gallery": "vite --config vite.gallery.config.ts",
+    "docs:shots": "node --experimental-strip-types gallery/shoot.ts",
     "build": "tsc -p tsconfig.build.json && node scripts/build-css.ts",
     "typecheck": "tsc && tsc -p scripts/tsconfig.json",
     "test": "vitest run",

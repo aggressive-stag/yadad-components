@@ -6,5 +6,5 @@
     "erasableSyntaxOnly": true,
     "types": ["node"]
   },
-  "include": ["./**/*.ts", "../gallery/check/**/*.ts"]
+  "include": ["./**/*.ts", "../gallery/check/**/*.ts", "../gallery/shoot.ts"]
 }
