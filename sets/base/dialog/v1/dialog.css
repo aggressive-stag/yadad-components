@@ -85,6 +85,11 @@
   :where([data-yadad="dialog"]) :where([data-part="body"]) {
     overflow-y: auto;
     padding: var(--yadad-dialog-body-padding, var(--yadad-space-3));
+    /* Stress audit (card 34a): the body is renderer-composed, and a bare
+       paragraph holding one unbreakable word widened it and made the body
+       side-scroll (only y is intended to scroll here). Break the word the
+       way the confirm-subject line already does. */
+    overflow-wrap: anywhere;
   }
 
   /* The confirm dialog's subject line: the renderer names the record under
