@@ -17,9 +17,13 @@
   :where([data-yadad="error-summary"]) :where([data-part="message"]) {
     color: var(--yadad-error-summary-color, var(--yadad-color-danger));
     font-weight: 600;
+    /* Stress audit (card 34a): a field error whose message holds one
+       unbreakable word ran the page sideways — break it inside the summary. */
+    overflow-wrap: anywhere;
   }
 
   :where([data-yadad="error-summary"]) :where([data-part="hint"]) {
     color: var(--yadad-error-summary-hint-color, var(--yadad-color-text));
+    overflow-wrap: anywhere; /* same audit as the message above */
   }
 }
