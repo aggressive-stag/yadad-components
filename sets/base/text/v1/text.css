@@ -23,9 +23,17 @@
   }
 
   /* A multiline value keeps its line breaks; runs of spaces still collapse. */
+  :where([data-yadad="text"][data-part="display"]) {
+    /* Stress audit (card 34a): the display is the sole text surface, and one
+       unbreakable word inside it widened the host sideways. `anywhere` (not
+       break-word) so the word also shrinks the box's min-content — the
+       display is a flex item in a column and min-content is what pins it. */
+    overflow-wrap: anywhere;
+  }
+
   :where([data-yadad="text"][data-part="display"][data-multiline="true"]) {
     white-space: pre-line;
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
   }
 
   :where([data-yadad="text"][data-part="input"]):focus-visible {
