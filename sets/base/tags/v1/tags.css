@@ -99,6 +99,12 @@
     display: inline-flex;
     flex-wrap: wrap;
     gap: var(--yadad-tags-chips-gap, var(--yadad-space-1));
+    /* Stress audit (card 34a): as an inline-flex item this root sized to its
+       content — one unbreakable chip label widened the whole display past the
+       phone. min-inline-size lets it shrink and the wrap take over; the
+       ceiling keeps it inside the column the host gave it. */
+    min-inline-size: 0;
+    max-inline-size: 100%;
   }
 
   :where([data-yadad="tags"][data-part="display"] [data-part="chip"]) {
@@ -109,6 +115,11 @@
     background: var(--yadad-tags-chip-background, var(--yadad-color-surface));
     border: var(--yadad-tags-chip-border-width, 1px) solid var(--yadad-tags-chip-border, var(--yadad-color-border));
     border-radius: var(--yadad-tags-chip-radius, var(--yadad-radius-sm));
+    /* Same audit: a chip holding one unbreakable word grew past the row and
+       widened the page sideways; break the word inside the chip instead. */
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    overflow-wrap: anywhere;
   }
 
   /* The empty marker (em-dash), same convention as time's display-empty. */
