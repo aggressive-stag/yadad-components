@@ -33,6 +33,13 @@ import {
   seriesSingleGroup,
   seriesWeekGroups,
   seriesWeekLine,
+  STRESS_LABEL_120,
+  STRESS_WORD_40,
+  stressChips,
+  stressReferenceOptions,
+  stressSeriesGroups,
+  stressTableRows,
+  stressTags,
   samples,
   weekGridDates,
   weekTitle,
@@ -1362,6 +1369,37 @@ const LAYOUT_ANCHORS = [
   "batch-composer",
   "checklist-rows",
   "check-primitive",
+  "stress-table-300",
+  "stress-table-empty",
+  "stress-board-300",
+  "stress-series-300-table",
+  "stress-series-300-bar",
+  "stress-series-300-bar-phone",
+  "stress-series-0",
+  "stress-text-120",
+  "stress-text-word40",
+  "stress-textarea-120",
+  "stress-text-display-120",
+  "stress-text-display-word40",
+  "stress-text-display-empty",
+  "stress-tags-300",
+  "stress-tags-300-phone",
+  "stress-tags-empty",
+  "stress-reference-120",
+  "stress-reference-display-word40",
+  "stress-reference-display-120",
+  "stress-button-120",
+  "stress-button-word40",
+  "stress-tabs-long-titles",
+  "stress-chips-30",
+  "stress-pager-long-info",
+  "stress-count-long-label",
+  "stress-count-zero",
+  "stress-error-summary-120",
+  "stress-error-summary-0",
+  "stress-panel-titles",
+  "stress-dialog-long-form",
+  "stress-overflow-wrap-word",
 ] as const;
 
 const FIELD_STATES = ["empty", "filled", "required", "invalid", "display-value", "display-empty"] as const;
@@ -1441,6 +1479,108 @@ function DialogDemo(): ReactNode {
         </Dialog>
       ) : null}
     </>
+  );
+}
+
+/**
+ * Card 34a (plan §1 V11): one stress block per component the gallery can
+ * stress — a 120-character label, a 40-character unbroken word, 300 items,
+ * and 0 items. The layout-audit probe walks every `.state` in the page, so
+ * these blocks are probed at 1280/390/320 in light and dark like everything
+ * else. Generic labels only: this repo is public.
+ */
+function StressStates(): ReactNode {
+  const textEntry = baseRegistry.fields.text;
+  const tagsEntry = baseRegistry.fields.tags;
+  const refEntry = baseRegistry.fields.reference;
+  const stressRows = stressTableRows(300);
+  // Each rendered table needs its own header ids — the two stress tables
+  // (300 rows + empty) render at once, so the builder takes a prefix.
+  const stressColumns = (prefix: string) => [
+    { id: "day", headerId: `${prefix}-col-day`, label: "Day", sortable: true },
+    { id: "weight", headerId: `${prefix}-col-weight`, label: "Weight", sortable: true },
+    { id: "note", headerId: `${prefix}-col-note`, label: "Note", sortable: false },
+  ];
+  const stressBoardColumns: BoardColumn<ReactNode>[] = Array.from({ length: 8 }, (_, c) =>
+    boardColumn(
+      `vs:${c}`,
+      c === 0 ? STRESS_LABEL_120 : c === 1 ? STRESS_WORD_40 : `Column ${c + 1}`,
+      Array.from({ length: 12 }, (_, i) => {
+        const n = c * 12 + i + 1;
+        const title = i === 0 ? STRESS_LABEL_120 : i === 1 ? STRESS_WORD_40 : `Task ${n}`;
+        return boardCard(n, title, `Owner: person ${(n % 3) + 1}`, `Due: 2026-11-${String((n % 28) + 1).padStart(2, "0")}`);
+      }),
+    ),
+  );
+  return (
+    <section id="group-stress">
+      <h2>stress (V11): 120-char label · 40-char word · 300 items · 0 items</h2>
+      {state("stress-table-300", "table: 300 rows, a 120-char cell and a 40-char unbroken word inside", <TableComponent caption="Sets (stress, 300 rows)" columns={[...stressColumns("g-st300")]} rows={stressRows} onSort={() => {}} empty="No sets yet" />)}
+      {state("stress-table-empty", "table: 0 rows (the empty state under the same columns)", <Table caption="Sets (stress, empty)" columns={[...stressColumns("g-st0")]} rows={[]} onSort={() => {}} empty="No sets yet" />)}
+      {state("stress-board-300", "board: 300 cards across 8 columns (column 1 carries the 120-char label, column 2 the word)", <Board label="Tasks (stress, 300 cards)" groupChoices={[{ field: "status", label: "Status" }]} groupField="status" columns={stressBoardColumns} loading={false} onGroupBy={() => {}} />)}
+      {state("stress-series-300-table", "series table: 300 groups (every tenth a 120-char label, every seventh the word)", <Series label="Sets per week (stress)" display="table" groups={stressSeriesGroups(300)} skipped={0} loading={false} measureLabel="Sum of sets" aggregation="sum" />)}
+      {state("stress-series-300-bar", "series bars: 300 groups — labels thin out, the chart must still fit", <Series label="Sets per week (stress, bars)" display="bar" groups={stressSeriesGroups(300)} skipped={0} loading={false} measureLabel="Sum of sets" aggregation="sum" />)}
+      {state("stress-series-300-bar-phone", "series bars: 300 groups in the 320px phone frame", <div className="phone-frame" style={{ inlineSize: "320px" }}><Series label="Sets per week (stress, phone)" display="bar" groups={stressSeriesGroups(300)} skipped={0} loading={false} measureLabel="Sum of sets" aggregation="sum" /></div>)}
+      {state("stress-series-0", "series: 0 groups (the empty shape)", <Series label="Sets per week (stress, empty)" display="table" groups={[]} skipped={0} loading={false} measureLabel="Sum of sets" aggregation="sum" />)}
+      {textEntry === undefined ? (
+        <p>not wired: text</p>
+      ) : (
+        <>
+          {state("stress-text-120", "text input: a 120-char value", <Host component={textEntry.Input as unknown as (props: FieldInputProps<"text">) => ReactNode} props={{ inputId: "g-st-text-120", field: samples.text.field, value: STRESS_LABEL_120, onChange: () => {}, invalid: false }} />)}
+          {state("stress-text-word40", "text input: a 40-char unbroken word", <Host component={textEntry.Input as unknown as (props: FieldInputProps<"text">) => ReactNode} props={{ inputId: "g-st-text-word", field: samples.text.field, value: STRESS_WORD_40, onChange: () => {}, invalid: false }} />)}
+          {state("stress-textarea-120", "textarea: a 120-char value with the word on its own line", <Host component={textEntry.Input as unknown as (props: FieldInputProps<"text">) => ReactNode} props={{ inputId: "g-st-textarea-120", field: { ...samples.text.field, multiline: true, maxLength: 4000 }, value: `${STRESS_LABEL_120}\n${STRESS_WORD_40}`, onChange: () => {}, invalid: false }} />)}
+          {state("stress-text-display-120", "text display: 120-char value", <Host component={textEntry.Display as (props: FieldDisplayProps<"text">) => ReactNode} props={{ field: samples.text.field, value: STRESS_LABEL_120 }} />)}
+          {state("stress-text-display-word40", "text display: 40-char unbroken word", <Host component={textEntry.Display as (props: FieldDisplayProps<"text">) => ReactNode} props={{ field: samples.text.field, value: STRESS_WORD_40 }} />)}
+          {state("stress-text-display-empty", "text display: 0 characters", <Host component={textEntry.Display as (props: FieldDisplayProps<"text">) => ReactNode} props={{ field: samples.text.field, value: undefined }} />)}
+        </>
+      )}
+      {tagsEntry === undefined ? (
+        <p>not wired: tags</p>
+      ) : (
+        <>
+          {state("stress-tags-300", "tags display: 300 chips (every tenth the 120-char label, every seventh the word)", <Host component={tagsEntry.Display as (props: FieldDisplayProps<"tags">) => ReactNode} props={{ field: samples.tags.field, value: stressTags(300) }} />)}
+          {state("stress-tags-300-phone", "tags display: 300 chips in the 320px phone frame (the row wraps, never side-scrolls)", <div className="phone-frame" style={{ inlineSize: "320px" }}><Host component={tagsEntry.Display as (props: FieldDisplayProps<"tags">) => ReactNode} props={{ field: samples.tags.field, value: stressTags(300) }} /></div>)}
+          {state("stress-tags-empty", "tags display: 0 chips", <Host component={tagsEntry.Display as (props: FieldDisplayProps<"tags">) => ReactNode} props={{ field: samples.tags.field, value: [] }} />)}
+        </>
+      )}
+      {refEntry === undefined ? (
+        <p>not wired: reference</p>
+      ) : (
+        <>
+          {state("stress-reference-120", "reference input: the open list carries a 120-char option and a 40-char word option", <Field type="reference" value="s1" idPrefix="g-st-reference-120" extras={{ options: { status: "ready", options: stressReferenceOptions, more: false } }} />)}
+          {state("stress-reference-display-word40", "reference display: the 40-char word label", <Host component={refEntry.Display as (props: FieldDisplayProps<"reference">) => ReactNode} props={{ field: samples.reference.field, value: "s2", label: STRESS_WORD_40, status: "found" }} />)}
+          {state("stress-reference-display-120", "reference display: the 120-char label", <Host component={refEntry.Display as (props: FieldDisplayProps<"reference">) => ReactNode} props={{ field: samples.reference.field, value: "s1", label: STRESS_LABEL_120, status: "found" }} />)}
+        </>
+      )}
+      {state("stress-button-120", "button: a 120-char label wraps inside the button", <Button label={STRESS_LABEL_120} type="button" variant="primary" disabled={false} />)}
+      {state("stress-button-word40", "button: a 40-char unbroken label", <Button label={STRESS_WORD_40} type="button" variant="secondary" disabled={false} />)}
+      {state("stress-tabs-long-titles", "tabs: ten tabs, one carrying the 120-char label and one the word (the list is the allowed scroller)", <Tabs label="Dashboard (stress)" tabs={[{ id: "s1", title: STRESS_LABEL_120 }, { id: "s2", title: STRESS_WORD_40 }, ...Array.from({ length: 8 }, (_, i) => ({ id: `t${i}`, title: `Tab ${i + 1}` }))]} selected="s1" onSelect={() => {}} panel={<p>Panel for the 120-character tab.</p>} />)}
+      {state("stress-chips-30", "chips row: 30 saved filters, the first the 120-char label, the second the word", <ChipRow label="Saved filters (stress)">{stressChips(30).map((c, i) => <Chip key={c} label={c} pressed={i === 0} onPress={() => {}} />)}</ChipRow>)}
+      {state("stress-pager-long-info", "pager: a 120-char info string beside the buttons", <Pager hasPrev hasNext info={STRESS_LABEL_120} onFirst={() => {}} onPrev={() => {}} onNext={() => {}} />)}
+      {state("stress-count-long-label", "count: a 120-char label and a 40-char unbroken label", <div style={{ display: "grid", gap: "0.75rem" }}><Count label={STRESS_LABEL_120} value={4} /><Count label={STRESS_WORD_40} value={1234567} /></div>)}
+      {state("stress-count-zero", "count: value 0 (a 0-value must still paint its number)", <Count label="Empty sessions" value={0} />)}
+      {state("stress-error-summary-120", "error-summary: 30 errors, the first the 120-char message, the second the word", <ErrorSummary id="g-st-errors" errors={Array.from({ length: 30 }, (_, i) => (i === 0 ? { path: "/a", code: "invalid-value", message: STRESS_LABEL_120, hint: "Shorten the text and try again." } : i === 1 ? { path: "/b", code: "invalid-value", message: STRESS_WORD_40, hint: "Break the word into pieces." } : { path: `/f${i}`, code: "invalid-value", message: `Field ${i} must be a multiple of 2.5.`, hint: "Round to the nearest 2.5." }))} />)}
+      {state("stress-error-summary-0", "error-summary: 0 errors (the region renders nothing, not a stray heading)", <ErrorSummary id="g-st-errors-none" errors={[]} />)}
+      {state("stress-panel-titles", "panel + section: the 120-char and 40-char titles", <div style={{ display: "grid", gap: "0.75rem" }}><Panel title={STRESS_LABEL_120}><p>Body under the long title.</p></Panel><Panel title={STRESS_WORD_40}><p>Body under the word title.</p></Panel><Section id="g-st-section-long" title={STRESS_LABEL_120}><p>Inside the long-titled section.</p></Section></div>)}
+      {state("stress-dialog-long-form", "dialog (static): a 120-char heading, the word as the subject, a long error", <DialogComponent label={STRESS_LABEL_120} onClose={() => {}} modal={false}>
+        <p>{STRESS_WORD_40}</p>
+        <ErrorSummary id="g-st-dialog-errors" errors={[{ path: "/title", code: "invalid-value", message: STRESS_LABEL_120, hint: "Shorten the title and try again." }]} />
+        <p>
+          <Button label={STRESS_WORD_40} type="button" variant="secondary" disabled={false} />{" "}
+          <Button label="Confirm" type="button" variant="primary" disabled={false} />
+        </p>
+      </DialogComponent>)}
+      {state("stress-overflow-wrap-word", "unbreakable-word guards (card 34a regressions): a panel whose title is the word (it breaks, the panel never side-scrolls) and a dialog whose confirm button label is the word (it breaks, the body never side-scrolls)", <div style={{ display: "grid", gap: "0.75rem" }}>
+        <Panel title={STRESS_WORD_40}><p>Body under the word title.</p></Panel>
+        <DialogComponent label="Name the record?" onClose={() => {}} modal={false}>
+          <p>The word label must break inside its button.</p>
+          <p>
+            <Button label="Cancel" type="button" variant="secondary" disabled={false} />{" "}
+            <Button label={STRESS_WORD_40} type="button" variant="primary" disabled={false} />
+          </p>
+        </DialogComponent>
+      </div>)}
+    </section>
   );
 }
 
@@ -2015,6 +2155,8 @@ export default function App(): ReactNode {
             <DialogDemo />,
           )}
         </section>
+
+        <StressStates />
       </div>
     </>
   );

@@ -285,6 +285,64 @@ export function seriesMonthLine(): SeriesGroupProps[] {
   });
 }
 
+/* ---------------------------------------------------------------------- */
+/* Stress fixtures (card 34a, plan §1 V11): a 120-character label, a       */
+/* 40-character unbroken word, 300 rows/items and 0 items per component    */
+/* the gallery can stress. Generic, fictional words only — the repo is     */
+/* public, so nothing here names an app or a host.                         */
+/* ---------------------------------------------------------------------- */
+
+/** Exactly 120 characters of ordinary wrapping words. */
+export const STRESS_LABEL_120 =
+  "Long generic label for the stress audit that goes on and on until it reaches one hundred and twenty characters plus more";
+
+/** Exactly 40 characters with no break opportunity at all. */
+export const STRESS_WORD_40 = "Unbrokenwordforthelayoutaudittest1234567";
+
+/** 300 table rows: every tenth cell carries the 120-char label, every seventh the 40-char word. */
+export function stressTableRows(count = 300): { id: string; cells: [string, string, string] }[] {
+  return Array.from({ length: count }, (_, i) => ({
+    id: `sr${i + 1}`,
+    cells: [
+      `2026-10-${String((i % 28) + 1).padStart(2, "0")}`,
+      i % 10 === 0 ? STRESS_LABEL_120 : `${60 + ((i * 7) % 90)} kg`,
+      i % 7 === 0 ? STRESS_WORD_40 : `Note ${i + 1} — ${i % 3 === 0 ? "a longer note that wraps on a phone" : "ok"}`,
+    ],
+  }));
+}
+
+/** 300 tags for the tags input/display: every tenth carries the 120-char label, every seventh the word. */
+export function stressTags(count = 300): string[] {
+  return Array.from({ length: count }, (_, i) =>
+    i % 10 === 0 ? STRESS_LABEL_120 : i % 7 === 0 ? STRESS_WORD_40 : `tag-${i + 1}`,
+  );
+}
+
+/** Reference options that stress the label: one 120-char, one 40-char word, plus ordinary ones. */
+export const stressReferenceOptions = [
+  { id: "s1", label: STRESS_LABEL_120 },
+  { id: "s2", label: STRESS_WORD_40 },
+  { id: "s3", label: "Ordinary short one" },
+];
+
+/** Saved-filter chips that stress the row: the long label, the word, and many ordinary chips (30 total). */
+export function stressChips(count = 30): string[] {
+  return Array.from({ length: count }, (_, i) =>
+    i === 0 ? STRESS_LABEL_120 : i === 1 ? STRESS_WORD_40 : `filter ${i + 1}`,
+  );
+}
+
+/** 300 series groups: every tenth label is the 120-char label, every seventh the word. */
+export function stressSeriesGroups(count = 300): SeriesGroupProps[] {
+  return Array.from({ length: count }, (_, i) => {
+    const key = `g${i + 1}`;
+    const label = i % 10 === 0 ? STRESS_LABEL_120 : i % 7 === 0 ? STRESS_WORD_40 : `Group ${i + 1}`;
+    if (i % 40 === 39) return { key, label, value: undefined, text: "—" };
+    const value = 5 + ((i * 13) % 40);
+    return { key, label, value, text: String(value) };
+  });
+}
+
 /* Pager fixtures (RFC 0008 item 11 / registry PagerProps), mirroring the     */
 /* calendarFixtureEntries pattern: data shaped exactly like the engine's      */
 /* contract, built by the gallery's render step.                              */
