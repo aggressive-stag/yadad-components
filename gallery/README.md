@@ -4,12 +4,21 @@ Deterministic browser checks against the gallery (`gallery/check/*.ts`). They
 run a real Chromium from `playwright-core` — pin the executable with
 `PLAYWRIGHT_EXECUTABLE_PATH` if the managed download is not present.
 
-Start the gallery, then from the **repo root**:
+From the **repo root**, run every check (starts the gallery on port 5199 if
+nothing is serving there, stops it afterwards, prints PASS/FAIL per check and
+exits non-zero if any failed):
 
 ```bash
-pnpm gallery &   # serves on port 5199
-# or: (cd gallery && npx vite --port 5151) &
-GALLERY_URL=http://localhost:5151/ node --experimental-strip-types gallery/check/<name>.ts
+pnpm check:gallery
+pnpm check:gallery --list           # the check names
+```
+
+One check by name (it also starts and stops the gallery), or by hand against a
+running `pnpm gallery`:
+
+```bash
+pnpm check:gallery tabs-keyboard
+GALLERY_URL=http://localhost:5199/ node gallery/check/<name>.ts
 ```
 
 | check | what it proves |
