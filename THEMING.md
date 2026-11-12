@@ -9,7 +9,7 @@
 Every component styles itself through a public, host-configurable surface (engine DECISIONS D15). You theme yadad three ways, in order of preference:
 
 1. **Theme tokens** — set the `--yadad-*` tokens on `:root` (or any scope). This restyles the *whole* set at once and is the right tool for a new color scheme, a different spacing scale, a new font, or a different radius. Components read tokens only; they never hard-code a color, length, radius or font, so a token override reaches every component.
-2. **Per-component variables** — set a `--yadad-<component>-<name>` on a component (or any ancestor) to override just that part. Each defaults to a token, so you inherit the theme and override one value. Use these to nudge a single component without touching the rest (a different button radius, a custom table header background).
+2. **Per-component variables** — set a `--yadad-<component>-<name>` on a component (or any ancestor) to override just that part; the exception is a variable the component declares on its own element (its entry says so), which has to be set on that element.  Each defaults to a token, so you inherit the theme and override one value. Use these to nudge a single component without touching the rest (a different button radius, a custom table header background).
 3. **`data-part` selectors** — target a part directly with the `data-part` attribute for anything the variables don't expose. Parts that carry the `data-yadad="<component>"` marker on their own tag take the compound form `[data-yadad="text"][data-part="input"]`; parts nested inside the component root take the descendant form `[data-yadad="table"] [data-part="header"]`. Stable names; renaming one is a breaking change.
 
 **Why host CSS wins.** All component CSS lives in `@layer yadad.components` (tokens in `@layer yadad.tokens`, ordered before it). Unlayered host CSS always beats layered CSS, and an earlier layer beats a later one — so your unlayered rules win, and you can also override the tokens by writing your own `@layer yadad.tokens` *before* importing the component styles, or by unlayered `:root` custom properties.
@@ -61,14 +61,14 @@ Set these on `:root` (or any scope). Each is `--yadad-<name>`.
 | `--yadad-color-border` | borders and dividers |
 | `--yadad-color-accent` | brand / primary accent — links, focus ring, selected state |
 | `--yadad-color-danger` | error / danger text and borders |
-| `--yadad-color-category-0` | undefined |
-| `--yadad-color-category-1` | undefined |
-| `--yadad-color-category-2` | undefined |
-| `--yadad-color-category-3` | undefined |
-| `--yadad-color-category-4` | undefined |
-| `--yadad-color-category-5` | undefined |
-| `--yadad-color-category-6` | undefined |
-| `--yadad-color-category-7` | undefined |
+| `--yadad-color-category-0` | category colour slot 0 (blue); an option's colour index picks the slot |
+| `--yadad-color-category-1` | category colour slot 1 (red); an option's colour index picks the slot |
+| `--yadad-color-category-2` | category colour slot 2 (orange); an option's colour index picks the slot |
+| `--yadad-color-category-3` | category colour slot 3 (yellow); an option's colour index picks the slot |
+| `--yadad-color-category-4` | category colour slot 4 (green); an option's colour index picks the slot |
+| `--yadad-color-category-5` | category colour slot 5 (teal); an option's colour index picks the slot |
+| `--yadad-color-category-6` | category colour slot 6 (purple); an option's colour index picks the slot |
+| `--yadad-color-category-7` | category colour slot 7 (pink); an option's colour index picks the slot |
 | `--yadad-space-1` | spacing scale, step 1 (tightest) |
 | `--yadad-space-2` | spacing scale, step 2 |
 | `--yadad-space-3` | spacing scale, step 3 |
@@ -303,14 +303,14 @@ A month/week grid of entries with navigation, a colour-slot legend, and a keyboa
 - `--yadad-calendar-status-accent` — live-region leading bar color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-calendar-status-background` — live-region background; default: token `--yadad-color-surface` (raised surface (sections, panels, table headers))
 - `--yadad-calendar-radius-full` — legend/entry swatch corner radius (circular); default: `50%`
-- `--yadad-calendar-slot-0` — colour slot 0 (categorical entry/legend color); default: no default — the host must set it
-- `--yadad-calendar-slot-1` — colour slot 1 (categorical entry/legend color); default: no default — the host must set it
-- `--yadad-calendar-slot-2` — colour slot 2 (categorical entry/legend color); default: no default — the host must set it
-- `--yadad-calendar-slot-3` — colour slot 3 (categorical entry/legend color); default: no default — the host must set it
-- `--yadad-calendar-slot-4` — colour slot 4 (categorical entry/legend color); default: no default — the host must set it
-- `--yadad-calendar-slot-5` — colour slot 5 (categorical entry/legend color); default: no default — the host must set it
-- `--yadad-calendar-slot-6` — colour slot 6 (categorical entry/legend color); default: no default — the host must set it
-- `--yadad-calendar-slot-7` — colour slot 7 (categorical entry/legend color); default: no default — the host must set it
+- `--yadad-calendar-slot-0` — colour slot 0 (categorical entry/legend color); default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state). Declared on the component's own element, so set it on `[data-yadad="calendar"][data-part="root"]`: a value on an ancestor is replaced by that declaration
+- `--yadad-calendar-slot-1` — colour slot 1 (categorical entry/legend color); default: token `--yadad-color-danger` (error / danger text and borders). Declared on the component's own element, so set it on `[data-yadad="calendar"][data-part="root"]`: a value on an ancestor is replaced by that declaration
+- `--yadad-calendar-slot-2` — colour slot 2 (categorical entry/legend color); default: `color-mix(in srgb, var(--yadad-color-accent) 50%, var(--yadad-color-danger) 50%)` (token-derived: `--yadad-color-accent`, `--yadad-color-danger`). Declared on the component's own element, so set it on `[data-yadad="calendar"][data-part="root"]`: a value on an ancestor is replaced by that declaration
+- `--yadad-calendar-slot-3` — colour slot 3 (categorical entry/legend color); default: `color-mix(in srgb, var(--yadad-color-accent) 65%, var(--yadad-color-text) 35%)` (token-derived: `--yadad-color-accent`, `--yadad-color-text`). Declared on the component's own element, so set it on `[data-yadad="calendar"][data-part="root"]`: a value on an ancestor is replaced by that declaration
+- `--yadad-calendar-slot-4` — colour slot 4 (categorical entry/legend color); default: `color-mix(in srgb, var(--yadad-color-danger) 65%, var(--yadad-color-text) 35%)` (token-derived: `--yadad-color-danger`, `--yadad-color-text`). Declared on the component's own element, so set it on `[data-yadad="calendar"][data-part="root"]`: a value on an ancestor is replaced by that declaration
+- `--yadad-calendar-slot-5` — colour slot 5 (categorical entry/legend color); default: `color-mix(in srgb, var(--yadad-color-accent) 45%, var(--yadad-color-text-muted) 55%)` (token-derived: `--yadad-color-accent`, `--yadad-color-text-muted`). Declared on the component's own element, so set it on `[data-yadad="calendar"][data-part="root"]`: a value on an ancestor is replaced by that declaration
+- `--yadad-calendar-slot-6` — colour slot 6 (categorical entry/legend color); default: `color-mix(in srgb, var(--yadad-color-danger) 45%, var(--yadad-color-text-muted) 55%)` (token-derived: `--yadad-color-danger`, `--yadad-color-text-muted`). Declared on the component's own element, so set it on `[data-yadad="calendar"][data-part="root"]`: a value on an ancestor is replaced by that declaration
+- `--yadad-calendar-slot-7` — colour slot 7 (categorical entry/legend color); default: token `--yadad-color-text-muted` (secondary / muted text (labels, captions, empty states)). Declared on the component's own element, so set it on `[data-yadad="calendar"][data-part="root"]`: a value on an ancestor is replaced by that declaration
 - `--yadad-calendar-columns` — the grid's column count, as the number `repeat()` consumes. month/week never set it and the CSS fallback is 7; a rolling "<n>day" period (card 33a) sets it inline from its row length — set it yourself only to force an odd mode's column count; default: `7`
 - `--yadad-calendar-header-background` — header background; default: token `--yadad-color-surface` (raised surface (sections, panels, table headers))
 - `--yadad-calendar-day-min` — minimum day-cell block size; default: `calc(var(--yadad-space-4) * 6)` (token-derived: `--yadad-space-4`)
@@ -724,14 +724,14 @@ A single-choice field, rendered as a native picker; the display shows `label ?? 
 - `--yadad-select-focus` — focus-ring color; default: token `--yadad-color-accent` (brand / primary accent — links, focus ring, selected state)
 - `--yadad-select-border-invalid` — border color when invalid; default: token `--yadad-color-danger` (error / danger text and borders)
 - `--yadad-select-radius-full` — option-colour swatch corner radius (circular); default: `50%`
-- `--yadad-select-slot-0` — colour slot 0 (categorical entry/legend color); default: no default — the host must set it
-- `--yadad-select-slot-1` — colour slot 1 (categorical entry/legend color); default: no default — the host must set it
-- `--yadad-select-slot-2` — colour slot 2 (categorical entry/legend color); default: no default — the host must set it
-- `--yadad-select-slot-3` — colour slot 3 (categorical entry/legend color); default: no default — the host must set it
-- `--yadad-select-slot-4` — colour slot 4 (categorical entry/legend color); default: no default — the host must set it
-- `--yadad-select-slot-5` — colour slot 5 (categorical entry/legend color); default: no default — the host must set it
-- `--yadad-select-slot-6` — colour slot 6 (categorical entry/legend color); default: no default — the host must set it
-- `--yadad-select-slot-7` — colour slot 7 (categorical entry/legend color); default: no default — the host must set it
+- `--yadad-select-slot-0` — colour slot 0 (categorical entry/legend color); default: token `--yadad-color-category-0` (category colour slot 0 (blue); an option's colour index picks the slot). Declared on the component's own element, so set it on `[data-yadad="select"][data-part="display"]`: a value on an ancestor is replaced by that declaration
+- `--yadad-select-slot-1` — colour slot 1 (categorical entry/legend color); default: token `--yadad-color-category-1` (category colour slot 1 (red); an option's colour index picks the slot). Declared on the component's own element, so set it on `[data-yadad="select"][data-part="display"]`: a value on an ancestor is replaced by that declaration
+- `--yadad-select-slot-2` — colour slot 2 (categorical entry/legend color); default: token `--yadad-color-category-2` (category colour slot 2 (orange); an option's colour index picks the slot). Declared on the component's own element, so set it on `[data-yadad="select"][data-part="display"]`: a value on an ancestor is replaced by that declaration
+- `--yadad-select-slot-3` — colour slot 3 (categorical entry/legend color); default: token `--yadad-color-category-3` (category colour slot 3 (yellow); an option's colour index picks the slot). Declared on the component's own element, so set it on `[data-yadad="select"][data-part="display"]`: a value on an ancestor is replaced by that declaration
+- `--yadad-select-slot-4` — colour slot 4 (categorical entry/legend color); default: token `--yadad-color-category-4` (category colour slot 4 (green); an option's colour index picks the slot). Declared on the component's own element, so set it on `[data-yadad="select"][data-part="display"]`: a value on an ancestor is replaced by that declaration
+- `--yadad-select-slot-5` — colour slot 5 (categorical entry/legend color); default: token `--yadad-color-category-5` (category colour slot 5 (teal); an option's colour index picks the slot). Declared on the component's own element, so set it on `[data-yadad="select"][data-part="display"]`: a value on an ancestor is replaced by that declaration
+- `--yadad-select-slot-6` — colour slot 6 (categorical entry/legend color); default: token `--yadad-color-category-6` (category colour slot 6 (purple); an option's colour index picks the slot). Declared on the component's own element, so set it on `[data-yadad="select"][data-part="display"]`: a value on an ancestor is replaced by that declaration
+- `--yadad-select-slot-7` — colour slot 7 (categorical entry/legend color); default: token `--yadad-color-category-7` (category colour slot 7 (pink); an option's colour index picks the slot). Declared on the component's own element, so set it on `[data-yadad="select"][data-part="display"]`: a value on an ancestor is replaced by that declaration
 - `--yadad-select-touch-font-size` — input font size under a coarse pointer; defaults to the larger of 1rem and the theme's font-size-md, so it never drops below 16px. Set it smaller only on purpose: iOS then zooms on focus; default: `var(--yadad-touch-font-size, max(var(--yadad-space-4), var(--yadad-font-size-md)))` (token-derived: `--yadad-font-size-md`, `--yadad-space-4`)
 
 **Theme tokens it reads:** `--yadad-color-accent`, `--yadad-color-background`, `--yadad-color-border`, `--yadad-color-category-0`, `--yadad-color-category-1`, `--yadad-color-category-2`, `--yadad-color-category-3`, `--yadad-color-category-4`, `--yadad-color-category-5`, `--yadad-color-category-6`, `--yadad-color-category-7`, `--yadad-color-danger`, `--yadad-color-text`, `--yadad-focus-ring-width`, `--yadad-font-family`, `--yadad-font-size-md`, `--yadad-radius-sm`, `--yadad-space-2`, `--yadad-space-3`, `--yadad-space-4`
@@ -818,14 +818,14 @@ One measure per group of a table view, drawn as a compact captioned table, a bar
 
 - `--yadad-swatch-radius-full` — colour dot corner radius on a reference display and a board column heading (circular); default: `50%`
 - `--yadad-swatch-border` — colour dot border; default: token `--yadad-color-border` (borders and dividers)
-- `--yadad-swatch-slot-0` — colour of vocabulary slot 0 on a reference display and a board column heading dot; default: token `--yadad-color-category-0` (color-category-0)
-- `--yadad-swatch-slot-1` — colour of vocabulary slot 1 on a reference display and a board column heading dot; default: token `--yadad-color-category-1` (color-category-1)
-- `--yadad-swatch-slot-2` — colour of vocabulary slot 2 on a reference display and a board column heading dot; default: token `--yadad-color-category-2` (color-category-2)
-- `--yadad-swatch-slot-3` — colour of vocabulary slot 3 on a reference display and a board column heading dot; default: token `--yadad-color-category-3` (color-category-3)
-- `--yadad-swatch-slot-4` — colour of vocabulary slot 4 on a reference display and a board column heading dot; default: token `--yadad-color-category-4` (color-category-4)
-- `--yadad-swatch-slot-5` — colour of vocabulary slot 5 on a reference display and a board column heading dot; default: token `--yadad-color-category-5` (color-category-5)
-- `--yadad-swatch-slot-6` — colour of vocabulary slot 6 on a reference display and a board column heading dot; default: token `--yadad-color-category-6` (color-category-6)
-- `--yadad-swatch-slot-7` — colour of vocabulary slot 7 on a reference display and a board column heading dot; default: token `--yadad-color-category-7` (color-category-7)
+- `--yadad-swatch-slot-0` — colour of vocabulary slot 0 on a reference display and a board column heading dot; default: token `--yadad-color-category-0` (category colour slot 0 (blue); an option's colour index picks the slot)
+- `--yadad-swatch-slot-1` — colour of vocabulary slot 1 on a reference display and a board column heading dot; default: token `--yadad-color-category-1` (category colour slot 1 (red); an option's colour index picks the slot)
+- `--yadad-swatch-slot-2` — colour of vocabulary slot 2 on a reference display and a board column heading dot; default: token `--yadad-color-category-2` (category colour slot 2 (orange); an option's colour index picks the slot)
+- `--yadad-swatch-slot-3` — colour of vocabulary slot 3 on a reference display and a board column heading dot; default: token `--yadad-color-category-3` (category colour slot 3 (yellow); an option's colour index picks the slot)
+- `--yadad-swatch-slot-4` — colour of vocabulary slot 4 on a reference display and a board column heading dot; default: token `--yadad-color-category-4` (category colour slot 4 (green); an option's colour index picks the slot)
+- `--yadad-swatch-slot-5` — colour of vocabulary slot 5 on a reference display and a board column heading dot; default: token `--yadad-color-category-5` (category colour slot 5 (teal); an option's colour index picks the slot)
+- `--yadad-swatch-slot-6` — colour of vocabulary slot 6 on a reference display and a board column heading dot; default: token `--yadad-color-category-6` (category colour slot 6 (purple); an option's colour index picks the slot)
+- `--yadad-swatch-slot-7` — colour of vocabulary slot 7 on a reference display and a board column heading dot; default: token `--yadad-color-category-7` (category colour slot 7 (pink); an option's colour index picks the slot)
 
 **Theme tokens it reads:** `--yadad-color-border`, `--yadad-color-category-0`, `--yadad-color-category-1`, `--yadad-color-category-2`, `--yadad-color-category-3`, `--yadad-color-category-4`, `--yadad-color-category-5`, `--yadad-color-category-6`, `--yadad-color-category-7`, `--yadad-font-size-md`
 
@@ -901,7 +901,7 @@ A tab list with a single selected tab and its panel.
 - `--yadad-tabs-gap` — gap between tabs; default: token `--yadad-space-1` (spacing scale, step 1 (tightest))
 - `--yadad-tabs-spacing` — space after the tab list; default: token `--yadad-space-4` (spacing scale, step 4 (loosest))
 - `--yadad-tabs-font-family` — font stack; default: token `--yadad-font-family` (base font stack)
-- `--yadad-tabs-ring-clearance` — clearance around the focus ring (padding + indicator offset); default: no default — the host must set it
+- `--yadad-tabs-ring-clearance` — clearance around the focus ring (padding + indicator offset); default: `calc(var(--yadad-focus-ring-width) + var(--yadad-space-1))` (token-derived: `--yadad-focus-ring-width`, `--yadad-space-1`). Declared on the component's own element, so set it on `:where([data-yadad="tabs"]) :where([data-part="list"])`: a value on an ancestor is replaced by that declaration
 - `--yadad-tabs-border` — border color; default: token `--yadad-color-border` (borders and dividers)
 - `--yadad-tabs-padding` — tab inner padding; default: `var(--yadad-space-2) var(--yadad-space-4)` (token-derived: `--yadad-space-2`, `--yadad-space-4`)
 - `--yadad-tabs-font-size` — font size; default: token `--yadad-font-size-md` (base text (inputs, body, tab labels))

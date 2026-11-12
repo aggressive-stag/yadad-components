@@ -10,7 +10,8 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { describe, expect, test } from "vitest";
-import { checkFile, checkStyles, generateThemingDoc, scanParts } from "./theming.ts";
+import { TOKEN_NAMES } from "@yadad/theme";
+import { checkFile, checkStyles, generateThemingDoc, scanParts, TOKEN_DESCRIPTION } from "./theming.ts";
 
 const THEMING_MD = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "THEMING.md");
 
@@ -108,5 +109,31 @@ describe("scanParts (data-part extraction)", () => {
     expect([...scanParts(tsx).keys()]).toEqual([]); // the desynced tag and everything after, lost
     const fixed = tsx.replace("don't", "do not");
     expect([...scanParts(fixed).keys()]).toEqual(["a", "nav-previous"]);
+  });
+});
+
+describe("THEMING.md makes sense (card 40)", () => {
+  const doc = readFileSync(THEMING_MD, "utf8");
+
+  test("every theme token has a non-empty description", () => {
+    for (const name of TOKEN_NAMES) expect(TOKEN_DESCRIPTION[name]?.trim(), `description of ${name}`).toBeTruthy();
+  });
+
+  test("no hole is printed", () => {
+    expect(doc).not.toContain("| undefined |");
+    expect(doc).not.toContain("undefined");
+  });
+
+  test("a variable a stylesheet declares itself shows its value and where to set it", () => {
+    for (const v of ["calendar-slot-0", "select-slot-0", "tabs-ring-clearance"]) {
+      const line = doc.split("\n").find((l) => l.startsWith(`- \`--yadad-${v}\``));
+      expect(line, v).toBeDefined();
+      expect(line).not.toContain("the host must set it");
+      expect(line).toContain("Declared on the component's own element");
+    }
+  });
+
+  test("'the host must set it' appears only for variables no stylesheet declares", () => {
+    expect(doc).not.toContain("the host must set it");
   });
 });

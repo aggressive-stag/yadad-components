@@ -65,7 +65,7 @@ const TOKENS: readonly string[] = TOKEN_NAMES;
 const TOKEN_SET = new Set(TOKENS);
 
 // "What each token is" for the reference.
-const TOKEN_DESCRIPTION: Record<string, string> = {
+export const TOKEN_DESCRIPTION: Record<string, string> = {
   "color-text": "main text color",
   "color-text-muted": "secondary / muted text (labels, captions, empty states)",
   "color-background": "page and control background",
@@ -83,6 +83,14 @@ const TOKEN_DESCRIPTION: Record<string, string> = {
   "font-size-sm": "small text (labels, secondary, table cells)",
   "font-size-md": "base text (inputs, body, tab labels)",
   "focus-ring-width": "keyboard focus-ring width",
+  "color-category-0": "category colour slot 0 (blue); an option's colour index picks the slot",
+  "color-category-1": "category colour slot 1 (red); an option's colour index picks the slot",
+  "color-category-2": "category colour slot 2 (orange); an option's colour index picks the slot",
+  "color-category-3": "category colour slot 3 (yellow); an option's colour index picks the slot",
+  "color-category-4": "category colour slot 4 (green); an option's colour index picks the slot",
+  "color-category-5": "category colour slot 5 (teal); an option's colour index picks the slot",
+  "color-category-6": "category colour slot 6 (purple); an option's colour index picks the slot",
+  "color-category-7": "category colour slot 7 (pink); an option's colour index picks the slot",
   "shadow-sm": "small elevation shadow (sections); optional, no shadow when unset",
   "shadow-md": "medium elevation shadow (panels, cards); optional, no shadow when unset",
 };
@@ -730,6 +738,36 @@ export interface ComponentDoc {
   marked: Set<string>;
   vars: { order: string[]; map: Map<string, { def: string | undefined; fromDef: boolean }> };
   tokens: string[];
+  /** variables the component declares on its own element: suffix -> selector of the declaring rule */
+  declared: Map<string, string>;
+}
+
+// Custom properties a stylesheet declares inside a rule (`selector { --yadad-<comp>-x: v; }`),
+// first declaration wins. Used for variables with no `var(--x, fallback)` default:
+// the value is the default, and the selector is where a host has to set an override.
+function ownDeclarations(code: string, comp: string): Map<string, { value: string; selector: string }> {
+  const out = new Map<string, { value: string; selector: string }>();
+  const re = /([^{}]+)\{([^{}]*)\}/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(code)) !== null) {
+    let selector = (m[1] ?? "").trim().replace(/\s+/g, " ");
+    if (selector.startsWith("@")) continue;
+    if (selector.startsWith(":where(")) {
+      // unwrap only when that first paren group spans the whole selector
+      let depth = 0, end = -1;
+      for (let i = 6; i < selector.length; i++) {
+        if (selector[i] === "(") depth++;
+        else if (selector[i] === ")" && --depth === 0) { end = i; break; }
+      }
+      if (end === selector.length - 1) selector = selector.slice(7, -1);
+    }
+    const dre = new RegExp(`(?:^|;)\\s*--yadad-${comp}-([a-z0-9-]+)\\s*:\\s*([^;]*)`, "g");
+    let d: RegExpExecArray | null;
+    while ((d = dre.exec(m[2] ?? "")) !== null) {
+      if (d[1] !== undefined && d[2] !== undefined && !out.has(d[1])) out.set(d[1], { value: d[2].trim().replace(/\s+/g, " "), selector });
+    }
+  }
+  return out;
 }
 
 export function loadSources(): ComponentDoc[] {
@@ -777,13 +815,25 @@ export function loadSources(): ComponentDoc[] {
       i = code.indexOf("var(", ref.close + 1);
     }
 
+    // A variable with no inline default may still be declared on the
+    // component's own element; that value is its default, and a host has to
+    // set an override on that same element (a value set on an ancestor is
+    // replaced by the component's own declaration).
+    const declared = new Map<string, string>();
+    for (const [name, own] of ownDeclarations(code, comp)) {
+      const v = vars.get(name);
+      if (v === undefined || v.def !== undefined) continue;
+      v.def = own.value;
+      declared.set(name, own.selector);
+    }
+
     // theme tokens read anywhere in the CSS.
     const tokens = new Set<string>();
     const reTok = /--yadad-([a-z0-9-]+)/g;
     let mk: RegExpExecArray | null;
     while ((mk = reTok.exec(code)) !== null) if (mk[1] !== undefined && TOKEN_SET.has(mk[1])) tokens.add(mk[1]);
 
-    data.push({ comp, intro: COMPONENT_INTRO[comp], parts, marked, vars: { order, map: vars }, tokens: [...tokens].sort() });
+    data.push({ comp, intro: COMPONENT_INTRO[comp], parts, marked, vars: { order, map: vars }, tokens: [...tokens].sort(), declared });
   }
   return data;
 }
@@ -903,6 +953,7 @@ export function generateThemingDoc(): string {
       if (!VAR_DESCRIPTION[key] && !VAR_DESCRIPTION[name]) throw new Error(`THEMING.md: --yadad-${key} has no description in VAR_DESCRIPTION`);
     }
   }
+  for (const name of TOKENS) if (!TOKEN_DESCRIPTION[name]) throw new Error(`THEMING.md: token --yadad-${name} has no description in TOKEN_DESCRIPTION`);
   push("# Theming reference");
   push();
   push("> Generated by `scripts/theming.ts` from the component CSS and TSX. Do not");
@@ -914,7 +965,7 @@ export function generateThemingDoc(): string {
   push("Every component styles itself through a public, host-configurable surface (engine DECISIONS D15). You theme yadad three ways, in order of preference:");
   push();
   push("1. **Theme tokens** — set the `--yadad-*` tokens on `:root` (or any scope). This restyles the *whole* set at once and is the right tool for a new color scheme, a different spacing scale, a new font, or a different radius. Components read tokens only; they never hard-code a color, length, radius or font, so a token override reaches every component.");
-  push("2. **Per-component variables** — set a `--yadad-<component>-<name>` on a component (or any ancestor) to override just that part. Each defaults to a token, so you inherit the theme and override one value. Use these to nudge a single component without touching the rest (a different button radius, a custom table header background).");
+  push("2. **Per-component variables** — set a `--yadad-<component>-<name>` on a component (or any ancestor) to override just that part; the exception is a variable the component declares on its own element (its entry says so), which has to be set on that element.  Each defaults to a token, so you inherit the theme and override one value. Use these to nudge a single component without touching the rest (a different button radius, a custom table header background).");
   push("3. **`data-part` selectors** — target a part directly with the `data-part` attribute for anything the variables don't expose. Parts that carry the `data-yadad=\"<component>\"` marker on their own tag take the compound form `[data-yadad=\"text\"][data-part=\"input\"]`; parts nested inside the component root take the descendant form `[data-yadad=\"table\"] [data-part=\"header\"]`. Stable names; renaming one is a breaking change.");
   push();
   push("**Why host CSS wins.** All component CSS lives in `@layer yadad.components` (tokens in `@layer yadad.tokens`, ordered before it). Unlayered host CSS always beats layered CSS, and an earlier layer beats a later one — so your unlayered rules win, and you can also override the tokens by writing your own `@layer yadad.tokens` *before* importing the component styles, or by unlayered `:root` custom properties.");
@@ -983,7 +1034,7 @@ export function generateThemingDoc(): string {
     push();
     for (const name of c.vars.order) {
       const def = c.vars.map.get(name)?.def;
-      push(`- \`--yadad-${c.comp}-${name}\` — ${VAR_DESCRIPTION[`${c.comp}-${name}`] ?? VAR_DESCRIPTION[name] ?? "component variable"}; default: ${describeDefault(def)}`);
+      push(`- \`--yadad-${c.comp}-${name}\` — ${VAR_DESCRIPTION[`${c.comp}-${name}`] ?? VAR_DESCRIPTION[name] ?? "component variable"}; default: ${describeDefault(def)}${c.declared.has(name) ? `. Declared on the component's own element, so set it on \`${c.declared.get(name)}\`: a value on an ancestor is replaced by that declaration` : ""}`);
     }
     push();
     push(`**Theme tokens it reads:** ${c.tokens.length ? c.tokens.map((t) => `\`--yadad-${t}\``).join(", ") : "none"}`);
