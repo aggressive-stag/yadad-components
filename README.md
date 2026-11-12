@@ -132,3 +132,7 @@ How the set is put together is in [ARCHITECTURE.md](./ARCHITECTURE.md), the comp
 
 - Engine: [yadad](https://github.com/aggressive-stag/yadad) and its [ARCHITECTURE.md](https://github.com/aggressive-stag/yadad/blob/main/ARCHITECTURE.md) (the Registry contract is section 9)
 - Theme tokens: `@yadad/theme`
+
+## Licence
+
+MIT, see [LICENSE](LICENSE).
