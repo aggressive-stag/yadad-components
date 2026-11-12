@@ -1,14 +1,39 @@
-# GitLab CI for yadad-components: publish only.
+# GitLab CI for yadad-components: the gate, then publish.
 #
-# GitHub (the source repo) runs the full gate on every push; GitLab is a push
-# mirror that hosts the npm registry. This job publishes @yadad/components when
-# its package.json version is not in the registry yet. It never versions or
-# commits: bump the version locally, commit and push. See
-# scripts/release/publish.sh.
+# This runner can reach the LAN registry that holds the engine's packages;
+# GitHub's public runners cannot, so GitHub Actions is switched off and the
+# gate runs here (2026-11-12, owner's decision). `test` runs on every branch
+# push; `release` and `engine-range` run on the default branch only, and
+# `release` waits for `test`, so a red gate never publishes. `release`
+# publishes @yadad/components when its package.json version is not in the
+# registry yet. It never versions or commits: bump the version locally,
+# commit and push. See scripts/release/publish.sh.
 
 workflow:
   rules:
-    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH
+
+stages: [test, deploy]
+
+# The gate: what GitHub Actions used to run. The components link ../yadad
+# (link: dependencies), so the engine is cloned and its theme built first.
+test:
+  stage: test
+  tags: [k8s]
+  # Not -slim: the job clones the engine repo with git.
+  image: docker.io/library/node:24.21.0-bookworm
+  timeout: 20m
+  variables:
+    COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+  script:
+    - git clone --depth 1 "${CI_SERVER_URL}/yadad/yadad.git" ../yadad
+    - git config --global --add safe.directory "${CI_PROJECT_DIR}"
+    - corepack enable
+    - (cd ../yadad && pnpm install --frozen-lockfile && pnpm exec tsc -b packages/theme)
+    - pnpm install --frozen-lockfile
+    - pnpm typecheck
+    - pnpm test
+    - pnpm build:css && test -s dist/yadad-components.css
 
 release:
   stage: deploy
@@ -16,6 +41,9 @@ release:
   # Not -slim: the job clones the engine repo with git.
   image: docker.io/library/node:24.21.0-bookworm
   timeout: 20m
+  needs: [test]
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   variables:
     COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
   script:
@@ -34,6 +62,9 @@ engine-range:
   image: docker.io/library/node:24.21.0-bookworm
   timeout: 20m
   allow_failure: true
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      allow_failure: true
   variables:
     COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
     npm_config_registry: "${CI_API_V4_URL}/packages/npm/"
