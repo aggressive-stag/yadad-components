@@ -8,9 +8,8 @@ Rules for any AI coding agent working in the components repository. This repo ho
 components/
   sets/
     base/
-      <name>/v1/     one folder per component: text, number, boolean, select, date,
-                     reference, field-frame, section, panel, tabs, button, table,
-                     calendar, board, count, error-summary
+      <name>/v1/     one folder per component; list them with `ls sets/base`
+    internal/        shared pieces that are not registry entries (`ls sets/internal`)
   registry/
     base.ts          maps each field type, layout piece and widget to exactly one component version
   UPSTREAM.md        source, upstream version and date copied, per component
