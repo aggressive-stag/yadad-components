@@ -1,5 +1,11 @@
 # @yadad/components
 
+## 0.48.4
+
+### Patch Changes
+
+- 1584ad5: THEMING.md: describe the eight category colour tokens, show the real default for variables a component declares on its own element (calendar and select slots, tabs ring clearance), and say those must be set on that element.
+
 ## 0.48.3
 
 ### Patch Changes
