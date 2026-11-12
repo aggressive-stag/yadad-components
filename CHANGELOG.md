@@ -1,5 +1,11 @@
 # @yadad/components
 
+## 0.48.3
+
+### Patch Changes
+
+- b39ec12: Add the MIT licence: a `LICENSE` file and `"license": "MIT"` in package.json.
+
 ## 0.48.2
 
 ### Patch Changes

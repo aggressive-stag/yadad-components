@@ -1,6 +1,6 @@
 {
   "name": "@yadad/components",
-  "version": "0.48.2",
+  "version": "0.48.3",
   "description": "The yadad base component set: themeable, accessible field and layout components for the yadad renderer.",
   "license": "MIT",
   "type": "module",
