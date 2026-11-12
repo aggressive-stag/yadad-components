@@ -44,6 +44,10 @@ jobs:
         working-directory: yadad
         run: pnpm install --frozen-lockfile
 
+      - name: Build @yadad/theme (the stylesheet build imports its dist)
+        working-directory: yadad
+        run: pnpm exec tsc -b packages/theme
+
       - name: Install
         working-directory: yadad-components
         run: pnpm install --frozen-lockfile
