@@ -50,6 +50,31 @@ export function CustomerForm({ entity, view, dataSources }) {
 
 `baseRegistry` is a `Registry<ReactNode>`. The same registry works with `TableRenderer`, `CalendarRenderer`, `BoardRenderer` and `DashboardRenderer`. The stylesheet is optional: skip it and style the `data-part` hooks yourself.
 
+## Replace one component
+
+`baseRegistry` is a plain object, so spread it and replace the entries you want:
+
+```tsx
+const registry: Registry<ReactNode> = {
+  ...baseRegistry,
+  fields: { ...baseRegistry.fields, text: { type: "text", Input: MyTextInput, Display: baseRegistry.fields.text.Display } },
+  layout: { ...baseRegistry.layout, Button: MyButton },
+};
+```
+
+A replacement takes the props the engine's `Registry` type gives it (`FieldInputProps<"text">`, `ButtonProps`, ...) and must meet the contract: emit `undefined` when cleared, set `aria-invalid`, link `aria-describedby` and `aria-labelledby`, and so on. Keep the `data-yadad` and `data-part` hooks only if you want this set's stylesheet to apply to it. Check the result with `describeRegistryContract(registry)` from `@yadad/testing/contract-kit` (see "Contract kit" in the engine's testing README). The example above is compiled and run, contract kit included, in `registry/replace-one.test.tsx`.
+
+## Import one component
+
+The root import gives the whole registry. Every component also has its own path, `@yadad/components/<name>`, for wrapping or reusing one component, and its stylesheet at `@yadad/components/styles/<name>.css`, for loading one stylesheet instead of `styles.css`:
+
+```tsx
+import { Button } from "@yadad/components/button";
+import "@yadad/components/styles/button.css";
+```
+
+Names (the same list for both paths): `board`, `boolean`, `button`, `calendar`, `composer`, `count`, `date`, `datetime`, `dialog`, `error-summary`, `field-frame`, `number`, `pager`, `panel`, `reference`, `section`, `select`, `series`, `table`, `tabs`, `tags`, `text`, `time`. A component stylesheet carries the internal sheets its component imports (for example the check box under `boolean`, `board` and `calendar`, and the skeleton and swatch sheets), so it is complete on its own, with one exception: a component that composes another base component does not carry that component's sheet. `pager` renders `Button`, so also load `styles/button.css` with it. The internal pieces have no import path of their own.
+
 ## What is included
 
 - **Field types** (each an `Input` and a read-only `Display`): `text`, `number`, `boolean`, `select`, `date`, `datetime`, `time`, `tags`, `reference`. The `text` Display also draws word-level compare marks (`<ins>` / `<del>` with screen-reader `added:` / `removed:` prefixes) when the renderer passes a `diff`; the root carries `data-raw-before` / `data-raw-after`, the unsplit old and new text. The `datetime` and `time` Displays are `<time>` elements carrying the stored instant / `HH:MM`. `tags` (RFC 0008 item 15) is a chip editor: type-and-Enter adds, each chip removes, Backspace on the empty field removes the last. Select options render their labels and colour dots when the document carries them (RFC 0008 item 10).

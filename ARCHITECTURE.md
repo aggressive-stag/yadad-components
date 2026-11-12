@@ -80,7 +80,7 @@ A `fields.<type>` entry is always a `{ type, Input, Display }` pair; `layout` na
 ```mermaid
 flowchart TB
   subgraph Reg["registry/"]
-    BR["base.ts: baseRegistry, the only public entry"]
+    BR["base.ts: baseRegistry, the root entry"]
   end
   subgraph Base["sets/base/"]
     BV1["name/v1/: Component.tsx + component.css + index.ts, plus its test; one folder per component, versions side by side"]
@@ -96,7 +96,7 @@ flowchart TB
   Base -->|"colours, spacing, radii via tokens only"| TH
 ```
 
-*What imports what: the registry is the only door, components compose internal primitives, and only tokens reach the theme (checked against `registry/base.ts`, `sets/base/` and `sets/internal/` at `e69d2a0`, 2026-11-04).*
+*What imports what: the registry is the root entry (each component also has its own export path), components compose internal primitives, and only tokens reach the theme (checked against `registry/base.ts`, `sets/base/` and `sets/internal/` at `e69d2a0`, 2026-11-04).*
 
 Each `sets/base/<name>/v1/` folder owns its component, its stylesheet (one `@layer yadad.components` block), its barrel `index.ts` and its tests. `sets/internal/` holds what several components share but hosts never import: `check` (every checkbox in the set), `menu` and its skeleton, the colour `swatch`, and the touch-drag helpers. The published `files` list ships `dist/`, `sets/`, `registry/` and `THEMING.md` only — gallery, checks and scripts stay in the repo.
 

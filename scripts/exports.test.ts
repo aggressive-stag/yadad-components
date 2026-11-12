@@ -4,7 +4,7 @@
 // `dist/` is rebuilt only when HEAD moved (cached via dist/.gate-build) so
 // `pnpm test` after `pnpm build` is free and `pnpm test` alone is still right.
 import { execSync } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -69,5 +69,20 @@ describe("package exports map (card 15b)", () => {
       const dts = resolve(root, types as string);
       expect(readFileSync(dts, "utf8"), `${subpath} types are empty`).toMatch(/\bexport\s*(\{|\*|declare|type|interface|const|function)/);
     }
+  });
+});
+
+describe("documents only name import paths the package exports (card 43)", () => {
+  const docs = ["README.md", ...readdirSync(resolve(root, "docs/components")).filter((f) => f.endsWith(".md")).map((f) => `docs/components/${f}`)];
+
+  it.each(docs)("%s", (doc) => {
+    const text = readFileSync(resolve(root, doc), "utf8");
+    const bad: string[] = [];
+    for (const m of text.matchAll(/@yadad\/components(\/[A-Za-z0-9._/-]*[A-Za-z0-9_-])?/g)) {
+      const key = m[1] === undefined ? "." : `.${m[1]}`;
+      // a trailing ".md" or sentence dot is not part of an import path
+      if (pkg.exports[key] === undefined) bad.push(m[0]);
+    }
+    expect(bad, `${doc} names import paths that are not keys of "exports"`).toEqual([]);
   });
 });

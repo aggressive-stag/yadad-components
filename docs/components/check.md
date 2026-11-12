@@ -3,7 +3,9 @@
 The internal completion box behind every checkbox in the set (boolean fields, calendar done, board done). Not in the registry — components import it from `sets/internal/check/v1/`. One `--yadad-check-*` surface paints every completion box, so they agree.
 
 ```tsx
-import { Check } from "@yadad/components/internal/check";  // internal: components use it, hosts normally do not
+// Internal: the package has no import path for it. Components import it from
+// sets/internal/check/v1/, and hosts normally do not use it.
+import { Check } from "../sets/internal/check/v1/index.js";
 
 <label>
   <Check checked={square} onChange={(e) => setSquare(e.target.checked)} aria-label="Square check" />
