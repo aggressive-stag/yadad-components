@@ -66,7 +66,7 @@ A replacement takes the props the engine's `Registry` type gives it (`FieldInput
 
 ## Import one component
 
-The root import gives the whole registry. Every component also has its own path, `@yadad/components/<name>`, for wrapping or reusing one component, and its stylesheet at `@yadad/components/styles/<name>.css`, for loading one stylesheet instead of `styles.css`:
+The root import gives the whole registry. Every component also has its own path, `@yadad/components/<name>`, for wrapping or reusing one component, and its stylesheet at a matching `styles/<name>.css` path (`@yadad/components/styles/button.css`), for loading one stylesheet instead of `styles.css`:
 
 ```tsx
 import { Button } from "@yadad/components/button";
