@@ -123,3 +123,46 @@ describe("record actions (RFC 0007)", () => {
     }
   });
 });
+
+describe("data-column-id (card 42)", () => {
+  const cols: TableColumnHeader[] = [
+    { id: "title", label: "Title", headerId: "h-t", sortable: false },
+    { id: "actions", label: "Actions field", headerId: "h-a", sortable: false },
+  ];
+  const data = [
+    { id: "r1", cells: ["a", "b"], actions: [action()] },
+    { id: "r2", cells: ["c", "d"], actions: [action()] },
+    { id: "r3", cells: ["e", "f"] },
+  ];
+
+  it("header and body cells of one column carry the same id, one body cell per row", () => {
+    const { container } = render(<Table caption="c" columns={cols} rows={data} onSort={() => {}} empty="none" />);
+    expect(container.querySelectorAll('th[data-column-id="title"]').length).toBe(1);
+    expect(container.querySelectorAll('td[data-column-id="title"]').length).toBe(data.length);
+    // data-label (phone card layout) is untouched
+    expect(container.querySelector('td[data-column-id="title"]')?.getAttribute("data-label")).toBe("Title");
+  });
+
+  it("a field called actions and the record-actions column stay apart", () => {
+    const { container } = render(<Table caption="c" columns={cols} rows={data} onSort={() => {}} empty="none" />);
+    expect(container.querySelectorAll('td[data-column-id="actions"]').length).toBe(data.length);
+    expect(container.querySelectorAll('td[data-col="actions"]').length).toBe(data.length);
+    const recordActions = [...container.querySelectorAll('[data-col="actions"]')];
+    expect(recordActions.every((e) => e.getAttribute("data-column-id") === "_actions")).toBe(true);
+    // the field column is not matched by [data-col="actions"]
+    expect(container.querySelector('td[data-column-id="actions"][data-col="actions"]')).toBeNull();
+  });
+
+  it("a cell with no column entry omits the attribute", () => {
+    const { container } = render(<Table caption="c" columns={cols} rows={[{ id: "r1", cells: ["a", "b", "extra"] }]} onSort={() => {}} empty="none" />);
+    const cells = [...container.querySelectorAll('td[data-part="cell"]')];
+    expect(cells.length).toBe(3);
+    expect(cells[2]?.hasAttribute("data-column-id")).toBe(false);
+    expect(container.innerHTML).not.toContain("undefined");
+  });
+
+  it("skeleton rows carry it too", () => {
+    const { container } = render(<Table caption="c" columns={cols} rows={[]} onSort={() => {}} empty="none" loading skeletonRows={2} />);
+    expect(container.querySelectorAll('td[data-column-id="title"]').length).toBe(2);
+  });
+});

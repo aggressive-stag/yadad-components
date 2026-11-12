@@ -50,7 +50,10 @@ describe("the gallery page", () => {
       expect(elements.length, `the page must render at least one data-yadad="${type}" element`).toBeGreaterThan(0);
     }
     cleanup();
-  });
+    // The whole gallery page renders in jsdom: about 5 s on a loaded machine,
+    // right at vitest's default limit, so give it room (it timed out in the
+    // gate twice with a busy host).
+  }, 30_000);
 
   it("exposes every listed state anchor once, with no duplicate ids", () => {
     const { container } = render(<App />);

@@ -115,6 +115,15 @@ The same table in a 390px container: the container query stacks the rows into ca
 *the table in the dark theme (1280px, light).*
 
 
+## Styling one column
+
+Every header and body cell carries `data-column-id`, the id of its column (for a field column, the field's id). The record-actions column is `_actions`. `data-label` stays the display label for the phone card layout; do not select on it, it changes with the language.
+
+```css
+td[data-column-id="day"] { white-space: nowrap; }           /* dates never wrap */
+th[data-column-id="note"], td[data-column-id="note"] { min-inline-size: 16rem; }
+```
+
 ## Theming
 
 - `--yadad-table-spacing` — space after the table; default: token `--yadad-space-4` (spacing scale, step 4 (loosest))

@@ -139,6 +139,13 @@ function RowActions({ actions, rowLabel, strings }: { actions: readonly RecordAc
 }
 
 /**
+ * `data-column-id` on the record-actions column. It cannot be a plain
+ * `actions`: a field may itself be called that, and the two columns must stay
+ * apart for a host's per-column selectors.
+ */
+const ACTIONS_COLUMN_ID = "_actions";
+
+/**
  * A semantic table. Sortable headers hold a button; the sorted one carries
  * aria-sort and a visually hidden status so the button names its direction.
  * Under a narrow container (see table.css) rows stack as cards, each cell
@@ -157,7 +164,7 @@ export function Table({ caption, columns, rows, onSort, empty, actionsLabel, str
         <thead role="rowgroup">
           <tr role="row">
             {columns.map((c) => (
-              <th key={c.id} id={c.headerId} scope="col" role="columnheader" data-part="header" aria-sort={ariaSort(c.sort)}>
+              <th key={c.id} id={c.headerId} scope="col" role="columnheader" data-part="header" data-column-id={c.id} aria-sort={ariaSort(c.sort)}>
                 {c.sortable ? (
                   <button type="button" data-part="sort" onClick={() => onSort(c.id)}>
                     {c.label}
@@ -172,7 +179,7 @@ export function Table({ caption, columns, rows, onSort, empty, actionsLabel, str
               </th>
             ))}
             {hasActions ? (
-              <th scope="col" role="columnheader" data-part="header" data-col="actions">
+              <th scope="col" role="columnheader" data-part="header" data-col="actions" data-column-id={ACTIONS_COLUMN_ID}>
                 {actionsLabel ?? "Actions"}
               </th>
             ) : null}
@@ -187,7 +194,7 @@ export function Table({ caption, columns, rows, onSort, empty, actionsLabel, str
             Array.from({ length: Math.max(0, skeletonRows) }, (_, r) => (
               <tr key={`skeleton-${r}`} role="row" data-part="skeleton-row">
                 {Array.from({ length: columns.length + (hasActions ? 1 : 0) }, (_, c) => (
-                  <td key={columns[c]?.id ?? c} role="cell" data-label={columns[c]?.label} data-part="cell">
+                  <td key={columns[c]?.id ?? c} role="cell" data-label={columns[c]?.label} data-part="cell" data-column-id={columns[c]?.id ?? (c === columns.length && hasActions ? ACTIONS_COLUMN_ID : undefined)}>
                     <Skeleton width={c === 0 ? "70%" : `${50 + ((r * 13 + c * 29) % 40)}%`} height="1em" />
                   </td>
                 ))}
@@ -203,12 +210,12 @@ export function Table({ caption, columns, rows, onSort, empty, actionsLabel, str
             rows.map((row) => (
               <tr key={row.id} role="row" data-yadad-row={row.id} data-part="row">
                 {row.cells.map((cell, i) => (
-                  <td key={columns[i]?.id ?? i} role="cell" data-label={columns[i]?.label} data-part="cell">
+                  <td key={columns[i]?.id ?? i} role="cell" data-label={columns[i]?.label} data-part="cell" data-column-id={columns[i]?.id}>
                     {cell}
                   </td>
                 ))}
                 {hasActions ? (
-                  <td role="cell" data-label={actionsLabel ?? "Actions"} data-part="cell" data-col="actions">
+                  <td role="cell" data-label={actionsLabel ?? "Actions"} data-part="cell" data-col="actions" data-column-id={ACTIONS_COLUMN_ID}>
                     {row.actions && row.actions.length > 0 ? <RowActions actions={row.actions} rowLabel={caption} strings={strings} /> : null}
                   </td>
                 ) : null}
