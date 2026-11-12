@@ -77,7 +77,11 @@ engine-range:
     npm_config_registry: "${CI_API_V4_URL}/packages/npm/"
   script:
     # Read access to the instance-level registry endpoint.
-    - printf '%s\n' "${CI_API_V4_URL#https:}/packages/npm/:_authToken=${CI_JOB_TOKEN}" > "${HOME}/.npmrc"
+    - |
+      cat > "${HOME}/.npmrc" <<EOF
+      @yadad:registry=${CI_API_V4_URL}/packages/npm/
+      ${CI_API_V4_URL#https:}/packages/npm/:_authToken=${CI_JOB_TOKEN}
+      EOF
     # Until contract-v0 is published the repo links ../yadad (as in release).
     - git clone --depth 1 "${CI_SERVER_URL}/yadad/yadad.git" ../yadad
     - git config --global --add safe.directory "${CI_PROJECT_DIR}"
