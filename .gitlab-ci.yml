@@ -26,6 +26,13 @@ test:
   variables:
     COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
   script:
+    # Reads of @yadad/* go to the instance endpoint with the job token (the
+    # same setup as the engine's own test job); everything else from npmjs.
+    - |
+      cat > "${HOME}/.npmrc" <<EOF
+      @yadad:registry=${CI_API_V4_URL}/packages/npm/
+      ${CI_API_V4_URL#https:}/packages/npm/:_authToken=${CI_JOB_TOKEN}
+      EOF
     - git clone --depth 1 "${CI_SERVER_URL}/yadad/yadad.git" ../yadad
     - git config --global --add safe.directory "${CI_PROJECT_DIR}"
     - corepack enable
