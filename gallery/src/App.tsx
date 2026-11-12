@@ -630,6 +630,35 @@ function TableSortStates(): ReactNode {
   );
 }
 
+/**
+ * Card 41: a table whose columns compete for width, with a Button in the last
+ * cell and tag chips in another. `overflow-wrap: anywhere` once lowered their
+ * minimum width to one character, so the browser squeezed "Edit" and the chips
+ * letter by letter. The wide state is a real table at desktop width; the
+ * narrow one caps the container just above the stacked-layout breakpoint.
+ */
+function TableSqueezeStates(): ReactNode {
+  const tags = baseRegistry.fields.tags;
+  const TagsDisplayCell = tags?.Display;
+  const field = samples.tags.field;
+  const columns = (idPrefix: string) => [
+    { id: "note", headerId: `${idPrefix}-col-note`, label: "Note", sortable: false },
+    { id: "tags", headerId: `${idPrefix}-col-tags`, label: "Tags", sortable: false },
+    { id: "edit", headerId: `${idPrefix}-col-edit`, label: "Edit", sortable: false },
+  ];
+  const long = "Felt strong today, moved the warm-up sets up a notch and kept the rest between sets short because the room was empty and nobody was waiting for the rack";
+  const rows = [
+    { id: "r1", cells: [long, TagsDisplayCell ? <TagsDisplayCell field={field} value={["squat", "heavy"]} /> : "", <Button label="Edit" type="button" variant="secondary" disabled={false} onPress={() => {}} />] },
+    { id: "r2", cells: [long, TagsDisplayCell ? <TagsDisplayCell field={field} value={["bench press", "light", "tempo", "accessory work"]} /> : "", <Button label="Edit" type="button" variant="secondary" disabled={false} onPress={() => {}} />] },
+  ];
+  return (
+    <>
+      {state("table-squeeze", "buttons and chips beside a long-text column keep their words whole (card 41)", <Table caption="Notes" columns={columns("g-sq")} rows={rows} onSort={() => {}} empty="No notes" />)}
+      {state("table-squeeze-narrow", "the same table in a 56ch container, just above the stacked layout (card 41)", <div style={{ maxInlineSize: "56ch" }}><Table caption="Notes (narrow)" columns={columns("g-sqn")} rows={rows} onSort={() => {}} empty="No notes" /></div>)}
+    </>
+  );
+}
+
 /** Record actions in table rows (RFC 0007): one action, several, pending, danger. */
 function TableActionsStates(): ReactNode {
   const columns = (idPrefix: string) => [
@@ -1784,6 +1813,7 @@ export default function App(): ReactNode {
           {state("table-many-rows-long-text", "many rows and long cell text", <TableState caption="Sets (many rows)" many idPrefix="g-many" />)}
           <TableSortStates />
           <TableActionsStates />
+          <TableSqueezeStates />
         </section>
 
         <section id="group-error-summary">

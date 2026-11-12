@@ -147,6 +147,17 @@
     }
   }
 
+  /* Card 41: a button or a tag chip in a table cell keeps its words whole.
+     Their own `overflow-wrap: anywhere` (card 34a, so one long word cannot
+     widen a dialog or a row) also lowers their smallest width to one
+     character, and an auto-sized column then squeezed "Edit" to "Ed/it".
+     `break-word` makes the whole word the minimum a column asks for; a very
+     long word widens the table, which scrolls inside its own wrapper. Same
+     in the stacked phone layout, where the cell is a flex row. */
+  :where([data-yadad="table"]) :where([data-part="cell"]) :where([data-yadad="button"][data-part="root"], [data-yadad="tags"] [data-part="chip"]) {
+    overflow-wrap: break-word;
+  }
+
   /* Phone width: under 50ch of container width each row becomes a card and
      each cell shows its column label (data-label) before its value. Real
      table elements and roles stay in the DOM. The header row stays as a strip
